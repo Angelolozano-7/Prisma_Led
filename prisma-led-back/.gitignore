@@ -1,10 +1,11 @@
 # Entorno virtual
 venv/
 __pycache__/
+*.pyc
 
 # Archivos de configuración sensibles
 *.env
-credentials.json
+credentials/credentials.json
 
 # Archivos de Python compilados
 *.pyc
