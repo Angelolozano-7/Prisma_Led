@@ -1,0 +1,25 @@
+# Entorno virtual
+venv/
+__pycache__/
+
+# Archivos de configuración sensibles
+*.env
+credentials.json
+
+# Archivos de Python compilados
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Archivos de VSCode (si usas)
+.vscode/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de backup temporales
+*.bak
+*.swp
+*.tmp
