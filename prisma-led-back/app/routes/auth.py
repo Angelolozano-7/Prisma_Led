@@ -29,12 +29,7 @@ def login():
     if not check_password_hash(user["password_hash"], password):
         return jsonify({"msg": "Contraseña incorrecta"}), 401
 
-    access_token = create_access_token(identity={
-        "id": user["id_usuario"],
-        "nombre": user["nombre"],
-        "correo": user["correo"],
-        "rol": user["rol"]
-    })
+    access_token = create_access_token(identity= user["id_usuario"])
     return jsonify({"access_token": access_token}), 200
 
 

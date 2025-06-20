@@ -1,12 +1,16 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.sheets_client import connect_sheet
 
 reservas_bp = Blueprint('reservas_bp', __name__)
 
-@reservas_bp.route('/cliente/<id_cliente>', methods=['GET', 'OPTIONS'])
-def obtener_reservas_del_cliente(id_cliente):
+@reservas_bp.route('/cliente', methods=['GET', 'OPTIONS'])
+@jwt_required()
+def obtener_reservas_del_cliente():
     if request.method == 'OPTIONS':
         return '', 200
+
+    id_cliente = get_jwt_identity()  # Se obtiene desde el token
 
     sheet = connect_sheet()
     reservas_ws = sheet.worksheet("reservas")

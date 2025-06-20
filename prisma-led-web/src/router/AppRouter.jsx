@@ -5,19 +5,15 @@ import Layout1 from '../layouts/Layout1';
 import Layout2 from '../layouts/Layout2';
 import Layout3 from '../layouts/Layout3';
 
-// Páginas principales (sin layout o layout general)
+// Páginas principales
 import HomePage from '../pages/HomePage';
 
-
-// Layout 1: flujo de autenticación
-//clave: /auth
+// Layout 1: autenticación
 import Login from '../pages/Login';
 import Recovery from '../pages/Recovery';
 import LoginError from '../pages/Login_Error';
 
-
-// Layout 2: funcionalidades del cliente autenticado
-//clave: /cliente
+// Layout 2: cliente autenticado
 import ClientHome from '../pages/Client_Home';
 import EditarReserva from '../pages/Editar_Reserva';
 import HistorialReservas from '../pages/Historial_Reservas';
@@ -25,30 +21,37 @@ import PreVisualizacion from '../pages/Pre_Visualizacion';
 import Disponibilidad from '../pages/Disponibilidad';
 import PreOrden from '../pages/Pre_Orden';
 import PreOrdenDoc from '../pages/Pre_Orden_Doc';
-import Reserva from '../pages/Reserva'; // Diferente de ReservaPage
+import Reserva from '../pages/Reserva';
 
-// Layout 3: edición de cliente
-//clave: /perfil    
+// Layout 3: edición perfil
 import EditarCliente from '../pages/Editar_Cliente';
 import Registro from '../pages/Registro';
+
+// 🔒 Ruta protegida
+import PrivateRoute from '../components/PrivateRoute';
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Rutas sin layout especial */}
+        {/* Rutas públicas */}
         <Route path="/" element={<HomePage />} />
-
-        {/* Layout 1: autenticación */}
         <Route path="/auth" element={<Layout1 />}>
           <Route path="login" element={<Login />} />
           <Route path="recovery" element={<Recovery />} />
           <Route path="login-error" element={<LoginError />} />
         </Route>
 
-        {/* Layout 2: vistas de cliente */}
-        <Route path="/cliente" element={<Layout2 />}>
+        {/* Rutas protegidas con Layout2 */}
+        <Route
+          path="/cliente"
+          element={
+            <PrivateRoute>
+              <Layout2 />
+            </PrivateRoute>
+          }
+        >
           <Route index element={<ClientHome />} />
           <Route path="historial-reservas" element={<HistorialReservas />} />
           <Route path="pre-visualizacion" element={<PreVisualizacion />} />
@@ -59,12 +62,18 @@ export default function AppRouter() {
           <Route path="editar-reserva" element={<EditarReserva />} />
         </Route>
 
-        {/* Layout 3: edición perfil */}
-        <Route path="/perfil" element={<Layout3 />}>
+        {/* Rutas protegidas con Layout3 */}
+        <Route
+          path="/perfil"
+          element={
+            <PrivateRoute>
+              <Layout3 />
+            </PrivateRoute>
+          }
+        >
           <Route path="editar" element={<EditarCliente />} />
           <Route path="registro" element={<Registro />} />
         </Route>
-
 
       </Routes>
     </BrowserRouter>

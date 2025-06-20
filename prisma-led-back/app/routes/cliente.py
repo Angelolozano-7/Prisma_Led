@@ -5,10 +5,12 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 cliente_bp = Blueprint('cliente_bp', __name__)
 
-@cliente_bp.route('/cliente/<id_usuario>', methods=['PUT'])
-def actualizar_cliente(id_usuario):
-    data = request.get_json()
+@cliente_bp.route('/cliente', methods=['PUT'])
+@jwt_required()
+def actualizar_cliente():
+    id_usuario = get_jwt_identity()
 
+    data = request.get_json()
     sheet = connect_sheet()
     usuarios_ws = sheet.worksheet("usuarios")
     clientes_ws = sheet.worksheet("clientes")
@@ -16,64 +18,73 @@ def actualizar_cliente(id_usuario):
     usuarios = usuarios_ws.get_all_records()
     clientes = clientes_ws.get_all_records()
 
-    # Buscar índice de usuario y cliente
+    # Buscar índices por ID en ambas hojas
     usuario_index = next((i for i, u in enumerate(usuarios) if u["id_usuario"] == id_usuario), None)
-    cliente_index = next((i for i, c in enumerate(clientes) if c["correo_electronico"] == data["correo"]), None)
+    cliente_index = next((i for i, c in enumerate(clientes) if c["id_cliente"] == id_usuario), None)
 
     if usuario_index is None or cliente_index is None:
         return jsonify({"msg": "Usuario no encontrado"}), 404
 
-    # Actualizar hoja de usuarios (fila real = índice + 2)
-    usuarios_ws.update_cell(usuario_index + 2, 2, data["nombre_contacto"])  # nombre
-    usuarios_ws.update_cell(usuario_index + 2, 3, data["correo"])           # correo
-    usuarios_ws.update_cell(usuario_index + 2, 4, data["telefono"])         # telefono
+    # Columnas usuarios
+    campos_usuarios = {
+        "nombre": data.get("razon_social"),
+        "correo": data.get("correo"),
+        "telefono": data.get("telefono"),
+    }
 
-    if "password" in data and data["password"]:
-        hashed = generate_password_hash(data["password"])
-        usuarios_ws.update_cell(usuario_index + 2, 6, hashed)  # password_hash (columna 6)
+    for campo, valor in campos_usuarios.items():
+        if valor:
+            col_idx = list(usuarios[0].keys()).index(campo) + 1
+            usuarios_ws.update_cell(usuario_index + 2, col_idx, valor)
 
-    # Actualizar hoja de clientes
-    clientes_ws.update_cell(cliente_index + 2, 2, data["razon_social"])
-    clientes_ws.update_cell(cliente_index + 2, 3, data["nit"])
-    clientes_ws.update_cell(cliente_index + 2, 4, data["correo"])
-    clientes_ws.update_cell(cliente_index + 2, 5, data["ciudad"])
-    clientes_ws.update_cell(cliente_index + 2, 6, data["direccion"])
-    clientes_ws.update_cell(cliente_index + 2, 7, data["telefono"])
-    clientes_ws.update_cell(cliente_index + 2, 8, data["nombre_contacto"])
+    if data.get("password"):
+        password_hash = generate_password_hash(data["password"])
+        col_idx = list(usuarios[0].keys()).index("password_hash") + 1
+        usuarios_ws.update_cell(usuario_index + 2, col_idx, password_hash)
+
+    # Columnas clientes
+    campos_clientes = {
+        "razon_social": "razon_social",
+        "nit": "nit",
+        "correo": "correo_electronico",
+        "ciudad": "ciudad",
+        "direccion": "direccion",
+        "telefono": "telefono_contacto",
+        "nombre_contacto": "nombre_contacto"
+    }
+
+    for key_front, key_sheet in campos_clientes.items():
+        if data.get(key_front):
+            col_idx = list(clientes[0].keys()).index(key_sheet) + 1
+            clientes_ws.update_cell(cliente_index + 2, col_idx, data[key_front])
 
     return jsonify({"msg": "Datos actualizados correctamente"}), 200
 
 
-@cliente_bp.route('/auth/usuario/<id_usuario>', methods=['GET', 'OPTIONS'])
-def obtener_usuario(id_usuario):
-    if request.method == 'OPTIONS':
-        return '', 200  # respuesta al preflight CORS
+@cliente_bp.route('/cliente', methods=['GET'])
+@jwt_required()
+def obtener_cliente():
+    from flask import request
+    print(request.headers)
+    id_usuario = get_jwt_identity()
 
     sheet = connect_sheet()
-    usuarios_ws = sheet.worksheet("usuarios")
-    clientes_ws = sheet.worksheet("clientes")
+    usuarios = sheet.worksheet("usuarios").get_all_records()
+    clientes = sheet.worksheet("clientes").get_all_records()
 
-    usuarios = usuarios_ws.get_all_records()
-    clientes = clientes_ws.get_all_records()
-
-    # Buscar usuario
     usuario = next((u for u in usuarios if u["id_usuario"] == id_usuario), None)
-    if not usuario:
+    cliente = next((c for c in clientes if c["id_cliente"] == id_usuario), None)
+
+    if not usuario or not cliente:
         return jsonify({"msg": "Usuario no encontrado"}), 404
 
-    # Buscar cliente con el mismo correo
-    cliente = next((c for c in clientes if c["correo_electronico"] == usuario["correo"]), {})
-
-    # Unificar respuesta
-    data = {
-        "nombre": usuario["nombre"],
-        "correo": usuario["correo"],
-        "telefono": usuario["telefono"],
+    return jsonify({
         "razon_social": cliente.get("razon_social", ""),
         "nit": cliente.get("nit", ""),
+        "correo": cliente.get("correo_electronico", ""),
         "ciudad": cliente.get("ciudad", ""),
         "direccion": cliente.get("direccion", ""),
-        "nombre_contacto": cliente.get("nombre_contacto", "")
-    }
-
-    return jsonify(data), 200
+        "telefono": cliente.get("telefono_contacto", ""),
+        "nombre_contacto": cliente.get("nombre_contacto", ""),
+        "usuario": usuario.get("correo", "")
+    }), 200

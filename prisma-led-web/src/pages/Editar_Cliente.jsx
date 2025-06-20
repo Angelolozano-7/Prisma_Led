@@ -16,27 +16,26 @@ export default function Editar_Cliente() {
     telefono: '',
     nombre_contacto: '',
     usuario: '',
-    password: '' // inicialmente vacío
+    password: ''
   });
 
   useEffect(() => {
     const user = getUserFromToken();
     if (user && user.id) {
-      api.get(`/auth/usuario/${user.id}`)
+      api.get('/cliente')
         .then(res => {
           const data = res.data;
-          setForm(prev => ({
-            ...prev,
+          setForm({
             razon_social: data.razon_social || '',
             nit: data.nit || '',
             correo: data.correo || '',
             ciudad: data.ciudad || '',
             direccion: data.direccion || '',
             telefono: data.telefono || '',
-            nombre_contacto: data.nombre || '',
-            usuario: data.correo || ''
-            // password queda vacío
-          }));
+            nombre_contacto: data.nombre_contacto || '',
+            usuario: data.usuario || '',
+            password: ''
+          });
         })
         .catch(() => {
           setMensaje('No se pudo cargar la información del usuario');
@@ -50,8 +49,6 @@ export default function Editar_Cliente() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const user = getUserFromToken();
-
     const payload = {
       razon_social: form.razon_social,
       nit: form.nit,
@@ -67,7 +64,7 @@ export default function Editar_Cliente() {
     }
 
     try {
-      await api.put(`/cliente/${user.id}`, payload);
+      await api.put(`/cliente`, payload);
       setMensaje('Datos actualizados correctamente');
       setTimeout(() => navigate('/cliente'), 2000);
     } catch (error) {

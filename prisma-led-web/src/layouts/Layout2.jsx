@@ -2,15 +2,24 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import { User } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { getUserFromToken } from '../services/decodeToken';
+import api from '../services/api';
 
 export default function Layout2() {
-  const [usuario, setUsuario] = useState(null);
+  const [nombre, setNombre] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = getUserFromToken();
-    setUsuario(user);
+    const fetchCliente = async () => {
+      try {
+        const res = await api.get('/cliente');
+        setNombre(res.data.nombre_contacto || res.data.razon_social || 'usuario');
+      } catch (error) {
+        console.warn('No se pudo obtener el nombre del cliente');
+        setNombre('usuario');
+      }
+    };
+
+    fetchCliente();
   }, []);
 
   const handleLogout = () => {
@@ -20,7 +29,6 @@ export default function Layout2() {
 
   return (
     <div className="min-h-screen bg-white text-texto-principal flex flex-col">
-
       {/* Header */}
       <header className="flex justify-between items-start px-4 sm:px-6 md:px-10 py-6 border-b border-gray-200">
         <Link to="/cliente">
@@ -37,9 +45,9 @@ export default function Layout2() {
             </div>
           </Link>
 
-          {usuario?.nombre && (
+          {nombre && (
             <>
-              <span className="text-sm mt-2 underline">Bienvenido {usuario.nombre}</span>
+              <span className="text-sm mt-2 underline">Bienvenido {nombre}</span>
               <button
                 onClick={handleLogout}
                 className="mt-1 text-xs text-red-600 hover:underline"
