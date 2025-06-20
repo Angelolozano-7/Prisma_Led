@@ -3,3 +3,6 @@ flask-cors
 gspread
 google-auth
 python-dotenv
+flask-jwt-extended
+werkzeug
+flask-mail

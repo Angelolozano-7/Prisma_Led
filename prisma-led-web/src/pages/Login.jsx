@@ -1,29 +1,34 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../services/api'; 
+import api from '../services/api';
+import { AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const [popupVisible, setPopupVisible] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje('');
+    setPopupVisible(false);
+
     try {
       const res = await api.post('/auth/login', { correo, password });
       localStorage.setItem('token', res.data.access_token);
-      setMensaje('Login exitoso');
-      // Redirigir, por ejemplo, a la página de inicio del cliente
       navigate('/cliente');
     } catch (err) {
-      setMensaje('Credenciales inválidas o error de conexión');
+      const msg = err.response?.data?.msg || 'Error de conexión';
+      setMensaje(msg);
+      setPopupVisible(true);
+      setTimeout(() => setPopupVisible(false), 4000);
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded shadow-md w-full max-w-sm mx-auto">
+    <div className="relative bg-white p-6 rounded shadow-md w-full max-w-sm mx-auto">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Correo</label>
@@ -55,8 +60,14 @@ export default function Login() {
         </button>
       </form>
 
-      {mensaje && (
-        <p className="mt-4 text-center text-sm text-red-600">{mensaje}</p>
+      {/* POP-UP DE ERROR DENTRO DEL CONTENEDOR */}
+      {popupVisible && (
+        <div className="absolute top-[-70px] left-1/2 transform -translate-x-1/2 w-60 p-4 bg-white shadow-lg border border-gray-300 rounded-md flex flex-col items-center z-50">
+          <div className="bg-black rounded-full w-12 h-12 flex items-center justify-center">
+            <AlertCircle className="text-white w-6 h-6" />
+          </div>
+          <p className="mt-2 text-center text-sm font-medium text-black">{mensaje}</p>
+        </div>
       )}
 
       <div className="mt-4 text-sm text-center">

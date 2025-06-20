@@ -1,17 +1,31 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import { User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getUserFromToken } from '../services/decodeToken';
 
 export default function Layout2() {
+  const [usuario, setUsuario] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = getUserFromToken();
+    setUsuario(user);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/auth/login');
+  };
+
   return (
     <div className="min-h-screen bg-white text-texto-principal flex flex-col">
 
       {/* Header */}
       <header className="flex justify-between items-start px-4 sm:px-6 md:px-10 py-6 border-b border-gray-200">
         <Link to="/cliente">
-          <img src={logo} alt="Logo" className="h-24 sm:h-28 md:h-32" />          
+          <img src={logo} alt="Logo" className="h-24 sm:h-28 md:h-32" />
         </Link>
-        
 
         <div className="flex flex-col items-center relative group">
           <Link to="/perfil/editar" className="relative">
@@ -22,7 +36,18 @@ export default function Layout2() {
               Editar Usuario
             </div>
           </Link>
-          <span className="text-sm mt-2 underline">Bienvenido @Nombre</span>
+
+          {usuario?.nombre && (
+            <>
+              <span className="text-sm mt-2 underline">Bienvenido {usuario.nombre}</span>
+              <button
+                onClick={handleLogout}
+                className="mt-1 text-xs text-red-600 hover:underline"
+              >
+                Cerrar sesión
+              </button>
+            </>
+          )}
         </div>
       </header>
 
