@@ -74,7 +74,7 @@ export default function Login() {
         <Link to="/auth/recovery" className="text-violeta-oscuro hover:underline block">
           ¿Olvidaste tu contraseña?
         </Link>
-        <Link to="/perfil/registro" className="text-violeta-oscuro hover:underline block">
+        <Link to="/auth/registro" className="text-violeta-oscuro hover:underline block">
           Crear cuenta
         </Link>
       </div>

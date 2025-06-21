@@ -11,7 +11,6 @@ import HomePage from '../pages/HomePage';
 // Layout 1: autenticación
 import Login from '../pages/Login';
 import Recovery from '../pages/Recovery';
-import LoginError from '../pages/Login_Error';
 
 // Layout 2: cliente autenticado
 import ClientHome from '../pages/Client_Home';
@@ -27,7 +26,7 @@ import Reserva from '../pages/Reserva';
 import EditarCliente from '../pages/Editar_Cliente';
 import Registro from '../pages/Registro';
 
-// 🔒 Ruta protegida
+//  Ruta protegida
 import PrivateRoute from '../components/PrivateRoute';
 
 export default function AppRouter() {
@@ -40,7 +39,9 @@ export default function AppRouter() {
         <Route path="/auth" element={<Layout1 />}>
           <Route path="login" element={<Login />} />
           <Route path="recovery" element={<Recovery />} />
-          <Route path="login-error" element={<LoginError />} />
+        </Route>
+        <Route path="/auth" element={<Layout3 />}>
+          <Route path="registro" element={<Registro />} />
         </Route>
 
         {/* Rutas protegidas con Layout2 */}
@@ -72,7 +73,6 @@ export default function AppRouter() {
           }
         >
           <Route path="editar" element={<EditarCliente />} />
-          <Route path="registro" element={<Registro />} />
         </Route>
 
       </Routes>
