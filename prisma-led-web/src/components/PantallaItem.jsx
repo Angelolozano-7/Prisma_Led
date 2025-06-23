@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Info } from 'lucide-react'; // Asegúrate de tener lucide-react o usa un ícono alternativo
+import { Info } from 'lucide-react';
 
 export default function PantallaItem({ pantallaId, data, seleccionada, onToggleSeleccion }) {
   const { estado, identificador, cilindro, mensaje } = data;
@@ -27,8 +27,8 @@ export default function PantallaItem({ pantallaId, data, seleccionada, onToggleS
   };
 
   const toggleTooltip = (e) => {
-    e.stopPropagation(); // Evita que seleccione la pantalla al hacer clic en el ícono
-    setMostrarTooltip(true);
+    e.stopPropagation();
+    setMostrarTooltip((prev) => !prev);
   };
 
   const handleClickOutside = (event) => {
@@ -40,7 +40,7 @@ export default function PantallaItem({ pantallaId, data, seleccionada, onToggleS
   useEffect(() => {
     if (mostrarTooltip) {
       document.addEventListener('mousedown', handleClickOutside);
-      const timer = setTimeout(() => setMostrarTooltip(false), 5000);
+      const timer = setTimeout(() => setMostrarTooltip(false), 6000);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
         clearTimeout(timer);
@@ -49,34 +49,44 @@ export default function PantallaItem({ pantallaId, data, seleccionada, onToggleS
   }, [mostrarTooltip]);
 
   return (
-    <div className="relative">
-      <button
-        className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-md border border-gray-300 flex items-center justify-center text-xs font-semibold ${getColor()} transition duration-150 relative`}
-        onClick={handleClick}
-        title={`Cilindro ${cilindro} - ${identificador}`}
-      >
-        {identificador}
-        {estado === 'parcial' && (
-          <span
-            onClick={toggleTooltip}
-            className="absolute top-0 right-0 w-4 h-4 flex items-center justify-center text-xs font-bold bg-white rounded-full shadow text-blue-600"
-          >
-            <Info size={10} />
-          </span>
-        )}
-      </button>
-
-      {mostrarTooltip && mensaje && (
-        <div
-          ref={tooltipRef}
-          className="absolute z-10 bottom-full mb-1 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-3 py-2 rounded whitespace-nowrap shadow-md"
+    <div className="relative flex flex-col items-center">
+      <div className="relative">
+        <button
+          className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-md border border-gray-300 flex items-center justify-center text-xs font-semibold ${getColor()} transition duration-150`}
+          onClick={handleClick}
+          title={`Cilindro ${cilindro} - ${identificador}`}
         >
-          <div className="flex justify-between items-center mb-1">
-            <span>{mensaje}</span>
-            <button onClick={() => setMostrarTooltip(false)} className="ml-2 text-white">✖</button>
-          </div>
-        </div>
-      )}
+          {identificador}
+        </button>
+
+        {estado === 'parcial' && (
+          <button
+            onClick={toggleTooltip}
+            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow"
+          >
+            <Info size={12} className="text-blue-600" />
+          </button>
+        )}
+      </div>
+
+{mostrarTooltip && mensaje && (
+  <div
+    ref={tooltipRef}
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+  >
+    <div className="bg-white text-black text-sm px-4 py-3 rounded shadow max-w-sm w-[90%] relative">
+      <button
+        onClick={() => setMostrarTooltip(false)}
+        className="absolute top-1 right-2 text-black text-lg"
+      >
+        ✖
+      </button>
+      <p className="whitespace-pre-line">{mensaje}</p>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }

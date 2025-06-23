@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api'; // asegúrate de importar api correctamente
-
+import api from '../services/api';
 
 export default function Reserva() {
   const [fechaInicio, setFechaInicio] = useState('');
@@ -10,14 +9,20 @@ export default function Reserva() {
   const [categoria, setCategoria] = useState('');
   const [mostrarCalendario, setMostrarCalendario] = useState(false);
   const [aceptaCondicion, setAceptaCondicion] = useState(false);
-  const [errorCheckbox, setErrorCheckbox] = useState(false);
+  const [errores, setErrores] = useState({});
+
   const navigate = useNavigate();
 
   const handleMostrarDisponibilidad = async () => {
-    if (!aceptaCondicion) {
-      setErrorCheckbox(true);
-      return;
-    }
+    const nuevosErrores = {};
+    if (!fechaInicio) nuevosErrores.fechaInicio = true;
+    if (!duracion) nuevosErrores.duracion = true;
+    if (!categoria) nuevosErrores.categoria = true;
+    if (!aceptaCondicion) nuevosErrores.condicion = true;
+
+    setErrores(nuevosErrores);
+
+    if (Object.keys(nuevosErrores).length > 0) return;
 
     try {
       const payload = {
@@ -36,7 +41,6 @@ export default function Reserva() {
         }
       });
 
-
     } catch (error) {
       console.error('Error al consultar disponibilidad:', error);
       alert('No se pudo consultar la disponibilidad. Intenta más tarde.');
@@ -54,14 +58,9 @@ export default function Reserva() {
 
   const handleDuracionChange = (e) => {
     const value = parseInt(e.target.value);
-    if (!isNaN(value) && value >= 1 && value <= 52) {
-      setDuracion(value);
-    } else {
-      setDuracion('');
-    }
+    setDuracion(!isNaN(value) && value >= 1 && value <= 52 ? value : '');
   };
 
-  
   return (
     <div className="flex flex-col items-center bg-white px-4 py-6 md:py-4">
       <h2 className="text-xl font-semibold mb-4 md:mb-6">Filtros de búsqueda</h2>
@@ -75,7 +74,9 @@ export default function Reserva() {
             <label className="block text-sm font-medium mb-1">Fecha inicio</label>
             <div className="relative">
               <div
-                className="w-full flex items-center justify-between border border-gray-300 rounded px-3 py-2 bg-white cursor-pointer"
+                className={`w-full flex items-center justify-between border rounded px-3 py-2 bg-white cursor-pointer ${
+                  errores.fechaInicio ? 'border-red-500' : 'border-gray-300'
+                }`}
                 onClick={() => setMostrarCalendario(!mostrarCalendario)}
               >
                 <span>
@@ -96,6 +97,9 @@ export default function Reserva() {
                 />
               )}
             </div>
+            {errores.fechaInicio && (
+              <p className="text-xs text-red-500 mt-1">Selecciona una fecha válida</p>
+            )}
           </div>
 
           {/* Duración */}
@@ -107,8 +111,13 @@ export default function Reserva() {
               max={52}
               value={duracion}
               onChange={handleDuracionChange}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className={`w-full border rounded px-3 py-2 ${
+                errores.duracion ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            {errores.duracion && (
+              <p className="text-xs text-red-500 mt-1">Ingresa una duración válida</p>
+            )}
           </div>
 
           {/* Categoría */}
@@ -117,13 +126,18 @@ export default function Reserva() {
             <select
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className={`w-full border rounded px-3 py-2 ${
+                errores.categoria ? 'border-red-500' : 'border-gray-300'
+              }`}
             >
               <option value="">Seleccionar</option>
               <option value="Bebidas alcoholicas">Bebidas alcohólicas</option>
               <option value="Tecnología">Tecnología</option>
               <option value="Moda">Moda</option>
             </select>
+            {errores.categoria && (
+              <p className="text-xs text-red-500 mt-1">Selecciona una categoría</p>
+            )}
           </div>
 
           {/* Checkbox obligatorio */}
@@ -132,7 +146,9 @@ export default function Reserva() {
               <input
                 type="checkbox"
                 id="competencia"
-                className="w-4 h-4"
+                className={`w-4 h-4 ${
+                  errores.condicion ? 'accent-red-500' : ''
+                }`}
                 checked={aceptaCondicion}
                 onChange={(e) => setAceptaCondicion(e.target.checked)}
               />
@@ -143,7 +159,7 @@ export default function Reserva() {
                 Confirma que su marca no es competencia directa de Emcali
               </div>
             </div>
-            {errorCheckbox && (
+            {errores.condicion && (
               <span className="text-xs text-red-600 mt-1">
                 Debes aceptar esta condición para continuar.
               </span>

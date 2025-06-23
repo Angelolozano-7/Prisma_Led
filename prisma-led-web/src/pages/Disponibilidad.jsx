@@ -1,9 +1,8 @@
-// Disponibilidad.jsx - Ajustado para seleccionar segundos disponibles y calcular subtotal dinámicamente con tarifas desde el backend
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
 import CilindroBox from '../components/CilindroBox';
 import CilindroModal from '../components/CilindroModal';
+import BusquedaInline from '../components/BusquedaInline';
 import api from '../services/api';
 
 const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
@@ -11,13 +10,23 @@ const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
 export default function Disponibilidad() {
   const location = useLocation();
   const navigate = useNavigate();
-  const data = location.state?.disponibilidad;
-  const fecha_inicio = location.state?.fecha_inicio;
-  const duracion = parseInt(location.state?.duracion);
-  const categoria = location.state?.categoria;
+  const initialData = location.state?.disponibilidad;
 
-  const [seleccionadas, setSeleccionadas] = useState([]);
-  const [duraciones, setDuraciones] = useState({});
+  const [fechaInicio, setFechaInicio] = useState(location.state?.fecha_inicio || '');
+  const [duracion, setDuracion] = useState(parseInt(location.state?.duracion) || 1);
+  const [categoria, setCategoria] = useState(location.state?.categoria || '');
+  const [data, setData] = useState(initialData);
+  const [seleccionadas, setSeleccionadas] = useState(
+  (location.state?.seleccionadas || []).map(p => p.id_pantalla)
+);
+
+  const [duraciones, setDuraciones] = useState(() => {
+    const base = {};
+    (location.state?.seleccionadas || []).forEach(p => {
+      base[p.id_pantalla] = p.segundos;
+    });
+    return base;
+  });
   const [tarifas, setTarifas] = useState({});
   const [cilindroSeleccionado, setCilindroSeleccionado] = useState(null);
   const [tooltipInfo, setTooltipInfo] = useState(null);
@@ -41,6 +50,33 @@ export default function Disponibilidad() {
     };
     obtenerTarifas();
   }, []);
+
+  useEffect(() => {
+    const fetchDisponibilidad = async () => {
+      try {
+        const res = await api.post('/reservas/disponibilidad', {
+          fecha_inicio: fechaInicio,
+          duracion_semanas: duracion,
+          categoria
+        });
+        setData(res.data);
+      } catch (error) {
+        console.error('Error al consultar disponibilidad al montar:', error);
+        navigate('/cliente');
+      }
+    };
+
+    if (location.state?.disponibilidad) {
+      fetchDisponibilidad();
+    }
+  }, [fechaInicio, duracion, categoria]);
+
+  const calcularFechaFin = () => {
+    if (!fechaInicio || !duracion) return '';
+    const inicio = new Date(fechaInicio);
+    inicio.setDate(inicio.getDate() + parseInt(duracion) * 7);
+    return inicio.toISOString().split('T')[0];
+  };
 
   const agrupadasPorCilindro = useMemo(() => {
     if (!data) return {};
@@ -69,10 +105,10 @@ export default function Disponibilidad() {
   const calcularPrecio = (pantallaId) => {
     const segundos = duraciones[pantallaId];
     if (!segundos || !tarifas[segundos]) return 0;
-    const base = esDiciembre(fecha_inicio) ? 2000000 : tarifas[segundos];
+    const base = esDiciembre(fechaInicio) ? 2000000 : tarifas[segundos];
     let total = base * duracion;
     let descuento = 0;
-    if (!esDiciembre(fecha_inicio)) {
+    if (!esDiciembre(fechaInicio)) {
       if (duracion > 26) descuento = 0.1;
       else if (duracion > 13) descuento = 0.034;
     }
@@ -90,7 +126,7 @@ export default function Disponibilidad() {
     seleccionadas.forEach(id => {
       const segundos = duraciones[id];
       if (!segundos || !tarifas[segundos]) return;
-      const base = esDiciembre(fecha_inicio) ? 2000000 : tarifas[segundos];
+      const base = esDiciembre(fechaInicio) ? 2000000 : tarifas[segundos];
       const totalSinDescuento = base * duracion;
       const precio = calcularPrecio(id);
       const totalConDescuento = precio ? precio.total : 0;
@@ -106,12 +142,37 @@ export default function Disponibilidad() {
     }
   };
 
+  const puedeConfirmar = seleccionadas.length > 0 && seleccionadas.every(id => duraciones[id]);
+
   return (
     <div className="bg-gray-50 p-4 md:p-6 flex flex-col min-h-full">
       <h2 className="text-2xl font-bold text-center mb-2">Mapa de disponibilidad</h2>
-      <p className="text-center text-sm text-gray-600 mb-4">
-        Fecha: {fecha_inicio} – Duración: {duracion} semanas / {categoria}
-      </p>
+      <BusquedaInline
+        fechaInicio={fechaInicio}
+        duracion={duracion}
+        categoria={categoria}
+        onChange={({ fechaInicio, duracion, categoria }) => {
+          setFechaInicio(fechaInicio);
+          setDuracion(duracion);
+          setCategoria(categoria);
+        }}
+        onBuscar={async (fecha, semanas, cat) => {
+          try {
+            const res = await api.post('/reservas/disponibilidad', {
+              fecha_inicio: fecha,
+              duracion_semanas: semanas,
+              categoria: cat
+            });
+            setSeleccionadas([]);
+            setDuraciones({});
+            setTooltipInfo(null);
+            setData(res.data);
+          } catch (error) {
+            alert('No se pudo obtener disponibilidad. Intente de nuevo.');
+            console.error(error);
+          }
+        }}
+      />
 
       {cilindroSeleccionado && (
         <CilindroModal
@@ -120,7 +181,7 @@ export default function Disponibilidad() {
         />
       )}
 
-      <div className="flex flex-col lg:flex-row gap-6 w-full">
+      <div className="flex flex-col lg:flex-row gap-6 w-full overflow-hidden">  
         <div className="flex-1 border rounded p-4 bg-white shadow">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-x-4 gap-y-6 justify-items-center w-full">
             {Object.entries(agrupadasPorCilindro)
@@ -146,56 +207,63 @@ export default function Disponibilidad() {
             <div className="flex items-center gap-2"><div className="w-4 h-4 bg-red-300 rounded" /> Restringido</div>
           </div>
           {tooltipInfo && (
-            <div className="fixed bottom-4 right-4 bg-black text-white text-xs px-4 py-2 rounded shadow z-50">
+            <div className="fixed bottom-4 right-4 bg-black text-white text-xs px-4 py-2 rounded shadow z-50 whitespace-pre-line">
               {tooltipInfo.mensaje}
               <button onClick={() => setTooltipInfo(null)} className="ml-4 text-red-300">✖</button>
             </div>
           )}
         </div>
 
-        <div className="w-full lg:w-80 border rounded p-4 bg-white shadow">
-          <p className="text-lg font-bold mb-2 text-violet-700">Elementos seleccionados</p>
-          {seleccionadas.length === 0 ? (
-            <p className="text-sm text-gray-500">No has seleccionado pantallas aún.</p>
-          ) : (
-            <ul className="text-sm space-y-3 mb-4">
-              {seleccionadas.map((id) => {
-                const info = data[id];
-                const segundosDisp = info.segundos_disponibles;
-                const opciones = [20, 40, 60].filter(op => op <= segundosDisp);
-                return (
-                  <li key={id} className="flex flex-col">
-                    <div className="flex justify-between items-center">
-                      <span>Cilindro {info.cilindro}{info.identificador}</span>
-                      <button className="text-red-600 text-sm ml-2" onClick={() => toggleSeleccion(id)}>❌</button>
-                    </div>
-                    <select
-                      value={duraciones[id] || ''}
-                      onChange={(e) => handleDuracionChange(id, parseInt(e.target.value))}
-                      className="mt-1 border rounded px-2 py-1"
-                    >
-                      <option value="">Duración (s)</option>
-                      {opciones.map((seg) => (
-                        <option key={seg} value={seg}>{seg} segundos</option>
-                      ))}
-                    </select>
-                    <span className="text-right text-xs mt-1 text-gray-500">
-                      Precio: {(() => {
-                        const precio = calcularPrecio(id);
-                        return precio ? `$${precio.total.toLocaleString('es-CO')}` : '-';
-                      })()} 
-                      ( ${(() => {
-                        const segundos = duraciones[id];
-                        if (!segundos || !tarifas[segundos]) return 0;
-                        return esDiciembre(fecha_inicio) ? 2000000 : tarifas[segundos];
-                      })().toLocaleString('es-CO')} x semana )
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          <div className="text-sm font-semibold text-right mb-2">
+        <div className="w-full lg:w-80 border rounded p-4 bg-white shadow flex flex-col max-h-[85vh]">
+          <div className="overflow-y-auto pr-2 flex-1">
+            <p className="text-lg font-bold mb-2 text-violet-700">Resumen selección</p>
+            <p className="text-lg mb-2 text-violet-700">Fechas pauta </p>
+            <p className="text-lg mb-2">Fecha inicio:  {fechaInicio || '---'}  </p>
+            <p className="text-lg mb-2">Fechas fin:  {calcularFechaFin() || '---'} </p>
+            <p className="text-lg mb-2 text-violet-700">Categoría: {categoria || '---'} </p>
+            <p className="text-lg font-bold mb-2 text-violet-700"> - - - - - - </p>
+            {seleccionadas.length === 0 ? (
+              <p className="text-sm text-gray-500">No has seleccionado pantallas aún.</p>
+            ) : (
+              <ul className="text-sm space-y-3 mb-4">
+                {seleccionadas.map((id) => {
+                  const info = data[id];
+                  const segundosDisp = info.segundos_disponibles;
+                  const opciones = [20, 40, 60].filter(op => op <= segundosDisp);
+                  return (
+                    <li key={id} className="flex flex-col">
+                      <div className="flex justify-between items-center">
+                        <span>Cilindro {info.cilindro}{info.identificador}</span>
+                        <button className="text-red-600 text-sm ml-2" onClick={() => toggleSeleccion(id)}>❌</button>
+                      </div>
+                      <select
+                        value={duraciones[id] || ''}
+                        onChange={(e) => handleDuracionChange(id, parseInt(e.target.value))}
+                        className="mt-1 border rounded px-2 py-1"
+                      >
+                        <option value="">Duración (s)</option>
+                        {opciones.map((seg) => (
+                          <option key={seg} value={seg}>{seg} segundos</option>
+                        ))}
+                      </select>
+                      <span className="text-right text-xs mt-1 text-gray-500">
+                        Precio: {(() => {
+                          const precio = calcularPrecio(id);
+                          return precio ? `$${precio.total.toLocaleString('es-CO')}` : '-';
+                        })()} 
+                        ( ${(() => {
+                          const segundos = duraciones[id];
+                          if (!segundos || !tarifas[segundos]) return 0;
+                          return esDiciembre(fechaInicio) ? 2000000 : tarifas[segundos];
+                        })().toLocaleString('es-CO')} x semana )
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+          <div className="text-sm font-semibold text-right pt-2 border-t mt-2">
             {seleccionadas.map((id) => {
               const result = calcularPrecio(id);
               const descuento = result ? result.descuento : 0;
@@ -214,12 +282,39 @@ export default function Disponibilidad() {
               </div>
             )}
           </div>
-          <button
-            disabled={seleccionadas.length === 0}
-            className="w-full bg-violet-600 text-white py-2 rounded disabled:bg-gray-300"
-          >
-            Confirmar reserva
-          </button>
+          
+          
+      <button
+        disabled={!puedeConfirmar}
+        className="w-full bg-violet-600 text-white py-2 mt-2 rounded disabled:bg-gray-300"
+        onClick={() => {
+          const payload = seleccionadas.map(id => {
+            const segundos = duraciones[id];
+            const precio = calcularPrecio(id);
+            return {
+              id_pantalla: id,
+              cilindro: data[id].cilindro,
+              identificador: data[id].identificador,
+              segundos,
+              precio: precio?.total || 0,
+              base: precio?.base || 0,
+              descuento: precio?.descuento || 0
+            };
+          });
+
+          navigate('/cliente/pre-orden', {
+            state: {
+              fecha_inicio: fechaInicio,
+              duracion,
+              categoria,
+              pantallas: payload,
+              disponibilidad: data
+            }
+          });
+        }}
+      >
+        Confirmar selección
+      </button>
         </div>
       </div>
     </div>

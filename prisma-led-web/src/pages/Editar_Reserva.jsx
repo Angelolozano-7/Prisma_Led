@@ -12,7 +12,7 @@ export default function EditarReserva() {
 
   useEffect(() => {
     const fetchReservas = async () => {
-      const user = getUserFromToken(); // mover dentro del useEffect para evitar problemas al montar
+      const user = getUserFromToken();
       if (!user?.id) {
         setMensaje('No se pudo identificar al usuario.');
         setLoading(false);
@@ -20,8 +20,8 @@ export default function EditarReserva() {
       }
 
       try {
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Simulación de carga
-        const res = await api.get('/reservas/cliente'); // Token incluido automáticamente
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const res = await api.get('/reservas/cliente');
         setReservas(res.data);
       } catch (error) {
         setMensaje('No se pudieron cargar tus reservas');
@@ -33,12 +33,33 @@ export default function EditarReserva() {
     fetchReservas();
   }, []);
 
-  const handleBuscar = () => {
+  const handleBuscar = async () => {
     const match = reservas.find(r => r.id_reserva === reservaSeleccionada);
-    if (match) {
-      navigate('/cliente/disponibilidad', { state: match });
-    } else {
+    if (!match) {
       setMensaje('Reserva no encontrada o no pertenece a tu cuenta');
+      setTimeout(() => setMensaje(''), 4000);
+      return;
+    }
+
+    try {
+      const res = await api.get(`/reservas/detalle/${reservaSeleccionada}`);
+      const { id_reserva,fecha_creacion,fecha_inicio, duracion, categoria, pantallas } = res.data;
+
+      navigate('/cliente/pre-visualizacion', {
+        state: {
+          id_reserva,
+          fecha_creacion,
+          fecha_inicio,
+          duracion,
+          categoria,
+          pantallas,
+          disponibilidad: {},
+        }
+      });
+
+    } catch (error) {
+      console.error('Error al cargar detalles de la prereserva:', error);
+      setMensaje('No se pudo cargar el detalle de la prereserva.');
       setTimeout(() => setMensaje(''), 4000);
     }
   };
@@ -46,8 +67,7 @@ export default function EditarReserva() {
   return (
     <div className="flex flex-col items-center justify-center w-full h-[70vh] px-4">
       <div className="bg-white border border-gray-300 rounded p-6 max-w-md w-full text-center space-y-4">
-
-        <label className="block text-sm font-semibold">Ingrese Número de reserva</label>
+        <label className="block text-sm font-semibold">Ingrese número de reserva</label>
 
         {loading ? (
           <p className="text-gray-500 text-sm">Cargando reservas...</p>
