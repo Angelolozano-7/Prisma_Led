@@ -25,7 +25,7 @@ export default function PreVisualizacion() {
   const total = subtotal + iva;
 
   const reenviarPantallas = pantallas.map((p) => ({
-    id: p.id || p.id_pantalla,
+    id_pantalla: p.id || p.id_pantalla,
     cilindro: p.cilindro,
     identificador: p.identificador,
     segundos: p.segundos,
@@ -36,13 +36,13 @@ export default function PreVisualizacion() {
     <div className="flex flex-col items-center bg-white p-6">
       <div className="border rounded shadow-lg w-full max-w-md bg-white">
         <div className="bg-violet-500 text-white text-center py-3 font-bold text-lg rounded-t">
-          Resumen orden
+          Resumen prereserva
         </div>
 
         <div className="p-4 space-y-2 text-sm">
           {/* 🆕 Mostrar ID y fecha de creación */}
           <ul className="space-y-1 text-gray-600 text-xs">
-            {id_reserva && <li><strong>ID Reserva:</strong> {id_reserva}</li>}
+            {id_reserva && <li><strong>ID Prereserva:</strong> {id_reserva}</li>}
             {fecha_creacion && <li><strong>Creación:</strong> {fecha_creacion}</li>}
           </ul>
 
@@ -90,6 +90,7 @@ export default function PreVisualizacion() {
               categoria,
               disponibilidad: {},
               seleccionadas: reenviarPantallas,
+              fromEdicion: true
             }
           })}
           className="bg-violet-300 hover:bg-violet-400 text-white px-4 py-2 rounded"

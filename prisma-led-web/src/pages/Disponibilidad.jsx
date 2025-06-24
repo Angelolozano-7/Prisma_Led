@@ -10,23 +10,14 @@ const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
 export default function Disponibilidad() {
   const location = useLocation();
   const navigate = useNavigate();
-  const initialData = location.state?.disponibilidad;
+  //const initialData = location.state?.disponibilidad;
 
   const [fechaInicio, setFechaInicio] = useState(location.state?.fecha_inicio || '');
   const [duracion, setDuracion] = useState(parseInt(location.state?.duracion) || 1);
   const [categoria, setCategoria] = useState(location.state?.categoria || '');
-  const [data, setData] = useState(initialData);
-  const [seleccionadas, setSeleccionadas] = useState(
-  (location.state?.seleccionadas || []).map(p => p.id_pantalla)
-);
-
-  const [duraciones, setDuraciones] = useState(() => {
-    const base = {};
-    (location.state?.seleccionadas || []).forEach(p => {
-      base[p.id_pantalla] = p.segundos;
-    });
-    return base;
-  });
+  const [data, setData] = useState(location.state?.disponibilidad|| []);
+  const [seleccionadas, setSeleccionadas] = useState([]);
+  const [duraciones, setDuraciones] = useState({});
   const [tarifas, setTarifas] = useState({});
   const [cilindroSeleccionado, setCilindroSeleccionado] = useState(null);
   const [tooltipInfo, setTooltipInfo] = useState(null);
@@ -52,24 +43,56 @@ export default function Disponibilidad() {
   }, []);
 
   useEffect(() => {
-    const fetchDisponibilidad = async () => {
-      try {
-        const res = await api.post('/reservas/disponibilidad', {
-          fecha_inicio: fechaInicio,
-          duracion_semanas: duracion,
-          categoria
-        });
-        setData(res.data);
-      } catch (error) {
-        console.error('Error al consultar disponibilidad al montar:', error);
-        navigate('/cliente');
-      }
-    };
+  const fetchDisponibilidad = async () => {
+    try {
+      const res = await api.post('/reservas/disponibilidad', {
+        fecha_inicio: fechaInicio,
+        duracion_semanas: duracion,
+        categoria
+      });
+      setData(res.data);
 
-    if (location.state?.disponibilidad) {
-      fetchDisponibilidad();
+      // Verifica cuáles están disponibles
+      const disponibles = Object.keys(res.data).filter(
+        id => res.data[id].estado === 'disponible' || res.data[id].estado === 'parcial'
+      );
+
+      // Compara con las que venían del estado
+      const seleccionFiltrada = (location.state?.seleccionadas || []).filter(p =>
+        disponibles.includes(p.id_pantalla)
+      );
+
+      // 🔔 ALERTA si alguna ya no está disponible
+      const solicitadas = (location.state?.seleccionadas || []).map(p => p.id_pantalla);
+      const noDisponibles = solicitadas.filter(id => !disponibles.includes(id));
+
+      if (noDisponibles.length > 0) {
+        const nombres = noDisponibles.map(id => {
+          const pantalla = res.data[id];
+          return pantalla ? `Cilindro ${pantalla.cilindro}${pantalla.identificador}` : id;
+        });
+        alert(`⚠️ Las siguientes pantallas no están disponibles para las fechas seleccionadas:\n\n${nombres.join('\n')}`);
+      }
+
+      // Carga las válidas
+      setSeleccionadas(seleccionFiltrada.map(p => p.id_pantalla));
+      const nuevasDuraciones = {};
+      seleccionFiltrada.forEach(p => {
+        nuevasDuraciones[p.id_pantalla] = p.segundos;
+      });
+      setDuraciones(nuevasDuraciones);
+
+
+    } catch (error) {
+      console.error('Error al consultar disponibilidad al montar:', error);
+      navigate('/cliente');
     }
-  }, [fechaInicio, duracion, categoria]);
+  };
+
+  if (fechaInicio && duracion && categoria) {
+    fetchDisponibilidad();
+  }
+}, [fechaInicio, duracion, categoria]);
 
   const calcularFechaFin = () => {
     if (!fechaInicio || !duracion) return '';

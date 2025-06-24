@@ -6,23 +6,6 @@ import pandas as pd
 
 reservas_bp = Blueprint('reservas_bp', __name__)
 
-@reservas_bp.route('/cliente', methods=['GET', 'OPTIONS'])
-@jwt_required()
-def obtener_reservas_del_cliente():
-    if request.method == 'OPTIONS':
-        return '', 200
-
-    id_cliente = get_jwt_identity()
-    sheet = connect_sheet()
-    reservas_ws = sheet.worksheet("reservas")
-    reservas = reservas_ws.get_all_records()
-
-    reservas_cliente = [
-        r for r in reservas
-        if r.get("id_cliente", "").strip() == id_cliente
-    ]
-
-    return jsonify(reservas_cliente), 200
 
 def hay_cruce_de_fechas(f1_inicio, f1_fin, f2_inicio, f2_fin):
     i1 = datetime.strptime(f1_inicio, "%Y-%m-%d")
@@ -153,6 +136,26 @@ def obtener_tarifas():
     return jsonify(tarifas), 200
 
 
+@reservas_bp.route('/cliente', methods=['GET', 'OPTIONS'])
+@jwt_required()
+def obtener_reservas_del_cliente():
+    if request.method == 'OPTIONS':
+        return '', 200
+
+    id_cliente = get_jwt_identity()
+    sheet = connect_sheet()
+    reservas_ws = sheet.worksheet("reservas")
+    reservas = reservas_ws.get_all_records()
+
+    reservas_cliente = [
+        r for r in reservas
+        if r.get("id_cliente", "").strip() == id_cliente
+    ]
+    print(f"Reservas del cliente {id_cliente}: {reservas_cliente}")
+    return jsonify(reservas_cliente), 200
+
+
+
 @reservas_bp.route('/detalle/<id_reserva>', methods=['GET'])
 @jwt_required()
 def obtener_detalle_reserva(id_reserva):
@@ -181,7 +184,7 @@ def obtener_detalle_reserva(id_reserva):
         None
     )
     if not reserva:
-        return jsonify({"error": "Reserva no encontrada o no autorizada"}), 404
+        return jsonify({"error": "reserva no encontrada o no autorizada"}), 404
 
     # Buscar detalles de la reserva
     pantallas_resultado = []
@@ -201,7 +204,6 @@ def obtener_detalle_reserva(id_reserva):
                 "segundos": segundos,
                 "precio": precio,
             })
-
     return jsonify({
         "id_reserva": reserva["id_reserva"],
         "fecha_creacion":reserva["fecha_creacion"] ,

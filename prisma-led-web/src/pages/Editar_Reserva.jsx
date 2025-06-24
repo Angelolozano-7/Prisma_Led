@@ -21,10 +21,10 @@ export default function EditarReserva() {
 
       try {
         await new Promise(resolve => setTimeout(resolve, 3000));
-        const res = await api.get('/reservas/cliente');
+        const res = await api.get('/prereservas/cliente');
         setReservas(res.data);
       } catch (error) {
-        setMensaje('No se pudieron cargar tus reservas');
+        setMensaje('No se pudieron cargar tus prereservas');
       } finally {
         setLoading(false);
       }
@@ -34,15 +34,15 @@ export default function EditarReserva() {
   }, []);
 
   const handleBuscar = async () => {
-    const match = reservas.find(r => r.id_reserva === reservaSeleccionada);
+    const match = reservas.find(r => r.id_prereserva === reservaSeleccionada);
     if (!match) {
-      setMensaje('Reserva no encontrada o no pertenece a tu cuenta');
+      setMensaje('prereserva no encontrada o no pertenece a tu cuenta');
       setTimeout(() => setMensaje(''), 4000);
       return;
     }
 
     try {
-      const res = await api.get(`/reservas/detalle/${reservaSeleccionada}`);
+      const res = await api.get(`/prereservas/detalle/${reservaSeleccionada}`);
       const { id_reserva,fecha_creacion,fecha_inicio, duracion, categoria, pantallas } = res.data;
 
       navigate('/cliente/pre-visualizacion', {
@@ -67,10 +67,10 @@ export default function EditarReserva() {
   return (
     <div className="flex flex-col items-center justify-center w-full h-[70vh] px-4">
       <div className="bg-white border border-gray-300 rounded p-6 max-w-md w-full text-center space-y-4">
-        <label className="block text-sm font-semibold">Ingrese número de reserva</label>
+        <label className="block text-sm font-semibold">Ingrese número de prereserva</label>
 
         {loading ? (
-          <p className="text-gray-500 text-sm">Cargando reservas...</p>
+          <p className="text-gray-500 text-sm">Cargando prereservas...</p>
         ) : (
           <>
             <input
@@ -82,7 +82,7 @@ export default function EditarReserva() {
             />
             <datalist id="lista-reservas">
               {reservas.map((r, idx) => (
-                <option key={idx} value={r.id_reserva} />
+                <option key={idx} value={r.id_prereserva} />
               ))}
             </datalist>
           </>
