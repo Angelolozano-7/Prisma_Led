@@ -1,10 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import api from '../services/api';
 
 export default function BusquedaInline({ fechaInicio, duracion, categoria, onChange, onBuscar }) {
   const [localFecha, setLocalFecha] = useState(fechaInicio);
   const [localDuracion, setLocalDuracion] = useState(duracion);
   const [localCategoria, setLocalCategoria] = useState(categoria);
   const [errores, setErrores] = useState({});
+  const [categorias, setCategorias] = useState([]);
+  const today = new Date();
+  const localISODate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split('T')[0];
+
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const res = await api.get('/categorias');
+        setCategorias(res.data || []);
+      } catch (error) {
+        console.error('Error al cargar categorías:', error);
+      }
+    };
+    fetchCategorias();
+  }, []);
 
   const validarCampos = () => {
     const nuevosErrores = {};
@@ -28,12 +46,13 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 text-sm text-gray-700 mb-4">
+      {/* Fecha */}
       <div className="flex flex-col">
         <label>Fecha:</label>
         <input
           type="date"
           value={localFecha}
-          min={new Date().toISOString().split('T')[0]}
+          min={localISODate}
           onChange={(e) => {
             setLocalFecha(e.target.value);
             setErrores({ ...errores, fecha: null });
@@ -43,6 +62,7 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
         {errores.fecha && <span className="text-red-500 text-xs mt-1">{errores.fecha}</span>}
       </div>
 
+      {/* Duración */}
       <div className="flex flex-col">
         <label>Duración:</label>
         <div className="flex items-center gap-1">
@@ -62,6 +82,7 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
         {errores.duracion && <span className="text-red-500 text-xs mt-1">{errores.duracion}</span>}
       </div>
 
+      {/* Categoría */}
       <div className="flex flex-col">
         <label>Categoría:</label>
         <select
@@ -70,16 +91,19 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
             setLocalCategoria(e.target.value);
             setErrores({ ...errores, categoria: null });
           }}
-          className="border border-gray-300 rounded px-2 py-1"
+          className="border border-gray-300 rounded px-2 py-1 bg-white"
         >
           <option value="">Seleccionar</option>
-          <option value="Bebidas alcoholicas">Bebidas alcohólicas</option>
-          <option value="Tecnología">Tecnología</option>
-          <option value="Moda">Moda</option>
+          {categorias.map((cat) => (
+            <option key={cat.id_categoria} value={cat.nombre}>
+              {cat.nombre}
+            </option>
+          ))}
         </select>
         {errores.categoria && <span className="text-red-500 text-xs mt-1">{errores.categoria}</span>}
       </div>
 
+      {/* Botón */}
       <button
         onClick={handleBuscar}
         className="h-fit bg-violet-600 text-white px-4 py-2 mt-2 sm:mt-0 rounded hover:bg-violet-700"

@@ -1,6 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function ClientHome() {
+  
+
   const links = [
     { path: '/cliente/reserva', text: 'Realizar reserva' },
     { path: '/cliente/historial-reservas', text: 'Ver historial reservas' },

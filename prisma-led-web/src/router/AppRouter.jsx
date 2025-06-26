@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import PageLoaderWrapper from '../components/PageLoaderWrapper';
 
 // Layouts
 import Layout1 from '../layouts/Layout1';
@@ -32,50 +33,52 @@ import PrivateRoute from '../components/PrivateRoute';
 export default function AppRouter() {
   return (
     <BrowserRouter>
-      <Routes>
+      
+        <Routes>
 
-        {/* Rutas públicas */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/auth" element={<Layout1 />}>
-          <Route path="login" element={<Login />} />
-          <Route path="recovery" element={<Recovery />} />
-        </Route>
-        <Route path="/auth" element={<Layout3 />}>
-          <Route path="registro" element={<Registro />} />
-        </Route>
+          {/* Rutas públicas */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/auth" element={<Layout1 />}>
+            <Route path="login" element={<Login />} />
+            <Route path="recovery" element={<Recovery />} />
+          </Route>
+          <Route path="/auth" element={<Layout3 />}>
+            <Route path="registro" element={<Registro />} />
+          </Route>
 
-        {/* Rutas protegidas con Layout2 */}
-        <Route
-          path="/cliente"
-          element={
-            <PrivateRoute>
-              <Layout2 />
-            </PrivateRoute>
-          }
-        >
-          <Route index element={<ClientHome />} />
-          <Route path="historial-reservas" element={<HistorialReservas />} />
-          <Route path="pre-visualizacion" element={<PreVisualizacion />} />
-          <Route path="disponibilidad" element={<Disponibilidad />} />
-          <Route path="pre-orden" element={<PreOrden />} />
-          <Route path="pre-orden-doc" element={<PreOrdenDoc />} />
-          <Route path="reserva" element={<Reserva />} />
-          <Route path="editar-reserva" element={<EditarReserva />} />
-        </Route>
+          {/* Rutas protegidas con Layout2 */}
+          <Route
+            path="/cliente"
+            element={
+              <PrivateRoute>
+                <Layout2 />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<ClientHome />} />
+            <Route path="historial-reservas" element={<HistorialReservas />} />
+            <Route path="pre-visualizacion" element={<PreVisualizacion />} />
+            <Route path="disponibilidad" element={<Disponibilidad />} />
+            <Route path="pre-orden" element={<PreOrden />} />
+            <Route path="pre-orden-doc" element={<PreOrdenDoc />} />
+            <Route path="reserva" element={<Reserva />} />
+            <Route path="editar-reserva" element={<EditarReserva />} />
+          </Route>
 
-        {/* Rutas protegidas con Layout3 */}
-        <Route
-          path="/perfil"
-          element={
-            <PrivateRoute>
-              <Layout3 />
-            </PrivateRoute>
-          }
-        >
-          <Route path="editar" element={<EditarCliente />} />
-        </Route>
+          {/* Rutas protegidas con Layout3 */}
+          <Route
+            path="/perfil"
+            element={
+              <PrivateRoute>
+                <Layout3 />
+              </PrivateRoute>
+            }
+          >
+            <Route path="editar" element={<EditarCliente />} />
+          </Route>
 
-      </Routes>
+        </Routes>
+      
     </BrowserRouter>
   );
 }

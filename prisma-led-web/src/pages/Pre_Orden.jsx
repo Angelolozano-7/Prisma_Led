@@ -1,5 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import api from '../services/api';
+
+
 
 export default function PreOrden() {
   const location = useLocation();
@@ -36,6 +39,48 @@ export default function PreOrden() {
   const procederCancelacion = () => {
     navigate('/cliente');
   };
+
+const handleConfirmar = async () => {
+  try {
+    const response = await api.post('/prereservas/crear', {
+      fecha_inicio,
+      fecha_fin: calcularFechaFin(),
+      categoria
+    });
+
+    const { id_prereserva } = response.data;
+
+    // Preparar payload para detalle_prereserva
+    const detallePayload = {
+      id_prereserva,
+      categoria,
+      duracion,  // usado para calcular tarifa
+      pantallas: pantallas.map(p => ({
+        id_pantalla: p.id_pantalla,
+        precio: p.precio
+      }))
+    };
+
+    await api.post('/prereservas/detalle_prereserva/crear', detallePayload);
+
+    alert("✅ Prereserva confirmada exitosamente");
+    navigate('/cliente/pre-orden-doc', {
+    state: {
+      id_prereserva, // el devuelto del backend
+      duracion,
+      fecha_inicio,
+      fecha_fin: calcularFechaFin(),
+      categoria,
+      pantallas
+    }
+  });
+
+  } catch (error) {
+    console.error('❌ Error al confirmar prereserva:', error);
+    alert('Ocurrió un error al confirmar la prereserva.');
+  }
+};
+
 
   return (
     <div className="flex flex-col items-center bg-white p-6">
@@ -95,9 +140,13 @@ export default function PreOrden() {
         >
           Modificar
         </button>
-        <button className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded">
+        
+        <button 
+        onClick={handleConfirmar}
+        className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded">
           Confirmar
         </button>
+
         <button
           onClick={confirmarCancelacion}
           className="bg-violet-300 hover:bg-violet-400 text-white px-4 py-2 rounded"

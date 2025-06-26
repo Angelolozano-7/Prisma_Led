@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useEffect } from 'react';
+
+
 
 export default function Reserva() {
   const [fechaInicio, setFechaInicio] = useState('');
@@ -10,6 +13,20 @@ export default function Reserva() {
   const [mostrarCalendario, setMostrarCalendario] = useState(false);
   const [aceptaCondicion, setAceptaCondicion] = useState(false);
   const [errores, setErrores] = useState({});
+  const [categorias, setCategorias] = useState([]);
+  const [nuevaCategoria, setNuevaCategoria] = useState('');
+
+  useEffect(() => {
+  const fetchCategorias = async () => {
+    try {
+      const res = await api.get('/categorias');
+      setCategorias(res.data || []);
+    } catch (error) {
+      console.error('Error al cargar categorías:', error);
+    }
+  };
+  fetchCategorias();
+  }, []);
 
   const navigate = useNavigate();
 
@@ -54,7 +71,10 @@ export default function Reserva() {
     return inicio.toISOString().split('T')[0];
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date();
+  const localISODate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split('T')[0];
 
   const handleDuracionChange = (e) => {
     const value = parseInt(e.target.value);
@@ -70,37 +90,23 @@ export default function Reserva() {
         {/* Filtros */}
         <div className="space-y-4 border border-gray-300 p-4 md:p-6 rounded-md">
           {/* Fecha inicio */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Fecha inicio</label>
-            <div className="relative">
-              <div
-                className={`w-full flex items-center justify-between border rounded px-3 py-2 bg-white cursor-pointer ${
-                  errores.fechaInicio ? 'border-red-500' : 'border-gray-300'
-                }`}
-                onClick={() => setMostrarCalendario(!mostrarCalendario)}
-              >
-                <span>
-                  {fechaInicio ? new Date(fechaInicio).toLocaleDateString('es-CO') : 'dd/mm/aaaa'}
-                </span>
-                <Calendar className="w-5 h-5 text-violeta-medio" />
-              </div>
-              {mostrarCalendario && (
-                <input
-                  type="date"
-                  min={today}
-                  value={fechaInicio}
-                  onChange={(e) => {
-                    setFechaInicio(e.target.value);
-                    setMostrarCalendario(false);
-                  }}
-                  className="absolute top-full mt-2 w-full border border-gray-300 rounded px-3 py-2 bg-white z-10"
-                />
-              )}
-            </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium mb-1">Fecha inicio:</label>
+            <input
+              type="date"
+              value={fechaInicio}
+              min={localISODate}
+              onChange={(e) => {
+                setFechaInicio(e.target.value);
+                setErrores({ ...errores, fechaInicio: null });
+              }}
+              className={`border rounded px-3 py-2 ${errores.fechaInicio ? 'border-red-500' : 'border-gray-300'}`}
+            />
             {errores.fechaInicio && (
               <p className="text-xs text-red-500 mt-1">Selecciona una fecha válida</p>
             )}
           </div>
+
 
           {/* Duración */}
           <div>
@@ -121,24 +127,34 @@ export default function Reserva() {
           </div>
 
           {/* Categoría */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Categoría</label>
-            <select
-              value={categoria}
-              onChange={(e) => setCategoria(e.target.value)}
-              className={`w-full border rounded px-3 py-2 ${
-                errores.categoria ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Seleccionar</option>
-              <option value="Bebidas alcoholicas">Bebidas alcohólicas</option>
-              <option value="Tecnología">Tecnología</option>
-              <option value="Moda">Moda</option>
-            </select>
-            {errores.categoria && (
-              <p className="text-xs text-red-500 mt-1">Selecciona una categoría</p>
-            )}
-          </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Categoría</label>
+
+              <div className="relative">
+                <select
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  className={`w-full border rounded px-3 py-2 appearance-none bg-white text-sm ${errores.categoria ? 'border-red-500' : 'border-gray-300'}`}
+                >
+                  <option value="">Seleccionar</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.id_categoria} value={cat.nombre}>
+                      {cat.nombre}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Flecha personalizada opcional */}
+                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                  ▼
+                </div>
+              </div>
+
+              {errores.categoria && (
+                <p className="text-xs text-red-500 mt-1">Selecciona una categoría</p>
+              )}
+            </div>
+
 
           {/* Checkbox obligatorio */}
           <div className="flex flex-col space-y-1">
@@ -170,7 +186,7 @@ export default function Reserva() {
         {/* Resumen */}
         <div className="border border-gray-300 p-4 md:p-6 rounded-md bg-violeta-claro text-white space-y-2">
           <h3 className="font-semibold text-lg mb-2">Resumen</h3>
-          <p>Fecha pauta: {fechaInicio || '---'} – {calcularFechaFin() || '---'}</p>
+          <p>Fecha pauta: {fechaInicio || '---'} - {calcularFechaFin() || '---'}</p>
           <p>Categoría: {categoria || '---'}</p>
         </div>
       </div>

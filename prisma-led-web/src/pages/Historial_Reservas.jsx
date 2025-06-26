@@ -7,63 +7,44 @@ export default function HistorialReservas() {
   const navigate = useNavigate();
   const [reservas, setReservas] = useState([]);
   const [mensaje, setMensaje] = useState('');
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const fetchHistorialConDetalles = async () => {
+    let isMounted = true;
+
+    const fetchHistorial = async () => {
       try {
         const user = getUserFromToken();
         if (!user?.id) {
-          setMensaje('Usuario no identificado');
+          if (isMounted) {
+            setMensaje('Usuario no identificado');
+            setCargando(false);
+          }
           return;
         }
 
-        // Paso 1: obtener reservas básicas
-        const res = await api.get('/reservas/cliente');
-        const reservasBase = res.data || [];
-        console.log('Reservas obtenidas:', reservasBase);
-        // Paso 2: obtener detalles para cada reserva
-        const reservasConDetalles = await Promise.all(
-          reservasBase.map(async (r) => {
-            try {
-              const detalleRes = await api.get(`/reservas/detalle/${r.id_reserva}`);
-              const detalles = detalleRes.data;
-
-              const subtotal = (detalles.pantallas || []).reduce(
-                (acc, p) => acc + (p.precio || 0),
-                0
-              );
-
-              return {
-                id_reserva: r.id_reserva,
-                fecha_inicio: detalles.fecha_inicio,
-                fecha_fin: r.fecha_fin,
-                duracion: detalles.duracion,
-                categoria: detalles.categoria,
-                pantallas: detalles.pantallas,
-                subtotal
-              };
-            } catch (err) {
-              console.warn(`No se pudo obtener detalles para reserva ${r.id_reserva}`);
-              return null; // o puedes devolver algo parcial si prefieres
-            }
-          })
-        );
-        console.log('Reservas con detalles:', reservasConDetalles);
-        // Filtrar cualquier nulo si hubo fallos
-        const filtradas = reservasConDetalles.filter(Boolean);
-        setReservas(filtradas);
-
+        const res = await api.get('/reservas/cliente/completo');
+        if (isMounted) {
+          setReservas(res.data || []);
+          setCargando(false);
+        }
       } catch (error) {
         console.error('Error al obtener historial:', error);
-        setMensaje('No se pudo cargar el historial de reservas');
+        if (isMounted) {
+          setMensaje('No se pudo cargar el historial de reservas');
+          setCargando(false);
+        }
       }
     };
 
-    fetchHistorialConDetalles();
+    fetchHistorial();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleRepetirReserva = (reserva) => {
-    console.log('Repetir reserva:', reserva);
     const fechaActual = new Date().toISOString().split('T')[0];
     navigate('/cliente/disponibilidad', {
       state: {
@@ -89,8 +70,10 @@ export default function HistorialReservas() {
         </div>
 
         <div className="p-4 space-y-4 w-full overflow-x-auto">
-          {reservas.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center">Buscando reservas.</p>
+          {cargando ? (
+            <p className="text-sm text-gray-500 text-center">Cargando reservas...</p>
+          ) : reservas.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center">No se encontraron reservas.</p>
           ) : (
             reservas.map((reserva, index) => (
               <div

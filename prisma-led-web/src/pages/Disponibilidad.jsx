@@ -4,18 +4,23 @@ import CilindroBox from '../components/CilindroBox';
 import CilindroModal from '../components/CilindroModal';
 import BusquedaInline from '../components/BusquedaInline';
 import api from '../services/api';
+import VideoLoader from '../components/VideoLoader'; // o el loader que estés usando
+
+
 
 const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
 
 export default function Disponibilidad() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
   //const initialData = location.state?.disponibilidad;
 
   const [fechaInicio, setFechaInicio] = useState(location.state?.fecha_inicio || '');
   const [duracion, setDuracion] = useState(parseInt(location.state?.duracion) || 1);
   const [categoria, setCategoria] = useState(location.state?.categoria || '');
-  const [data, setData] = useState(location.state?.disponibilidad|| []);
+  const [data, setData] = useState(null);
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [duraciones, setDuraciones] = useState({});
   const [tarifas, setTarifas] = useState({});
@@ -23,7 +28,8 @@ export default function Disponibilidad() {
   const [tooltipInfo, setTooltipInfo] = useState(null);
 
   useEffect(() => {
-    if (!data) navigate('/cliente');
+    if (data === null) return; // esperar carga
+    if (Object.keys(data).length === 0) navigate('/cliente');
   }, [data, navigate]);
 
   useEffect(() => {
@@ -44,6 +50,7 @@ export default function Disponibilidad() {
 
   useEffect(() => {
   const fetchDisponibilidad = async () => {
+    setLoading(true); // 👉 empieza loading
     try {
       const res = await api.post('/reservas/disponibilidad', {
         fecha_inicio: fechaInicio,
@@ -86,18 +93,25 @@ export default function Disponibilidad() {
     } catch (error) {
       console.error('Error al consultar disponibilidad al montar:', error);
       navigate('/cliente');
+    } finally {
+      setLoading(false); // 👉 termina loading
     }
   };
 
-  if (fechaInicio && duracion && categoria) {
+if (
+    location.state?.fecha_inicio &&
+    location.state?.duracion &&
+    location.state?.categoria
+  ) {
     fetchDisponibilidad();
   }
-}, [fechaInicio, duracion, categoria]);
+}, []);
 
   const calcularFechaFin = () => {
     if (!fechaInicio || !duracion) return '';
     const inicio = new Date(fechaInicio);
     inicio.setDate(inicio.getDate() + parseInt(duracion) * 7);
+    
     return inicio.toISOString().split('T')[0];
   };
 
@@ -167,6 +181,9 @@ export default function Disponibilidad() {
 
   const puedeConfirmar = seleccionadas.length > 0 && seleccionadas.every(id => duraciones[id]);
 
+  if (loading) {
+    return <VideoLoader />;
+  }
   return (
     <div className="bg-gray-50 p-4 md:p-6 flex flex-col min-h-full">
       <h2 className="text-2xl font-bold text-center mb-2">Mapa de disponibilidad</h2>
@@ -180,6 +197,7 @@ export default function Disponibilidad() {
           setCategoria(categoria);
         }}
         onBuscar={async (fecha, semanas, cat) => {
+          setLoading(true); // 👉 inicia loader
           try {
             const res = await api.post('/reservas/disponibilidad', {
               fecha_inicio: fecha,
@@ -193,6 +211,8 @@ export default function Disponibilidad() {
           } catch (error) {
             alert('No se pudo obtener disponibilidad. Intente de nuevo.');
             console.error(error);
+          }finally {
+            setLoading(false); // 👉 termina loader
           }
         }}
       />
