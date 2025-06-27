@@ -31,7 +31,7 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       alert('Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.');
 
-      window.location.href = 'auth/login'; // Ajusta si usas otra ruta
+      window.location.href = ''; // Ajusta si usas otra ruta
       return Promise.reject(error);
     }
 

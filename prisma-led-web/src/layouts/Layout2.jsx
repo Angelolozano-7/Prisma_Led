@@ -1,7 +1,7 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import { User } from 'lucide-react';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 
 export default function Layout2() {
   const navigate = useNavigate();

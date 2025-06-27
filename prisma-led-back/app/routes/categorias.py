@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.services.sheets_client import connect_sheet
+from app.services.sheets_client import connect_sheet, get_categorias
 import uuid
 
 categorias_bp = Blueprint('categorias_bp', __name__)
@@ -8,9 +8,7 @@ categorias_bp = Blueprint('categorias_bp', __name__)
 @categorias_bp.route('/categorias', methods=['GET'])
 def obtener_categorias():
     try:
-        sheet = connect_sheet()
-        cat_ws = sheet.worksheet("categorias")
-        categorias = cat_ws.get_all_records()
+        categorias = get_categorias()
         return jsonify(categorias), 200
     except Exception as e:
         return jsonify({'error': f'Error al obtener categorías: {str(e)}'}), 500
@@ -25,7 +23,7 @@ def agregar_categoria():
         if not nombre:
             return jsonify({"error": "El campo 'nombre' es obligatorio"}), 400
 
-        nuevo_id = uuid.uuid4().hex[:8]  # ID único corto
+        nuevo_id = uuid.uuid4().hex[:8]
 
         sheet = connect_sheet()
         cat_ws = sheet.worksheet("categorias")

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import api from '../services/api';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 
 export default function Editar_Cliente() {
   const navigate = useNavigate();

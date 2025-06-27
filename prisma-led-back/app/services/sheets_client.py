@@ -4,7 +4,6 @@ from flask import current_app
 from app.services.retry_utils import retry_on_rate_limit
 
 
-@retry_on_rate_limit(max_retries=4)
 def connect_sheet():
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
@@ -21,11 +20,63 @@ def connect_sheet():
     return spreadsheet
 
 
-from app.services.retry_utils import retry_on_rate_limit
-from app.services.sheets_client import connect_sheet
-
 @retry_on_rate_limit()
 def get_tarifas():
     sheet = connect_sheet()
-    ws = sheet.worksheet("tarifas")
-    return ws.get_all_records()
+    return sheet.worksheet("tarifas").get_all_records()
+
+
+@retry_on_rate_limit()
+def get_pantallas():
+    sheet = connect_sheet()
+    return sheet.worksheet("pantallas").get_all_records()
+
+
+@retry_on_rate_limit()
+def get_reservas():
+    sheet = connect_sheet()
+    return sheet.worksheet("reservas").get_all_records()
+
+
+@retry_on_rate_limit()
+def get_prereservas():
+    sheet = connect_sheet()
+    return sheet.worksheet("prereservas").get_all_records()
+
+
+@retry_on_rate_limit()
+def get_detalle_reserva():
+    sheet = connect_sheet()
+    return sheet.worksheet("detalle_reserva").get_all_records()
+
+
+@retry_on_rate_limit()
+def get_detalle_prereserva():
+    sheet = connect_sheet()
+    return sheet.worksheet("detalle_prereserva").get_all_records()
+
+
+@retry_on_rate_limit()
+def get_prereservas():
+    sheet = connect_sheet()
+    return sheet.worksheet("prereservas").get_all_records()
+
+@retry_on_rate_limit()
+def get_detalle_prereserva():
+    sheet = connect_sheet()
+    return sheet.worksheet("detalle_prereserva").get_all_records()
+
+@retry_on_rate_limit()
+def get_usuarios():
+    sheet = connect_sheet()
+    return sheet.worksheet("usuarios").get_all_records()
+
+@retry_on_rate_limit()
+def get_clientes():
+    sheet = connect_sheet()
+    return sheet.worksheet("clientes").get_all_records()
+
+@retry_on_rate_limit()
+def get_categorias():
+    sheet = connect_sheet()
+    return sheet.worksheet("categorias").get_all_records()

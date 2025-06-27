@@ -11,7 +11,7 @@ export default function Layout1() {
           <img
             src={logo}
             alt="Logo PrismaLED"
-            className="h-12 sm:h-14 md:h-16 lg:h-20"
+            className="h-12 sm:h-16 md:h-16 lg:h-20"
           />
         </Link>
 

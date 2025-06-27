@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 import CilindroBox from '../components/CilindroBox';
 import CilindroModal from '../components/CilindroModal';
 import BusquedaInline from '../components/BusquedaInline';

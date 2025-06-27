@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import api from '../services/api';
 import { getUserFromToken } from '../services/decodeToken';
 
-const AppDataContext = createContext();
+export const AppDataContext = createContext();
 
 export const AppDataProvider = ({ children }) => {
   const [datos, setDatos] = useState({
@@ -13,7 +13,31 @@ export const AppDataProvider = ({ children }) => {
   });
 
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token')); // token reactivo
 
+  // Escuchar cambios en localStorage (todas las pestañas)
+  useEffect(() => {
+    const handleStorage = () => {
+      const newToken = localStorage.getItem('token');
+      setToken(newToken);
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  // También sincronizar el token al montar
+  const syncToken = () => {
+    setToken(localStorage.getItem('token'));
+  };
+
+  useEffect(() => {
+    syncToken();
+  }, []);
+
+  // Cargar datos cuando cambia el token
   useEffect(() => {
     const cargarDatos = async () => {
       const user = getUserFromToken();
@@ -25,11 +49,11 @@ export const AppDataProvider = ({ children }) => {
       try {
         const [tarifasRes, pantallasRes, categoriasRes, clienteRes] = await Promise.all([
           api.get('/tarifas'),
-          api.get('/pantallas'), // debes tener este endpoint
+          api.get('/pantallas'),
           api.get('/categorias'),
           api.get('/cliente')
         ]);
-        console.log('Datos cargados: ');
+        console.log('Datos cargados:');
         setDatos({
           tarifas: tarifasRes.data || [],
           pantallas: pantallasRes.data || [],
@@ -37,7 +61,6 @@ export const AppDataProvider = ({ children }) => {
           cliente: clienteRes.data || null
         });
       } catch (error) {
-
         console.error('Error al cargar datos globales:', error);
       } finally {
         setLoading(false);
@@ -45,7 +68,7 @@ export const AppDataProvider = ({ children }) => {
     };
 
     cargarDatos();
-  }, []);
+  }, [token]);
 
   return (
     <AppDataContext.Provider value={{ ...datos, loading, setDatos }}>
@@ -53,5 +76,3 @@ export const AppDataProvider = ({ children }) => {
     </AppDataContext.Provider>
   );
 };
-
-export const useAppData = () => useContext(AppDataContext);

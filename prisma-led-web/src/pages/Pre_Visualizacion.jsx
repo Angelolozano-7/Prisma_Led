@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useResumenReserva } from '../hooks/useResumenReserva';
-import { useAppData } from '../contexts/AppDataContext';
+import api from "../services/api";
+import { useAppData } from '../hooks/useAppData';
 
 export default function PreVisualizacion() {
   const location = useLocation();
@@ -45,6 +46,27 @@ export default function PreVisualizacion() {
     segundos: p.segundos,
     precio: p.precio,
   }));
+
+  const handleEliminar = async () => {
+    if (!id_reserva) {
+      alert("No hay prereserva para eliminar.");
+      return;
+    }
+
+    if (!window.confirm("¿Seguro que deseas eliminar esta prereserva? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    try {
+      await api.delete(`/prereservas/${id_reserva}`);
+      alert("✅ Prereserva eliminada correctamente.");
+      navigate("/cliente");
+    } catch (error) {
+      console.error("Error al eliminar prereserva:", error);
+      alert("❌ Ocurrió un error al eliminar la prereserva.");
+    }
+  };
+
 
   return (
     <div className="flex flex-col items-center bg-white p-6">
@@ -113,29 +135,38 @@ export default function PreVisualizacion() {
         </div>
       </div>
 
-      <div className="mt-6 flex gap-4">
+      <div className="mt-6 flex gap-4 flex-wrap">
         <button
-          onClick={() => navigate('/cliente/disponibilidad', {
-            state: {
-              fecha_inicio,
-              duracion,
-              categoria,
-              disponibilidad: {},
-              seleccionadas: reenviarPantallas,
-              fromEdicion: true
-            }
-          })}
-          className="bg-violet-300 hover:bg-violet-400 text-white px-4 py-2 rounded"
+          onClick={handleEliminar}
+          className="bg-black  hover:bg-red-700 text-white px-4 py-2 rounded"
         >
-          Disponibilidad
+          Eliminar
+        </button>
+        <button
+          onClick={() =>
+            navigate('/cliente/disponibilidad', {
+              state: {
+                fecha_inicio,
+                duracion,
+                categoria,
+                disponibilidad: {},
+                seleccionadas: reenviarPantallas,
+                fromEdicion: true
+              }
+            })}
+          className="bg-violet-500 hover:bg-violet-400 text-white px-4 py-2 rounded"
+        >
+          Editar
         </button>
         <button
           onClick={() => navigate('/cliente')}
-          className="bg-violet-300 hover:bg-violet-400 text-white px-4 py-2 rounded"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800  px-4 py-2 rounded"
         >
-          Cancelar
+          Volver
         </button>
+        
       </div>
+
     </div>
   );
 }

@@ -1,20 +1,25 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services.sheets_client import connect_sheet
-from datetime import datetime, timedelta
+from datetime import datetime
 import pandas as pd
 import uuid
 from flask_mail import Message
-from app import mail  # Asegúrate de que esté configurado
+from app import mail
 import traceback
+from app.services.retry_utils import retry_on_rate_limit
 
-
-
-def generar_id_appsheet():
-    # AppSheet usa IDs estilo 'abc123de'. Podemos simularlo así:
-    return uuid.uuid4().hex[:8]
+from app.services.sheets_client import (
+    connect_sheet,
+    get_prereservas,
+    get_detalle_prereserva,
+    get_tarifas,
+    get_pantallas
+)
 
 prereservas_bp = Blueprint('prereservas_bp', __name__)
+
+def generar_id_appsheet():
+    return uuid.uuid4().hex[:8]
 
 @prereservas_bp.route('/cliente', methods=['GET', 'OPTIONS'])
 @jwt_required()
@@ -23,50 +28,35 @@ def obtener_reservas_del_cliente():
         return '', 200
 
     id_cliente = get_jwt_identity()
-    sheet = connect_sheet()
-    reservas_ws = sheet.worksheet("prereservas")
-    reservas = reservas_ws.get_all_records()
+    reservas = get_prereservas()
 
     reservas_cliente = [
         r for r in reservas
         if r.get("id_cliente", "").strip() == id_cliente
     ]
-
     return jsonify(reservas_cliente), 200
-
 
 
 @prereservas_bp.route('/detalle/<id_reserva>', methods=['GET'])
 @jwt_required()
 def obtener_detalle_reserva(id_reserva):
     identidad = get_jwt_identity()
-    sheet = connect_sheet()
 
-    # Conexión a las hojas
-    reservas_ws = sheet.worksheet("prereservas")
-    detalle_ws = sheet.worksheet("detalle_prereserva")
-    pantallas_ws = sheet.worksheet("pantallas")
-    tarifas_ws = sheet.worksheet("tarifas")
+    reservas = get_prereservas()
+    detalles = get_detalle_prereserva()
+    pantallas = get_pantallas()
+    tarifas = get_tarifas()
 
-    # Cargar los datos
-    reservas = reservas_ws.get_all_records()
-    detalles = detalle_ws.get_all_records()
-    pantallas = pantallas_ws.get_all_records()
-    tarifas = tarifas_ws.get_all_records()
-
-    # Mapeos de apoyo
     pantallas_dict = {p["id_pantalla"]: p for p in pantallas}
     tarifas_dict = {t["codigo_tarifa"]: t for t in tarifas}
 
-    # Buscar la reserva del cliente
     reserva = next(
         (r for r in reservas if r["id_prereserva"] == id_reserva and r["id_cliente"] == identidad),
         None
     )
     if not reserva:
-        return jsonify({"error": "Preeserva no encontrada o no autorizada"}), 404
+        return jsonify({"error": "Pre-reserva no encontrada o no autorizada"}), 404
 
-    # Buscar detalles de la reserva
     pantallas_resultado = []
     for d in detalles:
         if d["id_prereserva"] == id_reserva:
@@ -75,7 +65,7 @@ def obtener_detalle_reserva(id_reserva):
             tarifa = tarifas_dict.get(d["codigo_tarifa"], {})
 
             segundos = int(tarifa.get("duracion_seg", 0))
-            precio = int(tarifa.get("precio_semana", 0)) * 1  # multiplicador por semana opcional
+            precio = int(tarifa.get("precio_semana", 0)) * 1
 
             pantallas_resultado.append({
                 "id": id_pantalla,
@@ -87,9 +77,9 @@ def obtener_detalle_reserva(id_reserva):
 
     return jsonify({
         "id_reserva": reserva["id_prereserva"],
-        "fecha_creacion":reserva["fecha_creacion"] ,
+        "fecha_creacion": reserva["fecha_creacion"],
         "fecha_inicio": reserva["fecha_inicio"],
-        "duracion": (  # calcular semanas desde fecha_inicio y fecha_fin si duracion no está explícita
+        "duracion": (
             (pd.to_datetime(reserva["fecha_fin"]) - pd.to_datetime(reserva["fecha_inicio"])).days // 7
         ),
         "categoria": detalles[0]["categoria"] if detalles else "",
@@ -105,18 +95,16 @@ def crear_prereserva():
         id_cliente = get_jwt_identity()
 
         fecha_inicio = data.get("fecha_inicio")
-        fecha_fin = data.get("fecha_fin")  # ✅ ahora viene directamente del frontend
+        fecha_fin = data.get("fecha_fin")
         categoria = data.get("categoria")
 
         if not (fecha_inicio and fecha_fin and categoria):
             return jsonify({"error": "Datos incompletos"}), 400
 
-        # Generar ID y otros campos
         fecha_creacion = datetime.now().strftime("%Y-%m-%d")
         estado = "pendiente"
         id_prereserva = uuid.uuid4().hex[:8]
 
-        # Guardar en Google Sheets
         sheet = connect_sheet()
         ws = sheet.worksheet("prereservas")
         ws.append_row([
@@ -154,14 +142,13 @@ def crear_detalle_prereserva():
         sheet = connect_sheet()
         detalle_ws = sheet.worksheet("detalle_prereserva")
 
-
         nuevas_filas = []
 
         for p in pantallas:
             codigo_tarifa = p["cod_tarifas"]
 
             fila = [
-                uuid.uuid4().hex[:8],  # id_detalle_prereserva
+                uuid.uuid4().hex[:8],
                 id_prereserva,
                 p["id_pantalla"],
                 categoria,
@@ -173,10 +160,8 @@ def crear_detalle_prereserva():
         return jsonify({"mensaje": "Detalle prereserva registrado", "registros": len(nuevas_filas)}), 201
 
     except Exception as e:
-        import traceback
-        print("Error al confirmar prereserva:", traceback.format_exc())
+        traceback.print_exc()
         return jsonify({"error": f"Error al guardar detalle: {str(e)}"}), 500
-
 
 
 @prereservas_bp.route('/enviar-correo', methods=['POST'])
@@ -184,9 +169,6 @@ def crear_detalle_prereserva():
 def enviar_correo_prereserva():
     try:
         data = request.get_json()
-        id_cliente = get_jwt_identity()
-
-        # Extraer datos
         correo = data.get('correo')
         razon_social = data.get('razon_social')
         nit = data.get('nit')
@@ -205,7 +187,6 @@ def enviar_correo_prereserva():
 
         # Construcción del HTML por pantalla
         pantalla_html = []
-
         for p in pantallas:
             semanas = duracion
             base = int(p['base'])
@@ -220,7 +201,6 @@ def enviar_correo_prereserva():
               Valor por semana: ${base:,}<br/>
               <strong>Subtotal ({semanas} semana{'s' if semanas > 1 else ''}) sin descuento:</strong> ${subtotal_pantalla:,}<br/>
             """
-
             if descuento > 0:
                 linea += f"""
                 <strong>Total con descuento:</strong> ${precio:,}<br/>
@@ -229,50 +209,21 @@ def enviar_correo_prereserva():
                   Ahorro: ${ahorro:,}
                 </div>
                 """
-
             linea += "</li>"
             pantalla_html.append(linea)
 
         pantallas_html = "<ul>" + "".join(pantalla_html) + "</ul>"
 
-        # Construir mensaje HTML
         cuerpo_html = f"""
         <div style="font-family:Arial, sans-serif; color:#333;">
         <p>Buenas tardes,</p>
-
         <p>
-            Le agradecemos por confiar en nosotros para que su marca llegue al corazón de Cali, el <strong>Bulevar del Río</strong>.
+            Le agradecemos por confiar en nosotros...
         </p>
-
-        <p>
-            A continuación encontrará los detalles de su <strong>pre-reserva #{id_prereserva.upper()}</strong>:
-        </p>
-
-        <hr style="border:none; border-top:1px solid #ccc; margin:16px 0;" />
-
-        <h3 style="color:#7c3aed;">Prereserva #{id_prereserva.upper()}</h3>
-
-        <p><strong>Razón Social:</strong> {razon_social}<br>
-           <strong>NIT:</strong> {nit}<br>
-           <strong>Correo:</strong> {correo}</p>
-
-        <p><strong>Fecha:</strong> {fecha_inicio} - {fecha_fin}<br>
-           <strong>Categoría:</strong> {categoria}</p>
-
         {pantallas_html}
-
         <p><strong>Subtotal:</strong> ${subtotal:,}<br>
-           <strong>IVA (19%):</strong> ${iva:,}<br>
-           <strong>Total:</strong> <strong>${total:,}</strong></p>
-
-        <hr style="border:none; border-top:1px solid #ccc; margin:16px 0;" />
-
-        <h4 style="margin-bottom: 6px;">Información adicional:</h4>
-        <p>
-            Su pre-reserva se encuentra en estado <strong>pendiente</strong>. Recuerde que tiene <strong>5 días</strong> para compartir el video de la campaña. Si este aún está en producción, puede compartir una imagen de referencia.
-            <br><br>
-            Posteriormente, el equipo técnico de Prisma Wall evaluará si el video cumple con las normativas de exposición al público de todas las edades y usted será notificado por este mismo medio.
-        </p>
+           <strong>IVA:</strong> ${iva:,}<br>
+           <strong>Total:</strong> ${total:,}</p>
         </div>
         """
 
@@ -282,9 +233,43 @@ def enviar_correo_prereserva():
             html=cuerpo_html
         )
         mail.send(msg)
-
         return jsonify({"mensaje": "Correo enviado correctamente"}), 200
 
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+
+@prereservas_bp.route('/<id_prereserva>', methods=['DELETE'])
+@jwt_required()
+@retry_on_rate_limit()
+def eliminar_prereserva(id_prereserva):
+    identidad = get_jwt_identity()
+
+    sheet = connect_sheet()
+    ws_prereservas = sheet.worksheet("prereservas")
+    ws_detalle = sheet.worksheet("detalle_prereserva")
+
+    # Cargar datos
+    prereservas = ws_prereservas.get_all_records()
+    detalles = ws_detalle.get_all_records()
+
+    # Buscar fila de la prereserva
+    prereserva_idx = next(
+        (i for i, r in enumerate(prereservas)
+         if r["id_prereserva"] == id_prereserva and r["id_cliente"] == identidad),
+        None
+    )
+    if prereserva_idx is None:
+        return jsonify({"error": "Prereserva no encontrada o no autorizada"}), 404
+
+    # Borrar fila en prereservas
+    ws_prereservas.delete_rows(prereserva_idx + 2)
+
+    # Borrar filas en detalle_prereserva
+    filas_detalle = [i for i, d in enumerate(detalles) if d["id_prereserva"] == id_prereserva]
+    # Importante: borrar en orden inverso para que los índices no se muevan
+    for idx in sorted(filas_detalle, reverse=True):
+        ws_detalle.delete_rows(idx + 2)
+
+    return jsonify({"msg": "Prereserva eliminada"}), 200

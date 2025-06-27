@@ -18,6 +18,7 @@ export default function Login() {
     try {
       const res = await api.post('/auth/login', { correo, password });
       localStorage.setItem('token', res.data.access_token);
+      window.dispatchEvent(new Event('storage'));
       navigate('/cliente');
     } catch (err) {
       const msg = err.response?.data?.msg || 'Error de conexión';

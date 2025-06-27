@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import api from '../services/api';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 import { useResumenReserva } from '../hooks/useResumenReserva';
 
 export default function PreOrden() {

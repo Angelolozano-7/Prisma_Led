@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 import api from '../services/api'; 
 
 export default function Reserva() {

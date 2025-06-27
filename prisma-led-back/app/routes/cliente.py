@@ -1,7 +1,11 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash
-from app.services.sheets_client import connect_sheet
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.services.sheets_client import (
+    connect_sheet,
+    get_usuarios,
+    get_clientes
+)
 
 cliente_bp = Blueprint('cliente_bp', __name__)
 
@@ -9,23 +13,22 @@ cliente_bp = Blueprint('cliente_bp', __name__)
 @jwt_required()
 def actualizar_cliente():
     id_usuario = get_jwt_identity()
-
     data = request.get_json()
+
     sheet = connect_sheet()
     usuarios_ws = sheet.worksheet("usuarios")
     clientes_ws = sheet.worksheet("clientes")
 
-    usuarios = usuarios_ws.get_all_records()
-    clientes = clientes_ws.get_all_records()
+    usuarios = get_usuarios()
+    clientes = get_clientes()
 
-    # Buscar índices por ID en ambas hojas
     usuario_index = next((i for i, u in enumerate(usuarios) if u["id_usuario"] == id_usuario), None)
     cliente_index = next((i for i, c in enumerate(clientes) if c["id_cliente"] == id_usuario), None)
 
     if usuario_index is None or cliente_index is None:
         return jsonify({"msg": "Usuario no encontrado"}), 404
 
-    # Columnas usuarios
+    # Actualizar campos de usuarios
     campos_usuarios = {
         "nombre": data.get("razon_social"),
         "correo": data.get("correo"),
@@ -42,7 +45,7 @@ def actualizar_cliente():
         col_idx = list(usuarios[0].keys()).index("password_hash") + 1
         usuarios_ws.update_cell(usuario_index + 2, col_idx, password_hash)
 
-    # Columnas clientes
+    # Actualizar campos de clientes
     campos_clientes = {
         "razon_social": "razon_social",
         "nit": "nit",
@@ -64,13 +67,10 @@ def actualizar_cliente():
 @cliente_bp.route('/cliente', methods=['GET'])
 @jwt_required()
 def obtener_cliente():
-    from flask import request
-    print(request.headers)
     id_usuario = get_jwt_identity()
 
-    sheet = connect_sheet()
-    usuarios = sheet.worksheet("usuarios").get_all_records()
-    clientes = sheet.worksheet("clientes").get_all_records()
+    usuarios = get_usuarios()
+    clientes = get_clientes()
 
     usuario = next((u for u in usuarios if u["id_usuario"] == id_usuario), None)
     cliente = next((c for c in clientes if c["id_cliente"] == id_usuario), None)

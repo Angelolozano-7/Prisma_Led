@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 
 export default function BusquedaInline({ fechaInicio, duracion, categoria, onChange, onBuscar }) {
   const { categorias } = useAppData();

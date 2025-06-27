@@ -1,8 +1,16 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services.sheets_client import connect_sheet
 from datetime import datetime, timedelta
 import pandas as pd
+
+from app.services.sheets_client import (
+    get_tarifas,
+    get_pantallas,
+    get_reservas,
+    get_prereservas,
+    get_detalle_reserva,
+    get_detalle_prereserva
+)
 
 reservas_bp = Blueprint('reservas_bp', __name__)
 
@@ -13,9 +21,8 @@ def hay_cruce_de_fechas(f1_inicio, f1_fin, f2_inicio, f2_fin):
     return i1 <= f2_fin and f2_inicio <= f1
 
 def construir_mapa_tarifas(tarifas_sheet):
-    tarifas = tarifas_sheet.get_all_records()
     codigos = {}
-    for row in tarifas:
+    for row in tarifas_sheet:
         codigos[row["codigo_tarifa"]] = int(row["duracion_seg"])
     return codigos
 
@@ -52,24 +59,16 @@ def disponibilidad():
     fecha_fin = fecha_inicio + timedelta(weeks=semanas)
     categoria_cliente = data["categoria"]
 
-    sheet = connect_sheet()
-    pantallas_ws = sheet.worksheet("pantallas")
-    reservas_ws = sheet.worksheet("reservas")
-    prereservas_ws = sheet.worksheet("prereservas")
-    detalle_reserva_ws = sheet.worksheet("detalle_reserva")
-    detalle_prereserva_ws = sheet.worksheet("detalle_prereserva")
-    tarifas_ws = sheet.worksheet("tarifas")
+    pantallas = get_pantallas()
+    reservas = get_reservas()
+    prereservas = get_prereservas()
+    detalle_reserva_raw = get_detalle_reserva()
+    detalle_prereserva_raw = get_detalle_prereserva()
+    tarifas_sheet = get_tarifas()
 
-    codigos_tarifa = construir_mapa_tarifas(tarifas_ws)
-
-    pantallas = pantallas_ws.get_all_records()
+    codigos_tarifa = construir_mapa_tarifas(tarifas_sheet)
     pantallas_dict = {p["id_pantalla"]: p["cilindro"] for p in pantallas}
     pantallas_dict_info = {p["id_pantalla"]: p for p in pantallas}
-
-    reservas = reservas_ws.get_all_records()
-    prereservas = prereservas_ws.get_all_records()
-    detalle_reserva_raw = detalle_reserva_ws.get_all_records()
-    detalle_prereserva_raw = detalle_prereserva_ws.get_all_records()
 
     detalle_reserva_dict = {}
     for row in detalle_reserva_raw:
@@ -127,12 +126,11 @@ def disponibilidad():
     resultado_str_keys = {str(k): v for k, v in resultado.items()}
     return jsonify(resultado_str_keys), 200
 
+
 @reservas_bp.route('/tarifas', methods=['GET'])
 @jwt_required()
 def obtener_tarifas():
-    sheet = connect_sheet()
-    tarifas_ws = sheet.worksheet("tarifas")
-    tarifas = tarifas_ws.get_all_records()
+    tarifas = get_tarifas()
     return jsonify(tarifas), 200
 
 
@@ -143,131 +141,10 @@ def obtener_reservas_del_cliente():
         return '', 200
 
     id_cliente = get_jwt_identity()
-    sheet = connect_sheet()
-    reservas_ws = sheet.worksheet("reservas")
-    reservas = reservas_ws.get_all_records()
+    reservas = get_reservas()
 
     reservas_cliente = [
         r for r in reservas
         if r.get("id_cliente", "").strip() == id_cliente
     ]
-    print(f"Reservas del cliente {id_cliente}: {reservas_cliente}")
     return jsonify(reservas_cliente), 200
-
-
-
-@reservas_bp.route('/detalle/<id_reserva>', methods=['GET'])
-@jwt_required()
-def obtener_detalle_reserva(id_reserva):
-    identidad = get_jwt_identity()
-    sheet = connect_sheet()
-
-    # Conexión a las hojas
-    reservas_ws = sheet.worksheet("reservas")
-    detalle_ws = sheet.worksheet("detalle_reserva")
-    pantallas_ws = sheet.worksheet("pantallas")
-    tarifas_ws = sheet.worksheet("tarifas")
-
-    # Cargar los datos
-    reservas = reservas_ws.get_all_records()
-    detalles = detalle_ws.get_all_records()
-    pantallas = pantallas_ws.get_all_records()
-    tarifas = tarifas_ws.get_all_records()
-
-    # Mapeos de apoyo
-    pantallas_dict = {p["id_pantalla"]: p for p in pantallas}
-    tarifas_dict = {t["codigo_tarifa"]: t for t in tarifas}
-
-    # Buscar la reserva del cliente
-    reserva = next(
-        (r for r in reservas if r["id_reserva"] == id_reserva and r["id_cliente"] == identidad),
-        None
-    )
-    if not reserva:
-        return jsonify({"error": "reserva no encontrada o no autorizada"}), 404
-
-    # Buscar detalles de la reserva
-    pantallas_resultado = []
-    for d in detalles:
-        if d["id_reserva"] == id_reserva:
-            id_pantalla = d["id_pantalla"]
-            pantalla = pantallas_dict.get(id_pantalla, {})
-            tarifa = tarifas_dict.get(d["codigo_tarifa"], {})
-
-            segundos = int(tarifa.get("duracion_seg", 0))
-            precio = int(tarifa.get("precio_semana", 0)) * 1  # multiplicador por semana opcional
-
-            pantallas_resultado.append({
-                "id": id_pantalla,
-                "cilindro": pantalla.get("cilindro"),
-                "identificador": pantalla.get("identificador"),
-                "segundos": segundos,
-                "precio": precio,
-            })
-    return jsonify({
-        "id_reserva": reserva["id_reserva"],
-        "fecha_creacion":reserva["fecha_creacion"] ,
-        "fecha_inicio": reserva["fecha_inicio"],
-        "duracion": (  # calcular semanas desde fecha_inicio y fecha_fin si duracion no está explícita
-            (pd.to_datetime(reserva["fecha_fin"]) - pd.to_datetime(reserva["fecha_inicio"])).days // 7
-        ),
-        "categoria": detalles[0]["categoria"] if detalles else "",
-        "pantallas": pantallas_resultado
-    }), 200
-
-@reservas_bp.route('/cliente/completo', methods=['GET'])
-@jwt_required()
-def obtener_reservas_cliente_completo():
-    identidad = get_jwt_identity()
-    sheet = connect_sheet()
-
-    reservas_ws = sheet.worksheet("reservas")
-    detalle_ws = sheet.worksheet("detalle_reserva")
-    pantallas_ws = sheet.worksheet("pantallas")
-    tarifas_ws = sheet.worksheet("tarifas")
-
-    reservas = reservas_ws.get_all_records()
-    detalles = detalle_ws.get_all_records()
-    pantallas = {p["id_pantalla"]: p for p in pantallas_ws.get_all_records()}
-    tarifas = {t["codigo_tarifa"]: t for t in tarifas_ws.get_all_records()}
-
-    # Filtrar reservas del cliente
-    reservas_cliente = [r for r in reservas if r.get("id_cliente", "").strip() == identidad]
-    detalle_por_reserva = {}
-    for d in detalles:
-        detalle_por_reserva.setdefault(d["id_reserva"], []).append(d)
-
-    resultado = []
-    for r in reservas_cliente:
-        pantallas_resultado = []
-        detalles_r = detalle_por_reserva.get(r["id_reserva"], [])
-        for d in detalles_r:
-            tarifa = tarifas.get(d["codigo_tarifa"], {})
-            pantalla = pantallas.get(d["id_pantalla"], {})
-            if not tarifa or not pantalla:
-                continue
-
-            segundos = int(tarifa.get("duracion_seg", 0))
-            precio = int(tarifa.get("precio_semana", 0))
-
-            pantallas_resultado.append({
-                "id": d["id_pantalla"],
-                "cilindro": pantalla.get("cilindro"),
-                "identificador": pantalla.get("identificador"),
-                "segundos": segundos,
-                "precio": precio,
-            })
-
-        resultado.append({
-            "id_reserva": r["id_reserva"],
-            "fecha_inicio": r["fecha_inicio"],
-            "fecha_fin": r["fecha_fin"],
-            "categoria": detalles_r[0]["categoria"] if detalles_r else "",
-            "duracion": (pd.to_datetime(r["fecha_fin"]) - pd.to_datetime(r["fecha_inicio"])).days // 7,
-            "pantallas": pantallas_resultado,
-            "subtotal": sum(p["precio"] for p in pantallas_resultado)
-        })
-
-    return jsonify(resultado), 200
-
-

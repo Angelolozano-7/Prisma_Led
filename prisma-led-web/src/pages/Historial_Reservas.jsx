@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getUserFromToken } from '../services/decodeToken';
 import VideoLoader from '../components/VideoLoader';
-import { useAppData } from '../contexts/AppDataContext';
+import { useAppData } from '../hooks/useAppData';
 import { useResumenReserva } from '../hooks/useResumenReserva';
 
 export default function HistorialReservas() {
