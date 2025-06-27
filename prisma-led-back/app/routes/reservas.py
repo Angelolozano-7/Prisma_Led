@@ -148,3 +148,52 @@ def obtener_reservas_del_cliente():
         if r.get("id_cliente", "").strip() == id_cliente
     ]
     return jsonify(reservas_cliente), 200
+
+
+@reservas_bp.route('/cliente/completo', methods=['GET'])
+@jwt_required()
+def obtener_reservas_cliente_completo():
+    identidad = get_jwt_identity()
+    reservas = get_reservas()
+    detalles = get_detalle_reserva()
+    pantallas = {p["id_pantalla"]: p for p in get_pantallas()}
+    tarifas = {t["codigo_tarifa"]: t for t in get_tarifas()}
+
+    # Filtrar reservas del cliente
+    reservas_cliente = [r for r in reservas if r.get("id_cliente", "").strip() == identidad]
+    detalle_por_reserva = {}
+    for d in detalles:
+        detalle_por_reserva.setdefault(d["id_reserva"], []).append(d)
+
+    resultado = []
+    for r in reservas_cliente:
+        pantallas_resultado = []
+        detalles_r = detalle_por_reserva.get(r["id_reserva"], [])
+        for d in detalles_r:
+            tarifa = tarifas.get(d["codigo_tarifa"], {})
+            pantalla = pantallas.get(d["id_pantalla"], {})
+            if not tarifa or not pantalla:
+                continue
+
+            segundos = int(tarifa.get("duracion_seg", 0))
+            precio = int(tarifa.get("precio_semana", 0))
+
+            pantallas_resultado.append({
+                "id": d["id_pantalla"],
+                "cilindro": pantalla.get("cilindro"),
+                "identificador": pantalla.get("identificador"),
+                "segundos": segundos,
+                "precio": precio,
+            })
+
+        resultado.append({
+            "id_reserva": r["id_reserva"],
+            "fecha_inicio": r["fecha_inicio"],
+            "fecha_fin": r["fecha_fin"],
+            "categoria": detalles_r[0]["categoria"] if detalles_r else "",
+            "duracion": (pd.to_datetime(r["fecha_fin"]) - pd.to_datetime(r["fecha_inicio"])).days // 7,
+            "pantallas": pantallas_resultado,
+            "subtotal": sum(p["precio"] for p in pantallas_resultado)
+        })
+
+    return jsonify(resultado), 200

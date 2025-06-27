@@ -273,3 +273,94 @@ def eliminar_prereserva(id_prereserva):
         ws_detalle.delete_rows(idx + 2)
 
     return jsonify({"msg": "Prereserva eliminada"}), 200
+
+
+
+
+@prereservas_bp.route('/<id_prereserva>', methods=['PUT'])
+@jwt_required()
+@retry_on_rate_limit()
+def actualizar_prereserva(id_prereserva):
+    identidad = get_jwt_identity()
+    data = request.get_json()
+    fecha_inicio = data.get("fecha_inicio")
+    fecha_fin = data.get("fecha_fin")
+
+    if not fecha_inicio or not fecha_fin:
+        return jsonify({"error": "Datos incompletos"}), 400
+
+    sheet = connect_sheet()
+    ws = sheet.worksheet("prereservas")
+    prereservas = ws.get_all_records()
+
+    # Buscar fila de la prereserva
+    idx = next(
+        (i for i, r in enumerate(prereservas)
+         if r["id_prereserva"] == id_prereserva and r["id_cliente"] == identidad),
+        None
+    )
+    if idx is None:
+        return jsonify({"error": "Prereserva no encontrada o no autorizada"}), 404
+
+    fila_nueva = [
+        prereservas[idx]["id_prereserva"],
+        prereservas[idx]["id_cliente"],
+        fecha_inicio,
+        fecha_fin,
+        "pendiente",
+        prereservas[idx]["fecha_creacion"]
+    ]
+
+    # Actualizar fila en Sheets (idx + 2 porque hay cabecera y enumeración inicia en 0)
+    ws.update(f"A{idx+2}:F{idx+2}", [fila_nueva])
+
+    return jsonify({"mensaje": "Prereserva actualizada"}), 200
+
+
+@prereservas_bp.route('/detalle_prereserva/<id_prereserva>', methods=['PUT'])
+@jwt_required()
+@retry_on_rate_limit()
+def actualizar_detalle_prereserva(id_prereserva):
+    identidad = get_jwt_identity()
+    data = request.get_json()
+    categoria = data.get("categoria")
+    pantallas = data.get("pantallas", [])
+
+    if not categoria or not pantallas:
+        return jsonify({"error": "Datos incompletos"}), 400
+
+    sheet = connect_sheet()
+    ws_prereservas = sheet.worksheet("prereservas")
+    ws_detalle = sheet.worksheet("detalle_prereserva")
+
+    prereservas = ws_prereservas.get_all_records()
+    detalles = ws_detalle.get_all_records()
+
+    # Validar que la prereserva exista y pertenezca al usuario
+    prereserva = next(
+        (r for r in prereservas if r["id_prereserva"] == id_prereserva and r["id_cliente"] == identidad),
+        None
+    )
+    if not prereserva:
+        return jsonify({"error": "Prereserva no encontrada o no autorizada"}), 404
+
+    # Borrar filas existentes en detalle_prereserva
+    filas_detalle = [i for i, d in enumerate(detalles) if d["id_prereserva"] == id_prereserva]
+    for idx in sorted(filas_detalle, reverse=True):
+        ws_detalle.delete_rows(idx + 2)
+
+    # Insertar nuevas filas
+    nuevas_filas = []
+    for p in pantallas:
+        fila = [
+            uuid.uuid4().hex[:8],
+            id_prereserva,
+            p["id_pantalla"],
+            categoria,
+            p["cod_tarifas"]
+        ]
+        nuevas_filas.append(fila)
+
+    ws_detalle.append_rows(nuevas_filas)
+
+    return jsonify({"mensaje": "Detalle prereserva actualizado", "registros": len(nuevas_filas)}), 200

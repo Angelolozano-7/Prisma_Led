@@ -1,4 +1,3 @@
-// contexts/PrereservaContext.jsx
 import { createContext, useState, useContext } from "react";
 
 const PrereservaContext = createContext();

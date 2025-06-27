@@ -3,18 +3,20 @@ import { useState } from 'react';
 import api from '../services/api';
 import { useAppData } from '../hooks/useAppData';
 import { useResumenReserva } from '../hooks/useResumenReserva';
+import { usePrereserva } from '../contexts/PrereservaContext';
 
 export default function PreOrden() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { prereserva, setPrereserva } = usePrereserva();
+
   const {
     fecha_inicio,
     duracion,
     categoria,
-    cod_tarifas,
+    disponibilidad,
     pantallas = [],
-    disponibilidad = {},
-  } = location.state || {};
+  } = location.state || prereserva?.edicion || {};
 
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const { tarifas: tarifasContext } = useAppData();
@@ -49,36 +51,64 @@ export default function PreOrden() {
   };
 
   const procederCancelacion = () => {
+    setPrereserva(null);
     navigate('/cliente');
   };
 
   const handleConfirmar = async () => {
     try {
-      const response = await api.post('/prereservas/crear', {
-        fecha_inicio,
-        fecha_fin: calcularFechaFin(),
-        categoria,
-      });
+      let id_prereserva_final = prereserva?.original?.id_reserva;
 
-      const { id_prereserva } = response.data;
+      if (prereserva?.original?.id_reserva) {
+        // 🔄 Actualizar prereserva existente
+        await api.put(`/prereservas/${prereserva.original.id_reserva}`, {
+          fecha_inicio,
+          fecha_fin: calcularFechaFin(),
+          categoria
+        });
 
-      const detallePayload = {
-        id_prereserva,
-        categoria,
-        duracion,
-        pantallas: pantallas.map(p => ({
-          id_pantalla: p.id_pantalla,
-          precio: p.precio,
-          cod_tarifas: p.cod_tarifas,
-        }))
-      };
+        // 📝 Actualizar detalle
+        await api.put(`/prereservas/detalle_prereserva/${prereserva.original.id_reserva}`, {
+          categoria,
+          duracion,
+          pantallas: pantallas.map(p => ({
+            id_pantalla: p.id_pantalla,
+            precio: p.precio,
+            cod_tarifas: p.cod_tarifas
+          }))
+        });
 
-      await api.post('/prereservas/detalle_prereserva/crear', detallePayload);
+        id_prereserva_final = prereserva.original.id_reserva;
 
-      alert("✅ Prereserva confirmada exitosamente");
+        alert('✅ Prereserva actualizada correctamente.');
+      } else {
+        // ✨ Crear nueva prereserva
+        const response = await api.post('/prereservas/crear', {
+          fecha_inicio,
+          fecha_fin: calcularFechaFin(),
+          categoria
+        });
+
+        id_prereserva_final = response.data.id_prereserva;
+
+        await api.post('/prereservas/detalle_prereserva/crear', {
+          id_prereserva: id_prereserva_final,
+          categoria,
+          duracion,
+          pantallas: pantallas.map(p => ({
+            id_pantalla: p.id_pantalla,
+            precio: p.precio,
+            cod_tarifas: p.cod_tarifas
+          }))
+        });
+
+        alert('✅ Prereserva creada correctamente.');
+      }
+
+      // 🚀 Redirigir a PreOrdenDoc con los datos actualizados
       navigate('/cliente/pre-orden-doc', {
         state: {
-          id_prereserva,
+          id_prereserva: id_prereserva_final,
           duracion,
           fecha_inicio,
           fecha_fin: calcularFechaFin(),
@@ -88,10 +118,11 @@ export default function PreOrden() {
       });
 
     } catch (error) {
-      console.error('❌ Error al confirmar prereserva:', error);
-      alert('Ocurrió un error al confirmar la prereserva.');
+      console.error(error);
+      alert('❌ Error al confirmar prereserva.');
     }
   };
+
 
   return (
     <div className="flex flex-col items-center bg-white p-6">
@@ -163,6 +194,7 @@ export default function PreOrden() {
 
       <div className="mt-6 flex gap-4">
         <button
+        
           onClick={() => navigate('/cliente/disponibilidad', {
             state: {
               fecha_inicio,

@@ -11,6 +11,7 @@ from datetime import datetime
 from app.services.id_user_generator import generate_unique_user_id
 from app.extensions import mail
 import random
+import traceback
 import string
 
 auth_bp = Blueprint('auth_bp', __name__)
@@ -38,7 +39,7 @@ def login():
 def register():
     data = request.get_json()
 
-    nombre = data.get("nombre")
+    nombre = data.get("nombre_contacto")
     correo = data.get("correo")
     telefono = data.get("telefono")
     password = data.get("password")
@@ -52,6 +53,7 @@ def register():
     nombre_contacto = data.get("nombre_contacto")
 
     if not nombre or not correo or not password:
+        print
         return jsonify({"msg": "Faltan campos obligatorios"}), 400
 
     usuarios = get_usuarios()

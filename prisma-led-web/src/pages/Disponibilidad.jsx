@@ -6,6 +6,8 @@ import CilindroModal from '../components/CilindroModal';
 import BusquedaInline from '../components/BusquedaInline';
 import api from '../services/api';
 import VideoLoader from '../components/VideoLoader';
+import { usePrereserva } from '../contexts/PrereservaContext';
+
 
 const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
 
@@ -14,10 +16,12 @@ export default function Disponibilidad() {
   const navigate = useNavigate();
   const { tarifas: tarifasContext, categorias } = useAppData();
   const [loading, setLoading] = useState(false);
+  const { prereserva, setPrereserva } = usePrereserva();
 
-  const [fechaInicio, setFechaInicio] = useState(location.state?.fecha_inicio || '');
-  const [duracion, setDuracion] = useState(parseInt(location.state?.duracion) || 1);
-  const [categoria, setCategoria] = useState(location.state?.categoria || (categorias[0]?.nombre || ''));
+  const [isEditando, setisEditando] = useState(prereserva?.edicion?.isEditando || false );
+  const [fechaInicio, setFechaInicio] = useState(location.state?.fecha_inicio || prereserva?.edicion?.fecha_inicio || '');
+  const [duracion, setDuracion] = useState(parseInt(location.state?.duracion) || parseInt(prereserva?.edicion?.duracion) || 1);
+  const [categoria, setCategoria] = useState(location.state?.categoria || prereserva?.edicion?.categoria ||(categorias[0]?.nombre || ''));
   const [data, setData] = useState(null);
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [duraciones, setDuraciones] = useState({});
@@ -39,58 +43,62 @@ export default function Disponibilidad() {
   }, [data, navigate]);
 
   useEffect(() => {
-    const fetchDisponibilidad = async () => {
-      setLoading(true);
-      try {
-        const res = await api.post('/reservas/disponibilidad', {
-          fecha_inicio: fechaInicio,
-          duracion_semanas: duracion,
-          categoria
+  const fetchDisponibilidad = async () => {
+    setLoading(true);
+    try {
+      const res = await api.post('/reservas/disponibilidad', {
+        fecha_inicio: fechaInicio,
+        duracion_semanas: duracion,
+        categoria
+      });
+      setData(res.data);
+
+      // Determinar pantallas iniciales
+      const pantallasIniciales =
+        location.state?.seleccionadas?.length > 0
+          ? location.state?.seleccionadas
+          : (prereserva?.edicion?.pantallas || []);
+
+      const disponibles = Object.keys(res.data);
+
+      const solicitadas = pantallasIniciales.map(p => p.id_pantalla);
+
+      const seleccionFiltrada = solicitadas.filter(id => disponibles.includes(id));
+
+      const noDisponibles = solicitadas.filter(id => !disponibles.includes(id));
+      if (noDisponibles.length > 0) {
+        const nombres = noDisponibles.map(id => {
+          const pantalla = res.data[id];
+          return pantalla
+            ? `Cilindro ${pantalla.cilindro}${pantalla.identificador}`
+            : id;
         });
-        setData(res.data);
-
-        const disponibles = Object.keys(res.data).filter(
-          id => res.data[id].estado === 'disponible' || res.data[id].estado === 'parcial'
-        );
-
-        const seleccionFiltrada = (location.state?.seleccionadas || []).filter(p =>
-          disponibles.includes(p.id_pantalla)
-        );
-
-        const solicitadas = (location.state?.seleccionadas || []).map(p => p.id_pantalla);
-        const noDisponibles = solicitadas.filter(id => !disponibles.includes(id));
-
-        if (noDisponibles.length > 0) {
-          const nombres = noDisponibles.map(id => {
-            const pantalla = res.data[id];
-            return pantalla ? `Cilindro ${pantalla.cilindro}${pantalla.identificador}` : id;
-          });
-          alert(`⚠️ Las siguientes pantallas no están disponibles para las fechas seleccionadas:\n\n${nombres.join('\n')}`);
-        }
-
-        setSeleccionadas(seleccionFiltrada.map(p => p.id_pantalla));
-        const nuevasDuraciones = {};
-        seleccionFiltrada.forEach(p => {
-          nuevasDuraciones[p.id_pantalla] = p.segundos;
-        });
-        setDuraciones(nuevasDuraciones);
-
-      } catch (error) {
-        console.error('Error al consultar disponibilidad al montar:', error);
-        navigate('/cliente');
-      } finally {
-        setLoading(false);
+        alert(`⚠️ Las siguientes pantallas no están disponibles:\n\n${nombres.join('\n')}`);
       }
-    };
 
-    if (
-      location.state?.fecha_inicio &&
-      location.state?.duracion &&
-      location.state?.categoria
-    ) {
-      fetchDisponibilidad();
+      setSeleccionadas(seleccionFiltrada);
+
+      const nuevasDuraciones = {};
+      pantallasIniciales.forEach(p => {
+        if (seleccionFiltrada.includes(p.id_pantalla)) {
+          nuevasDuraciones[p.id_pantalla] = p.segundos;
+        }
+      });
+      setDuraciones(nuevasDuraciones);
+
+    } catch (error) {
+      console.error('Error al consultar disponibilidad al montar:', error);
+      navigate('/cliente');
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
+
+  if (fechaInicio && duracion && categoria) {
+    fetchDisponibilidad();
+  }
+}, []);
+
 
   const calcularFechaFin = () => {
     if (!fechaInicio || !duracion) return '';
@@ -314,6 +322,7 @@ export default function Disponibilidad() {
       <button
         disabled={!puedeConfirmar}
         className="w-full bg-violet-600 text-white py-2 mt-2 rounded disabled:bg-gray-300"
+       
         onClick={() => {
           const payload = seleccionadas.map(id => {
             const segundos = duraciones[id];
@@ -324,23 +333,38 @@ export default function Disponibilidad() {
               cilindro: data[id].cilindro,
               identificador: data[id].identificador,
               segundos,
-              cod_tarifas: cod_tarifas,
+              cod_tarifas,
               precio: precio?.total || 0,
               base: precio?.base || 0,
               descuento: precio?.descuento || 0
             };
           });
-
-          navigate('/cliente/pre-orden', {
-            state: {
-              fecha_inicio: fechaInicio,
-              duracion,
-              categoria,
-              pantallas: payload,
-              disponibilidad: data
-            }
-          });
+          if (isEditando) {
+              setPrereserva({
+                ...prereserva,
+                edicion: {
+                  ...prereserva.edicion,
+                  fecha_inicio: fechaInicio,
+                  duracion,
+                  categoria,
+                  pantallas: payload
+                }
+              });
+              navigate('/cliente/pre-orden')
+            }else{
+              navigate('/cliente/pre-orden', {
+                state: {
+                  fecha_inicio: fechaInicio,
+                  duracion,
+                  categoria,
+                  pantallas: payload,
+                  disponibilidad: data
+                }
+              });
+          }
         }}
+
+
       >
         Confirmar selección
       </button>

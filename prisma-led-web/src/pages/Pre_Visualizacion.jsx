@@ -2,11 +2,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useResumenReserva } from '../hooks/useResumenReserva';
 import api from "../services/api";
 import { useAppData } from '../hooks/useAppData';
+import { usePrereserva } from '../contexts/PrereservaContext';
 
 export default function PreVisualizacion() {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const { setPrereserva } = usePrereserva();
   const {
     id_reserva,
     fecha_creacion,
@@ -142,22 +143,39 @@ export default function PreVisualizacion() {
         >
           Eliminar
         </button>
-        <button
-          onClick={() =>
-            navigate('/cliente/disponibilidad', {
-              state: {
-                fecha_inicio,
-                duracion,
-                categoria,
-                disponibilidad: {},
-                seleccionadas: reenviarPantallas,
-                fromEdicion: true
-              }
-            })}
-          className="bg-violet-500 hover:bg-violet-400 text-white px-4 py-2 rounded"
-        >
-          Editar
-        </button>
+
+      <button
+        onClick={() => {
+          // Creamos el objeto de pantallas que vas a pasar
+          const dataPantallas = reenviarPantallas;
+
+          // Guardar en contexto
+          setPrereserva({
+            original: {
+              id_reserva,
+              fecha_inicio,
+              duracion,
+              categoria,
+              pantallas: dataPantallas,
+            },
+            edicion: {
+              id_reserva,
+              fecha_inicio,
+              duracion,
+              categoria,
+              pantallas: dataPantallas,
+              isEditando: true,
+            }
+          });
+
+          // Navegar
+          navigate('/cliente/disponibilidad');
+        }}
+        className="bg-violet-500 hover:bg-violet-400 text-white px-4 py-2 rounded"
+      >
+        Editar
+      </button>
+
         <button
           onClick={() => navigate('/cliente')}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800  px-4 py-2 rounded"
