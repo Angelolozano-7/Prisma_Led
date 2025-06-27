@@ -37,6 +37,7 @@ export default function PreOrdenDoc() {
           nit: clienteData.nit,
           id_prereserva,
           fecha_inicio,
+          duracion,
           fecha_fin,
           categoria,
           pantallas,
@@ -82,9 +83,14 @@ export default function PreOrdenDoc() {
             <p><strong>Fecha:</strong> {fecha_inicio} - {fecha_fin}</p>
             <p><strong>Categoría:</strong> {categoria}</p>
             {pantallas.map((p, i) => (
-              <p key={i}>
-                Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''} - ${p.precio?.toLocaleString('es-CO')}
-              </p>
+              <div key={i}>
+                <p>
+                  Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''}  
+                </p>
+                <p className="text-xs text-gray-600 ml-2">
+                  Base: ${p.base?.toLocaleString('es-CO')} | Descuento: {(p.descuento * 100).toFixed(1)}% | Total: ${p.precio?.toLocaleString('es-CO')}
+                </p>
+              </div>
             ))}
           </div>
 

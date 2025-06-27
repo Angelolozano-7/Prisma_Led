@@ -1,28 +1,17 @@
 import { useEffect, useState } from 'react';
-import api from '../services/api';
+import { useAppData } from '../contexts/AppDataContext';
 
 export default function BusquedaInline({ fechaInicio, duracion, categoria, onChange, onBuscar }) {
+  const { categorias } = useAppData();
   const [localFecha, setLocalFecha] = useState(fechaInicio);
   const [localDuracion, setLocalDuracion] = useState(duracion);
   const [localCategoria, setLocalCategoria] = useState(categoria);
   const [errores, setErrores] = useState({});
-  const [categorias, setCategorias] = useState([]);
+
   const today = new Date();
   const localISODate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
     .toISOString()
     .split('T')[0];
-
-  useEffect(() => {
-    const fetchCategorias = async () => {
-      try {
-        const res = await api.get('/categorias');
-        setCategorias(res.data || []);
-      } catch (error) {
-        console.error('Error al cargar categorías:', error);
-      }
-    };
-    fetchCategorias();
-  }, []);
 
   const validarCampos = () => {
     const nuevosErrores = {};

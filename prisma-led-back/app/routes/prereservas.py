@@ -153,24 +153,12 @@ def crear_detalle_prereserva():
 
         sheet = connect_sheet()
         detalle_ws = sheet.worksheet("detalle_prereserva")
-        tarifas_ws = sheet.worksheet("tarifas") #eliminar doble cargar
 
-        # Cargar tarifas
-        tarifas = tarifas_ws.get_all_records()
-        tarifa_map = {
-            int(t["precio_semana"]): t["codigo_tarifa"]
-            for t in tarifas
-            if t.get("duracion_seg")
-        }
 
         nuevas_filas = []
 
         for p in pantallas:
-            precio_por_semana = int(p["precio"]) // int(data["duracion"])
-            codigo_tarifa = tarifa_map.get(precio_por_semana)
-
-            if not codigo_tarifa:
-                return jsonify({"error": f"No se encontró código de tarifa para precio semanal: {precio_por_semana}"}), 400
+            codigo_tarifa = p["cod_tarifas"]
 
             fila = [
                 uuid.uuid4().hex[:8],  # id_detalle_prereserva
@@ -185,6 +173,8 @@ def crear_detalle_prereserva():
         return jsonify({"mensaje": "Detalle prereserva registrado", "registros": len(nuevas_filas)}), 201
 
     except Exception as e:
+        import traceback
+        print("Error al confirmar prereserva:", traceback.format_exc())
         return jsonify({"error": f"Error al guardar detalle: {str(e)}"}), 500
 
 
@@ -208,9 +198,42 @@ def enviar_correo_prereserva():
         subtotal = data.get('subtotal')
         iva = data.get('iva')
         total = data.get('total')
+        duracion = data.get('duracion')
 
         if not correo or not pantallas:
             return jsonify({"error": "Datos incompletos"}), 400
+
+        # Construcción del HTML por pantalla
+        pantalla_html = []
+
+        for p in pantallas:
+            semanas = duracion
+            base = int(p['base'])
+            precio = int(p['precio'])
+            subtotal_pantalla = base * semanas
+            descuento = p.get('descuento', 0)
+            ahorro = subtotal_pantalla - precio
+
+            linea = f"""
+            <li style="margin-bottom: 12px;">
+              <strong>Pantalla {p['cilindro']}{p['identificador']}</strong> - {semanas} semana{'s' if semanas > 1 else ''}<br/>
+              Valor por semana: ${base:,}<br/>
+              <strong>Subtotal ({semanas} semana{'s' if semanas > 1 else ''}) sin descuento:</strong> ${subtotal_pantalla:,}<br/>
+            """
+
+            if descuento > 0:
+                linea += f"""
+                <strong>Total con descuento:</strong> ${precio:,}<br/>
+                <div style='color:#dc2626; font-size:12px;'>
+                  Descuento aplicado: -{descuento * 100:.1f}%<br/>
+                  Ahorro: ${ahorro:,}
+                </div>
+                """
+
+            linea += "</li>"
+            pantalla_html.append(linea)
+
+        pantallas_html = "<ul>" + "".join(pantalla_html) + "</ul>"
 
         # Construir mensaje HTML
         cuerpo_html = f"""
@@ -230,19 +253,17 @@ def enviar_correo_prereserva():
         <h3 style="color:#7c3aed;">Prereserva #{id_prereserva.upper()}</h3>
 
         <p><strong>Razón Social:</strong> {razon_social}<br>
-            <strong>NIT:</strong> {nit}<br>
-            <strong>Correo:</strong> {correo}</p>
+           <strong>NIT:</strong> {nit}<br>
+           <strong>Correo:</strong> {correo}</p>
 
         <p><strong>Fecha:</strong> {fecha_inicio} - {fecha_fin}<br>
-            <strong>Categoría:</strong> {categoria}</p>
+           <strong>Categoría:</strong> {categoria}</p>
 
-        <ul>
-            {''.join([f"<li>Pantalla {p['cilindro']}{p['identificador']} - {p['segundos'] // 20} semana{'s' if p['segundos'] // 20 > 1 else ''} - ${p['precio']:,}</li>" for p in pantallas])}
-        </ul>
+        {pantallas_html}
 
         <p><strong>Subtotal:</strong> ${subtotal:,}<br>
-            <strong>IVA:</strong> ${iva:,}<br>
-            <strong>Total:</strong> <strong>${total:,}</strong></p>
+           <strong>IVA (19%):</strong> ${iva:,}<br>
+           <strong>Total:</strong> <strong>${total:,}</strong></p>
 
         <hr style="border:none; border-top:1px solid #ccc; margin:16px 0;" />
 
@@ -265,5 +286,5 @@ def enviar_correo_prereserva():
         return jsonify({"mensaje": "Correo enviado correctamente"}), 200
 
     except Exception as e:
-        traceback.print_exc()  # ⬅️ imprime el error exacto en consola
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500

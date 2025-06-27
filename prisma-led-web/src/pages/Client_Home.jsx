@@ -1,14 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import VideoLoader from '../components/VideoLoader';
 
 export default function ClientHome() {
-  
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setCargando(false), 5000); // 5 segundos
+    return () => clearTimeout(timeout);
+  }, []);
 
   const links = [
     { path: '/cliente/reserva', text: 'Realizar reserva' },
     { path: '/cliente/historial-reservas', text: 'Ver historial reservas' },
     { path: '/cliente/editar-reserva', text: 'Editar Prereserva' }
   ];
+
+  if (cargando) {
+    return <VideoLoader />;
+  }
 
   return (
     <div className="w-full max-w-xl h-[60vh] flex flex-col justify-evenly items-center px-4">

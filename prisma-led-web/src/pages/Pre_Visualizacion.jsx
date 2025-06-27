@@ -1,4 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useResumenReserva } from '../hooks/useResumenReserva';
+import { useAppData } from '../contexts/AppDataContext';
 
 export default function PreVisualizacion() {
   const location = useLocation();
@@ -13,16 +15,28 @@ export default function PreVisualizacion() {
     pantallas = [],
   } = location.state || {};
 
+  const { tarifas: tarifasContext } = useAppData();
+
+  const tarifas = tarifasContext.reduce((acc, t) => {
+    acc[t.duracion_seg] = t.precio_semana;
+    return acc;
+  }, {});
+
+  const resumen = useResumenReserva(pantallas, duracion, tarifas, fecha_inicio);
+
+  const formatCOP = valor =>
+    valor.toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    });
+
   const calcularFechaFin = () => {
     if (!fecha_inicio || !duracion) return '';
     const inicio = new Date(fecha_inicio);
     inicio.setDate(inicio.getDate() + parseInt(duracion) * 7);
     return inicio.toISOString().split('T')[0];
   };
-
-  const subtotal = pantallas.reduce((acc, p) => acc + (p.precio || 0), 0);
-  const iva = Math.round(subtotal * 0.19);
-  const total = subtotal + iva;
 
   const reenviarPantallas = pantallas.map((p) => ({
     id_pantalla: p.id || p.id_pantalla,
@@ -40,7 +54,6 @@ export default function PreVisualizacion() {
         </div>
 
         <div className="p-4 space-y-2 text-sm">
-          {/* 🆕 Mostrar ID y fecha de creación */}
           <ul className="space-y-1 text-gray-600 text-xs">
             {id_reserva && <li><strong>ID Prereserva:</strong> {id_reserva}</li>}
             {fecha_creacion && <li><strong>Creación:</strong> {fecha_creacion}</li>}
@@ -56,27 +69,46 @@ export default function PreVisualizacion() {
           <ul className="space-y-1 text-gray-800">
             {pantallas.map((p, i) => (
               <li key={i} className="flex justify-between">
-                <span>Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 && 's'}</span>
-                <span>${p.precio?.toLocaleString('es-CO')}</span>
+                <span>
+                  Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''}
+                </span>
+                <span>{formatCOP(p.precio)}</span>
               </li>
             ))}
           </ul>
 
           <hr className="my-2" />
 
-          <div className="text-right space-y-1">
-            <div className="flex justify-between font-bold">
-              <span>Subtotal</span>
-              <span>${subtotal.toLocaleString('es-CO')}</span>
+          <div className="flex justify-between font-bold text-black items-center">
+            <span>Subtotal:</span>
+            <span>
+              {resumen.descuento > 0 ? (
+                <>
+                  <span className="line-through text-gray-400 mr-2">{formatCOP(resumen.baseTotal)}</span>
+                  <span>{formatCOP(resumen.totalConDescuento)}</span>
+                </>
+              ) : (
+                <span>{formatCOP(resumen.totalConDescuento)}</span>
+              )}
+            </span>
+          </div>
+
+          {resumen.descuento > 0 && (
+            <div className="text-right text-xs text-red-600 font-medium">
+              <p>Descuento aplicado: -{(resumen.descuento * 100).toFixed(1)}%</p>
+              <p>Ahorro: {formatCOP(resumen.ahorro)}</p>
             </div>
-            <div className="flex justify-between font-bold">
-              <span>IVA</span>
-              <span>${iva.toLocaleString('es-CO')}</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg text-black">
-              <span>Total</span>
-              <span>${total.toLocaleString('es-CO')}</span>
-            </div>
+          )}
+
+
+          <div className="flex justify-between font-bold">
+            <span>IVA</span>
+            <span>{formatCOP(resumen.iva)}</span>
+          </div>
+
+          <div className="flex justify-between font-bold text-lg text-black">
+            <span>Total</span>
+            <span>{formatCOP(resumen.total)}</span>
           </div>
         </div>
       </div>

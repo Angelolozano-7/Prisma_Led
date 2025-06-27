@@ -9,6 +9,8 @@ from app.routes.reservas import reservas_bp
 from app.routes.auth import auth_bp
 from app.routes.prereservas import prereservas_bp
 from app.routes.categorias import categorias_bp
+from app.routes.tarifas import tarifas_bp
+from app.routes.pantallas import pantallas_bp
 import os
 
 
@@ -23,6 +25,8 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(cliente_bp, url_prefix="/api")
     app.register_blueprint(categorias_bp, url_prefix="/api")
+    app.register_blueprint(tarifas_bp, url_prefix="/api/tarifas")
+    app.register_blueprint(pantallas_bp, url_prefix="/api/pantallas")
 
     
 

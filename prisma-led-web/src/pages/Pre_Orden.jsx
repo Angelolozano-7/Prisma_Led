@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import api from '../services/api';
-
-
+import { useAppData } from '../contexts/AppDataContext';
+import { useResumenReserva } from '../hooks/useResumenReserva';
 
 export default function PreOrden() {
   const location = useLocation();
@@ -11,11 +11,27 @@ export default function PreOrden() {
     fecha_inicio,
     duracion,
     categoria,
+    cod_tarifas,
     pantallas = [],
     disponibilidad = {},
   } = location.state || {};
 
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const { tarifas: tarifasContext } = useAppData();
+
+  const tarifas = tarifasContext.reduce((acc, t) => {
+    acc[t.duracion_seg] = t.precio_semana;
+    return acc;
+  }, {});
+
+  const resumen = useResumenReserva(pantallas, duracion, tarifas, fecha_inicio);
+
+  const formatCOP = (valor) =>
+    valor.toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    });
 
   const calcularFechaFin = () => {
     if (!fecha_inicio || !duracion) return '';
@@ -23,10 +39,6 @@ export default function PreOrden() {
     inicio.setDate(inicio.getDate() + parseInt(duracion) * 7);
     return inicio.toISOString().split('T')[0];
   };
-
-  const subtotal = pantallas.reduce((acc, p) => acc + (p.precio || 0), 0);
-  const iva = Math.round(subtotal * 0.19);
-  const total = subtotal + iva;
 
   const confirmarCancelacion = () => {
     setMostrarConfirmacion(true);
@@ -40,47 +52,46 @@ export default function PreOrden() {
     navigate('/cliente');
   };
 
-const handleConfirmar = async () => {
-  try {
-    const response = await api.post('/prereservas/crear', {
-      fecha_inicio,
-      fecha_fin: calcularFechaFin(),
-      categoria
-    });
+  const handleConfirmar = async () => {
+    try {
+      const response = await api.post('/prereservas/crear', {
+        fecha_inicio,
+        fecha_fin: calcularFechaFin(),
+        categoria,
+      });
 
-    const { id_prereserva } = response.data;
+      const { id_prereserva } = response.data;
 
-    // Preparar payload para detalle_prereserva
-    const detallePayload = {
-      id_prereserva,
-      categoria,
-      duracion,  // usado para calcular tarifa
-      pantallas: pantallas.map(p => ({
-        id_pantalla: p.id_pantalla,
-        precio: p.precio
-      }))
-    };
+      const detallePayload = {
+        id_prereserva,
+        categoria,
+        duracion,
+        pantallas: pantallas.map(p => ({
+          id_pantalla: p.id_pantalla,
+          precio: p.precio,
+          cod_tarifas: p.cod_tarifas,
+        }))
+      };
 
-    await api.post('/prereservas/detalle_prereserva/crear', detallePayload);
+      await api.post('/prereservas/detalle_prereserva/crear', detallePayload);
 
-    alert("✅ Prereserva confirmada exitosamente");
-    navigate('/cliente/pre-orden-doc', {
-    state: {
-      id_prereserva, // el devuelto del backend
-      duracion,
-      fecha_inicio,
-      fecha_fin: calcularFechaFin(),
-      categoria,
-      pantallas
+      alert("✅ Prereserva confirmada exitosamente");
+      navigate('/cliente/pre-orden-doc', {
+        state: {
+          id_prereserva,
+          duracion,
+          fecha_inicio,
+          fecha_fin: calcularFechaFin(),
+          categoria,
+          pantallas
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error al confirmar prereserva:', error);
+      alert('Ocurrió un error al confirmar la prereserva.');
     }
-  });
-
-  } catch (error) {
-    console.error('❌ Error al confirmar prereserva:', error);
-    alert('Ocurrió un error al confirmar la prereserva.');
-  }
-};
-
+  };
 
   return (
     <div className="flex flex-col items-center bg-white p-6">
@@ -101,25 +112,50 @@ const handleConfirmar = async () => {
             {pantallas.map((p, i) => (
               <li key={i} className="flex justify-between">
                 <span>Cilindro {p.cilindro} {p.identificador} - {duracion} semana{duracion > 1 && 's'}</span>
-                <span>${p.precio.toLocaleString('es-CO')}</span>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">Base: {formatCOP(p.base)}</div>
+                  {p.descuento > 0 && (
+                    <div className="text-xs text-red-600">Descuento: -{(p.descuento * 100).toFixed(1)}%</div>
+                  )}
+                  <div className="text-sm font-semibold">Total: {formatCOP(p.precio)}</div>
+                </div>
               </li>
             ))}
           </ul>
 
           <hr className="my-2" />
 
-          <div className="text-right space-y-1">
-            <div className="flex justify-between font-bold">
-              <span>Subtotal</span>
-              <span>${subtotal.toLocaleString('es-CO')}</span>
+          <div className="text-right space-y-1 mt-4 text-sm">
+            <div className="flex justify-between font-bold text-black items-center">
+              <span>Subtotal:</span>
+              <span>
+                {resumen.descuento > 0 ? (
+                  <>
+                    <span className="line-through text-gray-400 mr-2">{formatCOP(resumen.baseTotal)}</span>
+                    <span>{formatCOP(resumen.totalConDescuento)}</span>
+                  </>
+                ) : (
+                  <span>{formatCOP(resumen.totalConDescuento)}</span>
+                )}
+              </span>
             </div>
-            <div className="flex justify-between font-bold">
+
+            {resumen.descuento > 0 && (
+              <div className="text-right text-xs text-red-600 font-medium">
+                <p>Descuento aplicado: -{(resumen.descuento * 100).toFixed(1)}%</p>
+                <p>Ahorro: {formatCOP(resumen.ahorro)}</p>
+              </div>
+            )}
+
+
+            <div className="flex justify-between font-bold mt-2">
               <span>IVA</span>
-              <span>${iva.toLocaleString('es-CO')}</span>
+              <span>{formatCOP(resumen.iva)}</span>
             </div>
-            <div className="flex justify-between font-bold text-lg text-black">
+
+            <div className="flex justify-between font-bold text-lg text-black mt-1">
               <span>Total</span>
-              <span>${total.toLocaleString('es-CO')}</span>
+              <span>{formatCOP(resumen.total)}</span>
             </div>
           </div>
         </div>
@@ -140,10 +176,11 @@ const handleConfirmar = async () => {
         >
           Modificar
         </button>
-        
-        <button 
-        onClick={handleConfirmar}
-        className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded">
+
+        <button
+          onClick={handleConfirmar}
+          className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded"
+        >
           Confirmar
         </button>
 

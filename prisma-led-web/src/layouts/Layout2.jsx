@@ -1,31 +1,18 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import { User } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import api from '../services/api';
+import { useAppData } from '../contexts/AppDataContext';
 
 export default function Layout2() {
-  const [nombre, setNombre] = useState(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchCliente = async () => {
-      try {
-        const res = await api.get('/cliente');
-        setNombre(res.data.nombre_contacto || res.data.razon_social || 'usuario');
-      } catch (error) {
-        console.warn('No se pudo obtener el nombre del cliente');
-        setNombre('usuario');
-      }
-    };
-
-    fetchCliente();
-  }, []);
+  const { cliente, loading } = useAppData();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/auth/login');
   };
+
+  const nombre = cliente?.nombre_contacto || cliente?.razon_social || 'usuario';
 
   return (
     <div className="min-h-screen bg-white text-texto-principal flex flex-col">
@@ -45,7 +32,7 @@ export default function Layout2() {
             </div>
           </Link>
 
-          {nombre && (
+          {!loading && (
             <>
               <span className="text-sm mt-2 underline">Bienvenido {nombre}</span>
               <button

@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
 import { useEffect } from 'react';
-
-
+import { useAppData } from '../contexts/AppDataContext';
+import api from '../services/api'; 
 
 export default function Reserva() {
   const [fechaInicio, setFechaInicio] = useState('');
@@ -13,20 +12,7 @@ export default function Reserva() {
   const [mostrarCalendario, setMostrarCalendario] = useState(false);
   const [aceptaCondicion, setAceptaCondicion] = useState(false);
   const [errores, setErrores] = useState({});
-  const [categorias, setCategorias] = useState([]);
-  const [nuevaCategoria, setNuevaCategoria] = useState('');
-
-  useEffect(() => {
-  const fetchCategorias = async () => {
-    try {
-      const res = await api.get('/categorias');
-      setCategorias(res.data || []);
-    } catch (error) {
-      console.error('Error al cargar categorías:', error);
-    }
-  };
-  fetchCategorias();
-  }, []);
+  const { categorias } = useAppData();
 
   const navigate = useNavigate();
 
@@ -107,7 +93,6 @@ export default function Reserva() {
             )}
           </div>
 
-
           {/* Duración */}
           <div>
             <label className="block text-sm font-medium mb-1">Duración (semanas)</label>
@@ -127,34 +112,29 @@ export default function Reserva() {
           </div>
 
           {/* Categoría */}
-            <div>
-              <label className="block text-sm font-medium mb-1">Categoría</label>
-
-              <div className="relative">
-                <select
-                  value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
-                  className={`w-full border rounded px-3 py-2 appearance-none bg-white text-sm ${errores.categoria ? 'border-red-500' : 'border-gray-300'}`}
-                >
-                  <option value="">Seleccionar</option>
-                  {categorias.map((cat) => (
-                    <option key={cat.id_categoria} value={cat.nombre}>
-                      {cat.nombre}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Flecha personalizada opcional */}
-                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
-                  ▼
-                </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Categoría</label>
+            <div className="relative">
+              <select
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value)}
+                className={`w-full border rounded px-3 py-2 appearance-none bg-white text-sm ${errores.categoria ? 'border-red-500' : 'border-gray-300'}`}
+              >
+                <option value="">Seleccionar</option>
+                {categorias.map((cat) => (
+                  <option key={cat.id_categoria} value={cat.nombre}>
+                    {cat.nombre}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                ▼
               </div>
-
-              {errores.categoria && (
-                <p className="text-xs text-red-500 mt-1">Selecciona una categoría</p>
-              )}
             </div>
-
+            {errores.categoria && (
+              <p className="text-xs text-red-500 mt-1">Selecciona una categoría</p>
+            )}
+          </div>
 
           {/* Checkbox obligatorio */}
           <div className="flex flex-col space-y-1">
@@ -162,9 +142,7 @@ export default function Reserva() {
               <input
                 type="checkbox"
                 id="competencia"
-                className={`w-4 h-4 ${
-                  errores.condicion ? 'accent-red-500' : ''
-                }`}
+                className={`w-4 h-4 ${errores.condicion ? 'accent-red-500' : ''}`}
                 checked={aceptaCondicion}
                 onChange={(e) => setAceptaCondicion(e.target.checked)}
               />

@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import api from '../services/api';
-import { getUserFromToken } from '../services/decodeToken';
+import { useAppData } from '../contexts/AppDataContext';
 
 export default function Editar_Cliente() {
   const navigate = useNavigate();
+  const { cliente, setDatos } = useAppData();
   const [mensaje, setMensaje] = useState('');
   const [form, setForm] = useState({
     razon_social: '',
@@ -20,28 +21,20 @@ export default function Editar_Cliente() {
   });
 
   useEffect(() => {
-    const user = getUserFromToken();
-    if (user && user.id) {
-      api.get('/cliente')
-        .then(res => {
-          const data = res.data;
-          setForm({
-            razon_social: data.razon_social || '',
-            nit: data.nit || '',
-            correo: data.correo || '',
-            ciudad: data.ciudad || '',
-            direccion: data.direccion || '',
-            telefono: data.telefono || '',
-            nombre_contacto: data.nombre_contacto || '',
-            usuario: data.usuario || '',
-            password: ''
-          });
-        })
-        .catch(() => {
-          setMensaje('No se pudo cargar la información del usuario');
-        });
+    if (cliente) {
+      setForm({
+        razon_social: cliente.razon_social || '',
+        nit: cliente.nit || '',
+        correo: cliente.correo || '',
+        ciudad: cliente.ciudad || '',
+        direccion: cliente.direccion || '',
+        telefono: cliente.telefono || '',
+        nombre_contacto: cliente.nombre_contacto || '',
+        usuario: cliente.correo || '',
+        password: ''
+      });
     }
-  }, []);
+  }, [cliente]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -65,6 +58,8 @@ export default function Editar_Cliente() {
 
     try {
       await api.put(`/cliente`, payload);
+      const refreshed = await api.get('/cliente');
+      setDatos((prev) => ({ ...prev, cliente: refreshed.data }));
       setMensaje('Datos actualizados correctamente');
       setTimeout(() => navigate('/cliente'), 2000);
     } catch (error) {
@@ -136,3 +131,4 @@ export default function Editar_Cliente() {
     </form>
   );
 }
+  

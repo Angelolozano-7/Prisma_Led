@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { getUserFromToken } from '../services/decodeToken';
+import VideoLoader from '../components/VideoLoader';
 
 export default function EditarReserva() {
   const navigate = useNavigate();
   const [reservas, setReservas] = useState([]);
-  const [reservaSeleccionada, setReservaSeleccionada] = useState('');
+  const [selectedReserva, setSelectedReserva] = useState(null);
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(true);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef();
 
   useEffect(() => {
     const fetchReservas = async () => {
@@ -22,7 +25,7 @@ export default function EditarReserva() {
       try {
         await new Promise(resolve => setTimeout(resolve, 3000));
         const res = await api.get('/prereservas/cliente');
-        setReservas(res.data);
+        setReservas(res.data || []);
       } catch (error) {
         setMensaje('No se pudieron cargar tus prereservas');
       } finally {
@@ -31,19 +34,26 @@ export default function EditarReserva() {
     };
 
     fetchReservas();
+
+    // Cerrar dropdown si se hace clic fuera
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleBuscar = async () => {
-    const match = reservas.find(r => r.id_prereserva === reservaSeleccionada);
-    if (!match) {
-      setMensaje('prereserva no encontrada o no pertenece a tu cuenta');
-      setTimeout(() => setMensaje(''), 4000);
+    if (!selectedReserva) {
+      setMensaje('Debes seleccionar una prereserva');
       return;
     }
 
     try {
-      const res = await api.get(`/prereservas/detalle/${reservaSeleccionada}`);
-      const { id_reserva,fecha_creacion,fecha_inicio, duracion, categoria, pantallas } = res.data;
+      const res = await api.get(`/prereservas/detalle/${selectedReserva.id_prereserva}`);
+      const { id_reserva, fecha_creacion, fecha_inicio, duracion, categoria, pantallas } = res.data;
 
       navigate('/cliente/pre-visualizacion', {
         state: {
@@ -64,31 +74,50 @@ export default function EditarReserva() {
     }
   };
 
+  if (loading) return <VideoLoader />;
+
   return (
     <div className="flex flex-col items-center justify-center w-full h-[70vh] px-4">
       <div className="bg-white border border-gray-300 rounded p-6 max-w-md w-full text-center space-y-4">
-        <label className="block text-sm font-semibold">Ingrese número de prereserva</label>
+        <label className="block text-sm font-semibold mb-1">
+          Seleccione número de prereserva
+        </label>
 
-        {loading ? (
-          <p className="text-gray-500 text-sm">Cargando prereservas...</p>
-        ) : (
-          <>
-            <input
-              list="lista-reservas"
-              value={reservaSeleccionada}
-              onChange={(e) => setReservaSeleccionada(e.target.value)}
-              placeholder="Ej: RES123"
-              className="w-full border border-gray-300 rounded px-3 py-2"
-            />
-            <datalist id="lista-reservas">
+        <div className="relative w-full" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(prev => !prev)}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-left flex justify-between items-center"
+          >
+            {selectedReserva?.id_prereserva || 'Seleccione una prereserva'}
+            <svg
+              className="w-4 h-4 ml-2 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {dropdownOpen && (
+            <ul className="absolute z-10 mt-1 w-full max-h-40 overflow-y-auto bg-white border border-gray-300 rounded shadow text-sm">
               {reservas.map((r, idx) => (
-                <option key={idx} value={r.id_prereserva} />
+                <li
+                  key={idx}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  onMouseDown={() => {
+                    setSelectedReserva(r);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {r.id_prereserva}
+                </li>
               ))}
-            </datalist>
-          </>
-        )}
+            </ul>
+          )}
+        </div>
 
-        {!loading && mensaje && (
+        {mensaje && (
           <p className="text-red-600 text-sm mt-1">{mensaje}</p>
         )}
 
@@ -101,8 +130,8 @@ export default function EditarReserva() {
           </button>
           <button
             onClick={handleBuscar}
-            className="px-4 py-2 rounded bg-black text-white hover:bg-gray-800"
-            disabled={loading}
+            className="px-4 py-2 rounded bg-violeta-oscuro text-white hover:bg-violeta-medio transition"
+            disabled={!selectedReserva}
           >
             Buscar
           </button>

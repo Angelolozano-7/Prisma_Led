@@ -1,117 +1,101 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
+import { useAppData } from '../contexts/AppDataContext';
 import CilindroBox from '../components/CilindroBox';
 import CilindroModal from '../components/CilindroModal';
 import BusquedaInline from '../components/BusquedaInline';
 import api from '../services/api';
-import VideoLoader from '../components/VideoLoader'; // o el loader que estés usando
-
-
+import VideoLoader from '../components/VideoLoader';
 
 const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
 
 export default function Disponibilidad() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { tarifas: tarifasContext, categorias } = useAppData();
   const [loading, setLoading] = useState(false);
-
-  //const initialData = location.state?.disponibilidad;
 
   const [fechaInicio, setFechaInicio] = useState(location.state?.fecha_inicio || '');
   const [duracion, setDuracion] = useState(parseInt(location.state?.duracion) || 1);
-  const [categoria, setCategoria] = useState(location.state?.categoria || '');
+  const [categoria, setCategoria] = useState(location.state?.categoria || (categorias[0]?.nombre || ''));
   const [data, setData] = useState(null);
   const [seleccionadas, setSeleccionadas] = useState([]);
   const [duraciones, setDuraciones] = useState({});
-  const [tarifas, setTarifas] = useState({});
   const [cilindroSeleccionado, setCilindroSeleccionado] = useState(null);
   const [tooltipInfo, setTooltipInfo] = useState(null);
 
+  const tarifas = tarifasContext.reduce((acc, t) => {
+    acc[t.duracion_seg] = t.precio_semana;
+    return acc;
+  }, {});
+  const get_code = tarifasContext.reduce((acc, t) => {
+    acc[t.duracion_seg] = t.codigo_tarifa;
+    return acc;
+  }, {});
+
   useEffect(() => {
-    if (data === null) return; // esperar carga
+    if (data === null) return;
     if (Object.keys(data).length === 0) navigate('/cliente');
   }, [data, navigate]);
 
   useEffect(() => {
-    const obtenerTarifas = async () => {
+    const fetchDisponibilidad = async () => {
+      setLoading(true);
       try {
-        const res = await api.get('/reservas/tarifas');
-        const nuevasTarifas = {};
-        res.data.forEach((t) => {
-          nuevasTarifas[t.duracion_seg] = t.precio_semana;
+        const res = await api.post('/reservas/disponibilidad', {
+          fecha_inicio: fechaInicio,
+          duracion_semanas: duracion,
+          categoria
         });
-        setTarifas(nuevasTarifas);
+        setData(res.data);
+
+        const disponibles = Object.keys(res.data).filter(
+          id => res.data[id].estado === 'disponible' || res.data[id].estado === 'parcial'
+        );
+
+        const seleccionFiltrada = (location.state?.seleccionadas || []).filter(p =>
+          disponibles.includes(p.id_pantalla)
+        );
+
+        const solicitadas = (location.state?.seleccionadas || []).map(p => p.id_pantalla);
+        const noDisponibles = solicitadas.filter(id => !disponibles.includes(id));
+
+        if (noDisponibles.length > 0) {
+          const nombres = noDisponibles.map(id => {
+            const pantalla = res.data[id];
+            return pantalla ? `Cilindro ${pantalla.cilindro}${pantalla.identificador}` : id;
+          });
+          alert(`⚠️ Las siguientes pantallas no están disponibles para las fechas seleccionadas:\n\n${nombres.join('\n')}`);
+        }
+
+        setSeleccionadas(seleccionFiltrada.map(p => p.id_pantalla));
+        const nuevasDuraciones = {};
+        seleccionFiltrada.forEach(p => {
+          nuevasDuraciones[p.id_pantalla] = p.segundos;
+        });
+        setDuraciones(nuevasDuraciones);
+
       } catch (error) {
-        console.error('Error al cargar tarifas:', error);
+        console.error('Error al consultar disponibilidad al montar:', error);
+        navigate('/cliente');
+      } finally {
+        setLoading(false);
       }
     };
-    obtenerTarifas();
-  }, []);
 
-  useEffect(() => {
-  const fetchDisponibilidad = async () => {
-    setLoading(true); // 👉 empieza loading
-    try {
-      const res = await api.post('/reservas/disponibilidad', {
-        fecha_inicio: fechaInicio,
-        duracion_semanas: duracion,
-        categoria
-      });
-      setData(res.data);
-
-      // Verifica cuáles están disponibles
-      const disponibles = Object.keys(res.data).filter(
-        id => res.data[id].estado === 'disponible' || res.data[id].estado === 'parcial'
-      );
-
-      // Compara con las que venían del estado
-      const seleccionFiltrada = (location.state?.seleccionadas || []).filter(p =>
-        disponibles.includes(p.id_pantalla)
-      );
-
-      // 🔔 ALERTA si alguna ya no está disponible
-      const solicitadas = (location.state?.seleccionadas || []).map(p => p.id_pantalla);
-      const noDisponibles = solicitadas.filter(id => !disponibles.includes(id));
-
-      if (noDisponibles.length > 0) {
-        const nombres = noDisponibles.map(id => {
-          const pantalla = res.data[id];
-          return pantalla ? `Cilindro ${pantalla.cilindro}${pantalla.identificador}` : id;
-        });
-        alert(`⚠️ Las siguientes pantallas no están disponibles para las fechas seleccionadas:\n\n${nombres.join('\n')}`);
-      }
-
-      // Carga las válidas
-      setSeleccionadas(seleccionFiltrada.map(p => p.id_pantalla));
-      const nuevasDuraciones = {};
-      seleccionFiltrada.forEach(p => {
-        nuevasDuraciones[p.id_pantalla] = p.segundos;
-      });
-      setDuraciones(nuevasDuraciones);
-
-
-    } catch (error) {
-      console.error('Error al consultar disponibilidad al montar:', error);
-      navigate('/cliente');
-    } finally {
-      setLoading(false); // 👉 termina loading
+    if (
+      location.state?.fecha_inicio &&
+      location.state?.duracion &&
+      location.state?.categoria
+    ) {
+      fetchDisponibilidad();
     }
-  };
-
-if (
-    location.state?.fecha_inicio &&
-    location.state?.duracion &&
-    location.state?.categoria
-  ) {
-    fetchDisponibilidad();
-  }
-}, []);
+  }, []);
 
   const calcularFechaFin = () => {
     if (!fechaInicio || !duracion) return '';
     const inicio = new Date(fechaInicio);
     inicio.setDate(inicio.getDate() + parseInt(duracion) * 7);
-    
     return inicio.toISOString().split('T')[0];
   };
 
@@ -162,7 +146,7 @@ if (
     let ahorro = 0;
     seleccionadas.forEach(id => {
       const segundos = duraciones[id];
-      if (!segundos || !tarifas[segundos]) return;
+      if (!segundos || !tarifas[segundos]) return
       const base = esDiciembre(fechaInicio) ? 2000000 : tarifas[segundos];
       const totalSinDescuento = base * duracion;
       const precio = calcularPrecio(id);
@@ -334,11 +318,13 @@ if (
           const payload = seleccionadas.map(id => {
             const segundos = duraciones[id];
             const precio = calcularPrecio(id);
+            const cod_tarifas = get_code[segundos];
             return {
               id_pantalla: id,
               cilindro: data[id].cilindro,
               identificador: data[id].identificador,
               segundos,
+              cod_tarifas: cod_tarifas,
               precio: precio?.total || 0,
               base: precio?.base || 0,
               descuento: precio?.descuento || 0
