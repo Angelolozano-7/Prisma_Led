@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAppData } from '../hooks/useAppData';
 import api from '../services/api'; 
+import Swal from 'sweetalert2';
+
 
 export default function Reserva() {
   const [fechaInicio, setFechaInicio] = useState('');
@@ -45,7 +47,12 @@ export default function Reserva() {
 
     } catch (error) {
       console.error('Error al consultar disponibilidad:', error);
-      alert('No se pudo consultar la disponibilidad. Intenta más tarde.');
+      await Swal.fire({
+        title: 'Error de conexión',
+        text: 'No se pudo consultar la disponibilidad. Intenta más tarde.',
+        icon: 'error',
+        confirmButtonText: 'Cerrar'
+      });
     }
   };
 
@@ -167,7 +174,13 @@ export default function Reserva() {
           <p>Categoría: {categoria || '---'}</p>
         </div>
       </div>
-
+      <div className="flex justify-between mt-4">
+          <button
+            onClick={() => navigate('/cliente')}
+            className="mt-6 border-gray-400 hover:bg-gray-100 text-black py-2 px-10 rounded"
+          >
+            Cancelar
+          </button>
       {/* Botón */}
       <button
         onClick={handleMostrarDisponibilidad}
@@ -175,6 +188,8 @@ export default function Reserva() {
       >
         Mostrar disponibilidad
       </button>
+      </div>
+      
     </div>
   );
 }

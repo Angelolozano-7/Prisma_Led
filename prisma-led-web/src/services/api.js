@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
 const API_URL = 'http://localhost:5000/api'; // Ajusta según tu entorno
 
@@ -16,22 +17,30 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ⚠️ Control centralizado de errores
+// Manejo de errores centralizado
 const MAX_RETRIES = 3;
 
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const currentPath = window.location.pathname;
+    const isInAuth = currentPath.startsWith('/auth');
 
-    // --- 1. Error 401: sesión expirada
-    if (error.response?.status === 401 && !originalRequest._retry401) {
+    // --- 1. Error 401: sesión expirada (solo si no está ya en /auth)
+    if (error.response?.status === 401 && !originalRequest._retry401 && !isInAuth) {
       originalRequest._retry401 = true;
 
       localStorage.removeItem('token');
-      alert('Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.');
 
-      window.location.href = ''; // Ajusta si usas otra ruta
+      await Swal.fire({
+        title: 'Sesión expirada',
+        text: 'Tu sesión ha caducado. Por favor, vuelve a iniciar sesión.',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar'
+      });
+
+      window.location.href = '/auth/login'; // Redirige al login
       return Promise.reject(error);
     }
 
@@ -49,7 +58,12 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } else {
-        alert('⚠️ Se alcanzó el límite de solicitudes. Intenta nuevamente en unos segundos.');
+        await Swal.fire({
+          title: 'Límite alcanzado',
+          text: 'Has realizado demasiadas solicitudes. Intenta nuevamente en unos segundos.',
+          icon: 'warning',
+          confirmButtonText: 'Cerrar'
+        });
       }
     }
 

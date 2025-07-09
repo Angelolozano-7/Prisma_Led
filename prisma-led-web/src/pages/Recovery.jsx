@@ -1,30 +1,53 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import Swal from 'sweetalert2';
 
 export default function Recovery() {
   const [correo, setCorreo] = useState('');
-  const [visibleMsg, setVisibleMsg] = useState(false);
-  const [correoVisible, setCorreoVisible] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg('');
-    setVisibleMsg(false);
+
+    // Mostrar loader
+    Swal.fire({
+      title: 'Procesando...',
+      text: 'Estamos enviando la contraseña temporal',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
     try {
       const res = await api.post('/auth/recovery', { correo });
-      setCorreoVisible(res.data.correo_visible);
-      setVisibleMsg(true);
 
-      setTimeout(() => {
-        setVisibleMsg(false);
-        navigate('/auth/login');
-      }, 5000);
+      // Cierra el loader
+      Swal.close();
+
+      // Mostrar éxito
+      await Swal.fire({
+        title: 'Correo enviado',
+        text: `Hemos enviado una contraseña temporal a ${res.data.correo_visible}***`,
+        icon: 'success',
+        confirmButtonText: 'Aceptar'
+      });
+
+      navigate('/auth/login');
+
     } catch (err) {
-      setErrorMsg(err.response?.data?.msg || 'Error en la recuperación');
+      Swal.close();
+
+      const msg = err.response?.data?.msg || 'Error en la recuperación';
+
+      await Swal.fire({
+        title: 'Error',
+        text: msg,
+        icon: 'error',
+        confirmButtonText: 'Cerrar'
+      });
     }
   };
 
@@ -56,19 +79,6 @@ export default function Recovery() {
             Restablecer
           </button>
         </div>
-
-        {visibleMsg && (
-          <div className="text-center text-green-600 text-sm mt-4">
-            Hemos enviado una contraseña temporal a <strong>{correoVisible}***</strong>
-          </div>
-        )}
-
-        {errorMsg && (
-          <div className="text-center text-red-600 text-sm mt-4 flex justify-center items-center gap-2">
-            <span className="text-lg font-bold">!</span>
-            <span>{errorMsg}</span>
-          </div>
-        )}
       </form>
     </div>
   );

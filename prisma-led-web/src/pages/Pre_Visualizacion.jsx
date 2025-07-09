@@ -3,6 +3,8 @@ import { useResumenReserva } from '../hooks/useResumenReserva';
 import api from "../services/api";
 import { useAppData } from '../hooks/useAppData';
 import { usePrereserva } from '../contexts/PrereservaContext';
+import Swal from 'sweetalert2'
+
 
 export default function PreVisualizacion() {
   const location = useLocation();
@@ -48,25 +50,50 @@ export default function PreVisualizacion() {
     precio: p.precio,
   }));
 
-  const handleEliminar = async () => {
+ const handleEliminar = async () => {
     if (!id_reserva) {
-      alert("No hay prereserva para eliminar.");
+      await Swal.fire({
+        title: 'Sin prereserva',
+        text: 'No hay prereserva para eliminar.',
+        icon: 'warning',
+        confirmButtonText: 'Entendido'
+      });
       return;
     }
 
-    if (!window.confirm("¿Seguro que deseas eliminar esta prereserva? Esta acción no se puede deshacer.")) {
-      return;
-    }
+    const confirm = await Swal.fire({
+      title: '¿Eliminar prereserva?',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#999'
+    });
+
+    if (!confirm.isConfirmed) return;
 
     try {
       await api.delete(`/prereservas/${id_reserva}`);
-      alert("✅ Prereserva eliminada correctamente.");
+      await Swal.fire({
+        title: 'Eliminada',
+        text: 'La prereserva fue eliminada correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Continuar'
+      });
       navigate("/cliente");
     } catch (error) {
       console.error("Error al eliminar prereserva:", error);
-      alert("❌ Ocurrió un error al eliminar la prereserva.");
+      await Swal.fire({
+        title: 'Error',
+        text: 'Ocurrió un error al eliminar la prereserva.',
+        icon: 'error',
+        confirmButtonText: 'Cerrar'
+      });
     }
   };
+
 
 
   return (

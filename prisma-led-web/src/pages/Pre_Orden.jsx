@@ -4,6 +4,8 @@ import api from '../services/api';
 import { useAppData } from '../hooks/useAppData';
 import { useResumenReserva } from '../hooks/useResumenReserva';
 import { usePrereserva } from '../contexts/PrereservaContext';
+import Swal from 'sweetalert2'
+
 
 export default function PreOrden() {
   const location = useLocation();
@@ -67,7 +69,6 @@ export default function PreOrden() {
           categoria
         });
 
-        // 📝 Actualizar detalle
         await api.put(`/prereservas/detalle_prereserva/${prereserva.original.id_reserva}`, {
           categoria,
           duracion,
@@ -80,7 +81,13 @@ export default function PreOrden() {
 
         id_prereserva_final = prereserva.original.id_reserva;
 
-        alert('✅ Prereserva actualizada correctamente.');
+        await Swal.fire({
+          title: '¡Prereserva actualizada!',
+          text: 'Tu prereserva ha sido modificada con éxito.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        });
+
       } else {
         // ✨ Crear nueva prereserva
         const response = await api.post('/prereservas/crear', {
@@ -102,7 +109,12 @@ export default function PreOrden() {
           }))
         });
 
-        alert('✅ Prereserva creada correctamente.');
+        await Swal.fire({
+          title: '¡Prereserva creada!',
+          text: 'Tu prereserva fue registrada exitosamente.',
+          icon: 'success',
+          confirmButtonText: 'Aceptar'
+        });
       }
 
       // 🚀 Redirigir a PreOrdenDoc con los datos actualizados
@@ -119,9 +131,15 @@ export default function PreOrden() {
 
     } catch (error) {
       console.error(error);
-      alert('❌ Error al confirmar prereserva.');
+      Swal.fire({
+        title: 'Error al confirmar',
+        text: 'Ocurrió un problema al guardar tu prereserva. Intenta nuevamente.',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
     }
   };
+
 
 
   return (

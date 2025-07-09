@@ -18,6 +18,7 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     mail.init_app(app)
+    print("FRONTEND_URL:", os.getenv("FRONTEND_URL"))
     CORS(app, resources={r"/api/*": {"origins": os.getenv("FRONTEND_URL")}}, supports_credentials=True)
     jwt = JWTManager(app)
     app.register_blueprint(reservas_bp, url_prefix="/api/reservas")

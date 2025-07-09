@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import logo from '../assets/logo_prisma.png';
 import VideoLoader from '../components/VideoLoader';
+import Swal from 'sweetalert2';
 
 export default function Registro() {
   const navigate = useNavigate();
@@ -59,28 +60,37 @@ export default function Registro() {
     if (error) {
       setMensaje(error);
       setCargando(false);
+      await Swal.fire({
+        title: 'Error de validación',
+        text: error,
+        icon: 'warning',
+        confirmButtonText: 'Aceptar'
+      });
       return;
     }
 
-    const payload = {
-      razon_social: form.razon_social,
-      nit: form.nit,
-      correo: form.correo,
-      ciudad: form.ciudad,
-      direccion: form.direccion,
-      telefono: form.telefono,
-      nombre_contacto: form.nombre_contacto,
-      password: form.password
-    };
+    const payload = { ...form };
 
     try {
       const res = await api.post('/auth/register', payload);
       localStorage.setItem('token', res.data.access_token);
-      setMensaje('¡Registro exitoso! Redirigiendo...');
-      setTimeout(() => navigate('/auth/login'), 2000);
+
+      await Swal.fire({
+        title: '¡Registro exitoso!',
+        text: 'Tu cuenta ha sido creada correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Iniciar sesión'
+      });
+
+      navigate('/auth/login');
     } catch (error) {
       const msg = error.response?.data?.msg || 'Error al registrar';
-      setMensaje(msg);
+      await Swal.fire({
+        title: 'Error al registrar',
+        text: msg,
+        icon: 'error',
+        confirmButtonText: 'Cerrar'
+      });
     } finally {
       setCargando(false);
     }
@@ -95,40 +105,28 @@ export default function Registro() {
       {/* Columna izquierda */}
       <div className="space-y-4 border border-gray-200 p-4 rounded">
         <h2 className="text-lg font-semibold">Registro</h2>
+
         <div>
           <label className="block text-sm font-medium mb-1">Razón Social</label>
-          <input
-            name="razon_social"
-            type="text"
-            value={form.razon_social}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
+          <input name="razon_social" type="text" value={form.razon_social} onChange={handleChange}
+            className="w-full border rounded px-3 py-2" />
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Nit</label>
-          <input
-            name="nit"
-            type="text"
-            value={form.nit}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
+          <input name="nit" type="text" value={form.nit} onChange={handleChange}
+            className="w-full border rounded px-3 py-2" />
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Correo electrónico</label>
-          <input
-            name="correo"
-            type="email"
-            value={form.correo}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
+          <input name="correo" type="email" value={form.correo} onChange={handleChange}
+            className="w-full border rounded px-3 py-2" />
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Ciudad</label>
-          <select
-            name="ciudad"
+          <select name="ciudad"
             className="w-full border rounded px-3 py-2"
             value={ciudadesColombia.includes(form.ciudad) ? form.ciudad : "Otra ciudad..."}
             onChange={(e) => {
@@ -139,56 +137,39 @@ export default function Registro() {
                 setOtraCiudad(false);
                 setForm({ ...form, ciudad: e.target.value });
               }
-            }}
-          >
+            }}>
             <option value="">Seleccione una ciudad</option>
             {ciudadesColombia.map((ciudad, idx) => (
               <option key={idx} value={ciudad}>{ciudad}</option>
             ))}
           </select>
         </div>
+
         {otraCiudad && (
           <div>
             <label className="block text-sm font-medium mb-1">Otra ciudad</label>
-            <input
-              name="ciudad"
-              type="text"
-              value={form.ciudad}
-              onChange={handleChange}
+            <input name="ciudad" type="text" value={form.ciudad} onChange={handleChange}
               placeholder="Escribe tu ciudad"
-              className="w-full border rounded px-3 py-2"
-            />
+              className="w-full border rounded px-3 py-2" />
           </div>
         )}
+
         <div>
           <label className="block text-sm font-medium mb-1">Dirección</label>
-          <input
-            name="direccion"
-            type="text"
-            value={form.direccion}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
+          <input name="direccion" type="text" value={form.direccion} onChange={handleChange}
+            className="w-full border rounded px-3 py-2" />
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Teléfono</label>
-          <input
-            name="telefono"
-            type="text"
-            value={form.telefono}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
+          <input name="telefono" type="text" value={form.telefono} onChange={handleChange}
+            className="w-full border rounded px-3 py-2" />
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Nombre de contacto</label>
-          <input
-            name="nombre_contacto"
-            type="text"
-            value={form.nombre_contacto}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-          />
+          <input name="nombre_contacto" type="text" value={form.nombre_contacto} onChange={handleChange}
+            className="w-full border rounded px-3 py-2" />
         </div>
       </div>
 
@@ -198,30 +179,20 @@ export default function Registro() {
         <div className="w-full space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Contraseña</label>
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={handleChange}
-              className="w-full border rounded px-3 py-2"
-            />
+            <input name="password" type="password" value={form.password} onChange={handleChange}
+              className="w-full border rounded px-3 py-2" />
           </div>
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-2 rounded hover:bg-gray-800"
-          >
+
+          <button type="submit"
+            className="w-full bg-black text-white py-2 rounded hover:bg-gray-800">
             Registrarse
           </button>
-          <button
-            type="button"
+
+          <button type="button"
             onClick={() => navigate('/auth/login')}
-            className="w-full bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
-          >
+            className="w-full bg-gray-300 text-black py-2 rounded hover:bg-gray-400">
             Cancelar
           </button>
-          {mensaje && (
-            <p className="text-sm text-center text-red-600 mt-2">{mensaje}</p>
-          )}
         </div>
       </div>
     </form>

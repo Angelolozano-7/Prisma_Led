@@ -7,6 +7,8 @@ import BusquedaInline from '../components/BusquedaInline';
 import api from '../services/api';
 import VideoLoader from '../components/VideoLoader';
 import { usePrereserva } from '../contexts/PrereservaContext';
+import Swal from 'sweetalert2'
+
 
 
 const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
@@ -73,7 +75,15 @@ export default function Disponibilidad() {
             ? `Cilindro ${pantalla.cilindro}${pantalla.identificador}`
             : id;
         });
-        alert(`⚠️ Las siguientes pantallas no están disponibles:\n\n${nombres.join('\n')}`);
+        
+        await Swal.fire({
+          title: 'Pantallas no disponibles',
+          html: `⚠️ Las siguientes pantallas no están disponibles:<br><br><strong>${nombres.join('<br>')}</strong>`,
+          icon: 'warning',
+          confirmButtonText: 'Entendido'
+        });
+
+
       }
 
       setSeleccionadas(seleccionFiltrada);
@@ -201,7 +211,12 @@ export default function Disponibilidad() {
             setTooltipInfo(null);
             setData(res.data);
           } catch (error) {
-            alert('No se pudo obtener disponibilidad. Intente de nuevo.');
+            await Swal.fire({
+            title: 'Error al consultar',
+            text: 'No se pudo obtener disponibilidad. Intenta de nuevo.',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+          });
             console.error(error);
           }finally {
             setLoading(false); // 👉 termina loader
@@ -367,6 +382,12 @@ export default function Disponibilidad() {
 
       >
         Confirmar selección
+      </button>
+      <button
+        onClick={() => navigate('/cliente/reserva')}
+        className="w-full bg-black text-white py-2 mt-2 rounded disabled:bg-gray-300"
+      >
+        Cancelar selección
       </button>
         </div>
       </div>
