@@ -6,6 +6,7 @@ __pycache__/
 # Archivos de configuración sensibles
 *.env
 credentials/credentials.json
+credentials/credentials2.json
 
 # Archivos de Python compilados
 *.pyc
