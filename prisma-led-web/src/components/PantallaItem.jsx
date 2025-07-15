@@ -9,11 +9,11 @@ export default function PantallaItem({ pantallaId, data, seleccionada, onToggleS
   const getColor = () => {
     if (seleccionada) return 'bg-black text-white';
     switch (estado) {
-      case 'disponible': return 'bg-pink-200 text-black';
+      case 'disponible': return 'bg-green-200 text-black';
       case 'reservado': return 'bg-blue-300 text-black';
-      case 'ocupado': return 'bg-gray-400 text-white';
-      case 'restringido': return 'bg-red-300 text-black';
-      case 'parcial': return 'bg-yellow-300 text-black';
+      case 'ocupado': return 'bg-gray-300 text-black';
+      case 'restringido': return 'bg-red-400 text-black';
+      case 'parcial': return 'bg-yellow-200 text-black';
       default: return 'bg-white text-black';
     }
   };

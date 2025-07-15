@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import api from '../services/api';
 import { useAppData } from '../hooks/useAppData';
+import Swal from 'sweetalert2';
+
 
 export default function Editar_Cliente() {
   const navigate = useNavigate();
   const { cliente, setDatos } = useAppData();
   const [mensaje, setMensaje] = useState('');
+  const [otraCiudad, setOtraCiudad] = useState(false);
   const [form, setForm] = useState({
     razon_social: '',
     nit: '',
@@ -36,12 +39,71 @@ export default function Editar_Cliente() {
     }
   }, [cliente]);
 
+  const ciudadesColombia = [
+    "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta",
+    "Bucaramanga", "Soacha", "Ibagué", "Villavicencio", "Santa Marta",
+    "Pereira", "Manizales", "Neiva", "Armenia", "Otra ciudad..."
+  ];
+
+
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+
+  const validarFormulario = () => {
+    const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const nitRegex = /^\d+-?\d$/;
+    const telefonoRegex = /^\+?\d[\d\s]*$/;
+    const passwordRegex = /^(?=.*[!@#$%^&*()_\-+=])(?=.{8,})/;
+
+    if (!form.razon_social && !form.nit && !form.correo && !form.ciudad &&
+        !form.direccion && !form.telefono && !form.nombre_contacto && !form.password) {
+      return "Todos los campos son obligatorios";
+    }
+
+    if (!form.razon_social) return "La razón social es obligatoria";
+    if (!form.nit) return "El NIT es obligatorio";
+    if (!form.ciudad) return "La ciudad es obligatoria";
+    if (!form.direccion) return "La dirección es obligatoria";
+    if (!form.telefono) return "El teléfono es obligatorio";
+    if (!form.nombre_contacto) return "El nombre de contacto es obligatorio";
+    if (form.razon_social.length < 3 || form.razon_social.length > 50) return "La razón social debe tener al menos 3 caracteres y máximo 50";
+    if (!nitRegex.test(form.nit)) return "El NIT debe contener solo números y puede tener un '-' antes del último dígito";
+    console.log(form.nit.length);
+    if( form.nit.length != 9) return "El NIT debe tener 9 digitos";
+    if (!correoRegex.test(form.correo)) return "El correo no tiene un formato válido";    
+    if (form.correo.length < 5 || form.correo.length > 50) return "El correo debe tener al menos 5 caracteres y máximo 50";
+    if (form.ciudad.length < 3 || form.ciudad.length > 15 ) return "La ciudad debe tener al menos 3 caracteres y máximo 15";
+    if (form.direccion.length < 5 || form.direccion.length > 100) return "La dirección debe tener al menos 5 caracteres y máximo 100";
+    if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
+    if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
+    if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
+    if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
+    if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
+    if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
+    
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMensaje('');
+
+    const error = validarFormulario();
+      if (error) {
+        setMensaje(error);
+        await Swal.fire({
+          title: 'Error de validación',
+          text: error,
+          icon: 'warning',
+          confirmButtonText: 'Aceptar'
+        });
+        return;
+      }
+
+
     const payload = {
       razon_social: form.razon_social,
       nit: form.nit,
@@ -60,11 +122,21 @@ export default function Editar_Cliente() {
       await api.put(`/cliente`, payload);
       const refreshed = await api.get('/cliente');
       setDatos((prev) => ({ ...prev, cliente: refreshed.data }));
-      setMensaje('Datos actualizados correctamente');
+      await Swal.fire({
+              title: '¡Actualización exitosa!',
+              text: 'Tu cuenta ha sido actualizada correctamente.',
+              icon: 'success',
+              confirmButtonText: 'Cerrar'
+            });
       setTimeout(() => navigate('/cliente'), 2000);
     } catch (error) {
-      console.error(error);
-      setMensaje('Error al actualizar los datos');
+      const msg = error.response?.data?.msg || 'Error al registrar';
+            await Swal.fire({
+              title: 'Error al registrar',
+              text: msg,
+              icon: 'error',
+              confirmButtonText: 'Cerrar'
+            });
     }
   };
 
@@ -84,10 +156,37 @@ export default function Editar_Cliente() {
           <label className="block text-sm font-medium mb-1">Correo electrónico</label>
           <input name="correo" type="email" value={form.correo} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2" />
         </div>
-        <div>
+        
+          <div>
           <label className="block text-sm font-medium mb-1">Ciudad</label>
-          <input name="ciudad" type="text" value={form.ciudad} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2" />
+          <select name="ciudad"
+            className="w-full border rounded px-3 py-2"
+            value={ciudadesColombia.includes(form.ciudad) ? form.ciudad : "Otra ciudad..."}
+            onChange={(e) => {
+              if (e.target.value === "Otra ciudad...") {
+                setOtraCiudad(true);
+                setForm({ ...form, ciudad: '' });
+              } else {
+                setOtraCiudad(false);
+                setForm({ ...form, ciudad: e.target.value });
+              }
+            }}>
+            <option value="">Seleccione una ciudad</option>
+            {ciudadesColombia.map((ciudad, idx) => (
+              <option key={idx} value={ciudad}>{ciudad}</option>
+            ))}
+          </select>
         </div>
+
+        {otraCiudad && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Otra ciudad</label>
+            <input name="ciudad" type="text" value={form.ciudad} onChange={handleChange}
+              placeholder="Escribe tu ciudad"
+              className="w-full border rounded px-3 py-2" />
+          </div>
+        )}
+        
         <div>
           <label className="block text-sm font-medium mb-1">Dirección</label>
           <input name="direccion" type="text" value={form.direccion} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2" />

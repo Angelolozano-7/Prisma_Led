@@ -197,16 +197,17 @@ def enviar_correo_prereserva():
 
             linea = f"""
             <li style="margin-bottom: 12px;">
-              <strong>Pantalla {p['cilindro']}{p['identificador']}</strong> - {semanas} semana{'s' if semanas > 1 else ''}<br/>
-              Valor por semana: ${base:,}<br/>
-              <strong>Subtotal ({semanas} semana{'s' if semanas > 1 else ''}) sin descuento:</strong> ${subtotal_pantalla:,}<br/>
+                <strong>Pantalla {p['cilindro']}{p['identificador']}</strong> - {semanas} semana{'s' if semanas > 1 else ''}<br/>
+                Valor por semana: ${base:,.0f}<br/>
+                <strong>Subtotal ({semanas} semana{'s' if semanas > 1 else ''}) sin descuento:</strong> ${subtotal_pantalla:,.0f}<br/>
             """
+
             if descuento > 0:
                 linea += f"""
-                <strong>Total con descuento:</strong> ${precio:,}<br/>
-                <div style='color:#dc2626; font-size:12px;'>
-                  Descuento aplicado: -{descuento * 100:.1f}%<br/>
-                  Ahorro: ${ahorro:,}
+                <strong>Total con descuento:</strong> ${precio:,.0f}<br/>
+                <div style='color:#dc2626; font-size:13px;'>
+                    Descuento aplicado: -{descuento * 100:.1f}%<br/>
+                    Ahorro: ${ahorro:,.0f}
                 </div>
                 """
             linea += "</li>"
@@ -214,30 +215,65 @@ def enviar_correo_prereserva():
 
         pantallas_html = "<ul>" + "".join(pantalla_html) + "</ul>"
 
+        # Cuerpo del mensaje HTML
         cuerpo_html = f"""
-        <div style="font-family:Arial, sans-serif; color:#333;">
-        <p>Buenas tardes,</p>
-        <p>
-            Le agradecemos por confiar en nosotros...
-        </p>
-        {pantallas_html}
-        <p><strong>Subtotal:</strong> ${subtotal:,}<br>
-           <strong>IVA:</strong> ${iva:,}<br>
-           <strong>Total:</strong> ${total:,}</p>
-        </div>
-        """
+            <div style="font-family:Arial, sans-serif; color:#333; font-size:15px; line-height:1.6;">
+                <p>Buenas tardes,</p>
 
+                <p>Le agradecemos por confiar en nosotros para que su marca llegue al corazón de Cali, el <strong>Bulevar del Río</strong>.</p>
+
+                <p>A continuación encontrará los detalles de su <strong style="color:#3B82F6;">pre-reserva #{id_prereserva}</strong>:</p>
+                
+                <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
+
+                <p>
+                    <strong>Razón Social:</strong> {razon_social}<br/>
+                    <strong>NIT:</strong> {nit}<br/>
+                    <strong>Correo:</strong> <a href="mailto:{correo}" style="color:#3B82F6;">{correo}</a><br/>
+                </p>
+                <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
+                <p>
+                    <strong>Fecha:</strong> {fecha_inicio} - {fecha_fin}<br/>
+                    <strong>Categoría:</strong> {categoria}
+                </p>
+
+                {pantallas_html}
+                <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
+                <p style="margin-top: 20px;">
+                    <strong>Subtotal:</strong> ${subtotal:,.0f}<br/>
+                    <strong>IVA (19%):</strong> ${iva:,.0f}<br/>
+                    <strong style="font-size: 16px;">Total:</strong> <span style="font-size: 16px; font-weight: bold;">${total:,.0f}</span>
+                </p>
+
+                <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
+
+                <p style="font-size:14px;"><strong>Información adicional:</strong></p>
+                <p style="font-size:14px;">
+                    Su pre-reserva se encuentra en estado <strong style="color:#dc2626;">pendiente</strong>.
+                    Recuerde que tiene <strong>5 días</strong> para compartir el video de la campaña. Si este aún está en producción, puede compartir una imagen de referencia.
+                </p>
+
+                <p style="font-size:14px;">
+                    Posteriormente, el equipo técnico de <strong>Prisma Wall</strong> evaluará si el video cumple con las normativas de exposición al público de todas las edades y usted será notificado por este mismo medio.
+                </p>
+            </div>
+            """
+
+
+        # Envío del correo
         msg = Message(
-            subject=f"Confirmación de Prereserva #{id_prereserva.upper()} - PrismaLed",
+            subject=f" Confirmación de Prereserva #{id_prereserva} - Prisma Wall",
             recipients=[correo],
             html=cuerpo_html
         )
         mail.send(msg)
+
         return jsonify({"mensaje": "Correo enviado correctamente"}), 200
 
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+    
 
 
 @prereservas_bp.route('/<id_prereserva>', methods=['DELETE'])

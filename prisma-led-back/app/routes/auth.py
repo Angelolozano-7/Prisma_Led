@@ -48,6 +48,7 @@ def register():
 
     razon_social = data.get("razon_social")
     nit = data.get("nit")
+    print("aqui esta elni:" ,nit, type(nit))
     ciudad = data.get("ciudad")
     direccion = data.get("direccion")
     nombre_contacto = data.get("nombre_contacto")
@@ -59,6 +60,10 @@ def register():
     usuarios = get_usuarios()
     if any(u["correo"] == correo for u in usuarios):
         return jsonify({"msg": "El correo ya está registrado"}), 409
+    clientes = get_clientes()
+    
+    if any(str(u["nit"]) == str(nit) for u in clientes):
+        return jsonify({"msg": "El nit ya está registrado"}), 409
 
     id_usuario = generate_unique_user_id()
     fecha_creacion = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

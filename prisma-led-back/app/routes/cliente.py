@@ -27,12 +27,19 @@ def actualizar_cliente():
 
     if usuario_index is None or cliente_index is None:
         return jsonify({"msg": "Usuario no encontrado"}), 404
+    usuarios = get_usuarios()
+    if any(u["correo"] == data.get("correo") for u in usuarios):
+        return jsonify({"msg": "El correo ya está registrado"}), 409
+    clientes = get_clientes()
+    
+    if any(str(u["nit"]) == str(data.get("nit")) for u in clientes):
+        return jsonify({"msg": "El nit ya está registrado"}), 409
 
     # Actualizar campos de usuarios
     campos_usuarios = {
         "nombre": data.get("razon_social"),
         "correo": data.get("correo"),
-        "telefono": data.get("telefono"),
+        "telefono": str(data.get("telefono")),
     }
 
     for campo, valor in campos_usuarios.items():
@@ -59,7 +66,7 @@ def actualizar_cliente():
     for key_front, key_sheet in campos_clientes.items():
         if data.get(key_front):
             col_idx = list(clientes[0].keys()).index(key_sheet) + 1
-            clientes_ws.update_cell(cliente_index + 2, col_idx, data[key_front])
+            clientes_ws.update_cell(cliente_index + 2, col_idx, str(data[key_front]))
 
     return jsonify({"msg": "Datos actualizados correctamente"}), 200
 

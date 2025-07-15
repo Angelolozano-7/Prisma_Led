@@ -92,6 +92,8 @@ export default function Reserva() {
                 setFechaInicio(e.target.value);
                 setErrores({ ...errores, fechaInicio: null });
               }}
+              onKeyDown={(e) => e.preventDefault()} 
+              onPaste={(e) => e.preventDefault()}   
               className={`border rounded px-3 py-2 ${errores.fechaInicio ? 'border-red-500' : 'border-gray-300'}`}
             />
             {errores.fechaInicio && (

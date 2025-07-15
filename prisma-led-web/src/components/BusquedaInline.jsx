@@ -46,6 +46,8 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
             setLocalFecha(e.target.value);
             setErrores({ ...errores, fecha: null });
           }}
+          onKeyDown={(e) => e.preventDefault()} 
+          onPaste={(e) => e.preventDefault()}   
           className="border border-gray-300 rounded px-2 py-1"
         />
         {errores.fecha && <span className="text-red-500 text-xs mt-1">{errores.fecha}</span>}

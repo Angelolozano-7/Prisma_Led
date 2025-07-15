@@ -37,16 +37,32 @@ export default function Registro() {
     const telefonoRegex = /^\+?\d[\d\s]*$/;
     const passwordRegex = /^(?=.*[!@#$%^&*()_\-+=])(?=.{8,})/;
 
-    if (!form.razon_social || !form.nit || !form.correo || !form.ciudad ||
-        !form.direccion || !form.telefono || !form.nombre_contacto || !form.password) {
+    if (!form.razon_social && !form.nit && !form.correo && !form.ciudad &&
+        !form.direccion && !form.telefono && !form.nombre_contacto && !form.password) {
       return "Todos los campos son obligatorios";
     }
 
-    if (!correoRegex.test(form.correo)) return "El correo no tiene un formato válido";
+    if (!form.razon_social) return "La razón social es obligatoria";
+    if (!form.nit) return "El NIT es obligatorio";
+    if (!form.ciudad) return "La ciudad es obligatoria";
+    if (!form.direccion) return "La dirección es obligatoria";
+    if (!form.telefono) return "El teléfono es obligatorio";
+    if (!form.nombre_contacto) return "El nombre de contacto es obligatorio";
+    if (!form.password) return "La contraseña es obligatoria";
+    if (form.razon_social.length < 3 || form.razon_social.length > 50) return "La razón social debe tener al menos 3 caracteres y máximo 50";
     if (!nitRegex.test(form.nit)) return "El NIT debe contener solo números y puede tener un '-' antes del último dígito";
-    if (form.ciudad.length < 3) return "La ciudad debe tener al menos 3 caracteres";
+    if( form.nit.length != 9) return "El NIT debe tener 9 digitos";
+    if (!correoRegex.test(form.correo)) return "El correo no tiene un formato válido";    
+    if (form.correo.length < 5 || form.correo.length > 50) return "El correo debe tener al menos 5 caracteres y máximo 50";
+    if (form.ciudad.length < 3 || form.ciudad.length > 15 ) return "La ciudad debe tener al menos 3 caracteres y máximo 15";
+    if (form.direccion.length < 5 || form.direccion.length > 100) return "La dirección debe tener al menos 5 caracteres y máximo 100";
     if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
-    if (!passwordRegex.test(form.password)) return "La contraseña debe tener al menos 8 caracteres y un carácter especial";
+    if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
+    if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
+    if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
+    if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
+    if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
+    if (!passwordRegex.test(form.password) ||  form.password.length > 20 ) return "La contraseña debe tener al menos 8 y maximo 20 caracteres y un carácter especial (!@#$%^&*()_\\-+=)";
 
     return null;
   };

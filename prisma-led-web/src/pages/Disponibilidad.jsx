@@ -250,11 +250,11 @@ export default function Disponibilidad() {
           </div>
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
             <div className="flex items-center gap-2"><div className="w-4 h-4 bg-black rounded" /> Seleccionada</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-gray-400 rounded" /> Ocupado</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-gray-300 rounded" /> Ocupado</div>
             <div className="flex items-center gap-2"><div className="w-4 h-4 bg-blue-300 rounded" /> Reservado</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-pink-200 rounded" /> Disponible</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-yellow-300 rounded" /> Parcial</div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-red-300 rounded" /> Restringido</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-green-200 rounded" /> Disponible</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-yellow-300 rounded" /> Parcialmente ocupada</div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-red-500 rounded" /> Restringido</div>
           </div>
           {tooltipInfo && (
             <div className="fixed bottom-4 right-4 bg-black text-white text-xs px-4 py-2 rounded shadow z-50 whitespace-pre-line">
