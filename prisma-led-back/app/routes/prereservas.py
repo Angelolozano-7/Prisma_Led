@@ -7,6 +7,7 @@ from flask_mail import Message
 from app import mail
 import traceback
 from app.services.retry_utils import retry_on_rate_limit
+from app.services.validadores import validar_detalle_prereserva
 
 from app.services.sheets_client import (
     connect_sheet,
@@ -103,6 +104,7 @@ def crear_prereserva():
 
         fecha_creacion = datetime.now().strftime("%Y-%m-%d")
         estado = "pendiente"
+
         id_prereserva = uuid.uuid4().hex[:8]
 
         sheet = connect_sheet()
@@ -138,7 +140,10 @@ def crear_detalle_prereserva():
 
         if not id_prereserva or not pantallas or not categoria:
             return jsonify({"error": "Faltan datos requeridos"}), 400
-
+        es_valido, error_msg = validar_detalle_prereserva(id_prereserva, pantallas, categoria, get_jwt_identity())
+        if not es_valido:
+            # Si la validación falla, retornamos el mensaje de error
+            return jsonify({"error": error_msg}), 409
         sheet = connect_sheet()
         detalle_ws = sheet.worksheet("detalle_prereserva")
 
@@ -169,10 +174,15 @@ def crear_detalle_prereserva():
 def enviar_correo_prereserva():
     try:
         data = request.get_json()
+        prereservas = get_prereservas()
+        id_prereserva = data.get('id_prereserva')
+        prereserva = next((p for p in prereservas if p["id_prereserva"] == str(id_prereserva)), None)
+        if prereserva and prereserva.get("correo_enviado", "").strip().lower() == "sí":
+            return jsonify({"error": "El correo ya fue enviado para esta pre-reserva"}), 409
+        
         correo = data.get('correo')
         razon_social = data.get('razon_social')
         nit = data.get('nit')
-        id_prereserva = data.get('id_prereserva')
         fecha_inicio = data.get('fecha_inicio')
         fecha_fin = data.get('fecha_fin')
         categoria = data.get('categoria')
@@ -267,7 +277,14 @@ def enviar_correo_prereserva():
             html=cuerpo_html
         )
         mail.send(msg)
+        sheet = connect_sheet()
+        ws = sheet.worksheet("prereservas")
 
+        # Buscar fila a actualizar
+        fila = next((i for i, p in enumerate(prereservas) if p["id_prereserva"] == str(id_prereserva)), None)
+        if fila is not None:
+            col_idx = list(prereservas[0].keys()).index("correo_enviado") + 1
+            ws.update_cell(fila + 2, col_idx, "sí")
         return jsonify({"mensaje": "Correo enviado correctamente"}), 200
 
     except Exception as e:
@@ -324,7 +341,7 @@ def actualizar_prereserva(id_prereserva):
 
     if not fecha_inicio or not fecha_fin:
         return jsonify({"error": "Datos incompletos"}), 400
-
+    
     sheet = connect_sheet()
     ws = sheet.worksheet("prereservas")
     prereservas = ws.get_all_records()
@@ -361,10 +378,18 @@ def actualizar_detalle_prereserva(id_prereserva):
     data = request.get_json()
     categoria = data.get("categoria")
     pantallas = data.get("pantallas", [])
+    fecha_inicio = data.get("fecha_inicio")
+    fecha_fin = data.get("fecha_fin")
+    if fecha_inicio > fecha_fin:
+        return jsonify({"error": "La fecha de fin debe ser posterior a la fecha de inicio"}), 400
 
     if not categoria or not pantallas:
         return jsonify({"error": "Datos incompletos"}), 400
 
+    es_valido, error_msg = validar_detalle_prereserva(id_prereserva, pantallas, categoria, get_jwt_identity())
+    if not es_valido:
+        return jsonify({"error": error_msg}), 409
+    
     sheet = connect_sheet()
     ws_prereservas = sheet.worksheet("prereservas")
     ws_detalle = sheet.worksheet("detalle_prereserva")

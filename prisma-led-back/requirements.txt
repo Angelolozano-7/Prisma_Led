@@ -7,3 +7,4 @@ flask-jwt-extended
 werkzeug
 flask-mail
 pandas
+flask-limiter

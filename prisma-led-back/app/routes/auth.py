@@ -13,10 +13,12 @@ from app.extensions import mail
 import random
 import traceback
 import string
+from app.extensions import limiter
 
 auth_bp = Blueprint('auth_bp', __name__)
 
 @auth_bp.route("/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def login():
     data = request.get_json()
     correo = data.get("correo")
@@ -36,6 +38,7 @@ def login():
 
 
 @auth_bp.route("/register", methods=["POST"])
+@limiter.limit("5 per minute")
 def register():
     data = request.get_json()
 
@@ -104,6 +107,7 @@ def register():
 
 
 @auth_bp.route("/recovery", methods=["POST"])
+@limiter.limit("3 per hour")
 def recovery():
     data = request.get_json()
     correo = data.get("correo")

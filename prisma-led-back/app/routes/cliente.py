@@ -6,11 +6,14 @@ from app.services.sheets_client import (
     get_usuarios,
     get_clientes
 )
+from app.extensions import limiter
+import re
 
 cliente_bp = Blueprint('cliente_bp', __name__)
 
 @cliente_bp.route('/cliente', methods=['PUT'])
 @jwt_required()
+@limiter.limit("5 per minute")
 def actualizar_cliente():
     id_usuario = get_jwt_identity()
     data = request.get_json()
@@ -27,20 +30,32 @@ def actualizar_cliente():
 
     if usuario_index is None or cliente_index is None:
         return jsonify({"msg": "Usuario no encontrado"}), 404
-    usuarios = get_usuarios()
-    if any(u["correo"] == data.get("correo") and u["id_usuario"] != id_usuario for u in usuarios):
+
+    # Validaciones de formato
+    correo = data.get("correo", "").strip()
+    nit = str(data.get("nit", "")).strip()
+
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", correo):
+        return jsonify({"msg": "Correo inválido"}), 400
+
+    if not re.match(r"^\d{9}-?\d{1}$", nit):
+        return jsonify({"msg": "El NIT debe contener solo números y puede tener un '-' antes del último dígito"}), 400
+
+    if len(nit.replace('-', '')) != 10:
+        return jsonify({"msg": "El NIT debe tener 9 dígitos + el digito de verificación"}), 400
+
+    # Validar duplicados
+    if any(u["correo"].lower() == correo.lower() and u["id_usuario"] != id_usuario for u in usuarios):
         return jsonify({"msg": "El correo ya está registrado"}), 409
 
-    clientes = get_clientes()
-    
-    if any(str(c["nit"]) == str(data.get("nit")) and c["id_cliente"] != id_usuario for c in clientes):
+    if any(str(c["nit"]).strip() == nit and c["id_cliente"] != id_usuario for c in clientes):
         return jsonify({"msg": "El NIT ya está registrado"}), 409
 
     # Actualizar campos de usuarios
     campos_usuarios = {
-        "nombre": data.get("razon_social"),
-        "correo": data.get("correo"),
-        "telefono": str(data.get("telefono")),
+        "nombre": data.get("razon_social", "").strip(),
+        "correo": correo,
+        "telefono": str(data.get("telefono", "")).strip(),
     }
 
     for campo, valor in campos_usuarios.items():
@@ -65,9 +80,12 @@ def actualizar_cliente():
     }
 
     for key_front, key_sheet in campos_clientes.items():
-        if data.get(key_front):
+        valor = str(data.get(key_front, "")).strip()
+        if valor:
+            if valor.isdigit():
+                valor = f"'{valor}"
             col_idx = list(clientes[0].keys()).index(key_sheet) + 1
-            clientes_ws.update_cell(cliente_index + 2, col_idx, f"'{str(data[key_front])}")
+            clientes_ws.update_cell(cliente_index + 2, col_idx, valor)
 
     return jsonify({"msg": "Datos actualizados correctamente"}), 200
 

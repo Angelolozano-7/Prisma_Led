@@ -11,6 +11,7 @@ import Select from 'react-select';
 
 
 
+
 export default function Registro() {
   const navigate = useNavigate();
   const [mensaje, setMensaje] = useState('');
@@ -59,7 +60,7 @@ export default function Registro() {
     if (!form.password) return "La contraseña es obligatoria";
     if (form.razon_social.length < 3 || form.razon_social.length > 50) return "La razón social debe tener al menos 3 caracteres y máximo 50";
     if (!nitRegex.test(form.nit)) return "El NIT debe contener solo números y puede tener un '-' antes del último dígito";
-    if( form.nit.length != 9) return "El NIT debe tener 9 digitos";
+    if( form.nit.length != 11) return "El NIT debe tener 9 digitos + el digito verificador, 000000000-1";
     if (!correoRegex.test(form.correo)) return "El correo no tiene un formato válido";    
     if (form.correo.length < 5 || form.correo.length > 50) return "El correo debe tener al menos 5 caracteres y máximo 50";
     if (form.ciudad.length < 3 || form.ciudad.length > 15 ) return "La ciudad debe tener al menos 3 caracteres y máximo 15";

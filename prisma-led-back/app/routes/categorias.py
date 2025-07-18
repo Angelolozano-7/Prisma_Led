@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app.services.sheets_client import connect_sheet, get_categorias
 import uuid
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 categorias_bp = Blueprint('categorias_bp', __name__)
 
@@ -15,6 +16,7 @@ def obtener_categorias():
 
 
 @categorias_bp.route('/categorias', methods=['POST'])
+@jwt_required()
 def agregar_categoria():
     try:
         data = request.get_json()

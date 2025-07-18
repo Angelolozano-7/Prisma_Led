@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 import pandas as pd
-
+from app.extensions import limiter
 from app.services.sheets_client import (
     get_tarifas,
     get_pantallas,
@@ -51,11 +51,14 @@ def obtener_conflictos(detalles_dict, reservas, id_pantalla, fecha_inicio, fecha
 
 @reservas_bp.route('/disponibilidad', methods=['POST'])
 @jwt_required()
+@limiter.limit("5 per minute")
 def disponibilidad():
     identidad = get_jwt_identity()
     data = request.get_json()
     fecha_inicio = datetime.strptime(data["fecha_inicio"], "%Y-%m-%d")
     semanas = int(data["duracion_semanas"])
+    if semanas <= 0 or semanas > 52:
+        return jsonify({"error": "Duración no permitida"}), 400
     fecha_fin = fecha_inicio + timedelta(weeks=semanas)
     categoria_cliente = data["categoria"]
 
@@ -151,6 +154,7 @@ def disponibilidad():
 
 @reservas_bp.route('/tarifas', methods=['GET'])
 @jwt_required()
+@limiter.limit("20 per minute")
 def obtener_tarifas():
     tarifas = get_tarifas()
     return jsonify(tarifas), 200
