@@ -59,7 +59,7 @@ export default function PantallaItem({ pantallaId, data, seleccionada, onToggleS
           {identificador}
         </button>
 
-        {estado === 'parcial' && (
+        {(estado === 'parcial' || estado === 'restringido')&& (
           <button
             onClick={toggleTooltip}
             className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow"

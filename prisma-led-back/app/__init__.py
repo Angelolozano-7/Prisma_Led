@@ -12,6 +12,7 @@ from app.routes.categorias import categorias_bp
 from app.routes.tarifas import tarifas_bp
 from app.routes.pantallas import pantallas_bp
 import os
+from app.routes.ciudad import ciudad_bp
 
 
 def create_app():
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(categorias_bp, url_prefix="/api")
     app.register_blueprint(tarifas_bp, url_prefix="/api/tarifas")
     app.register_blueprint(pantallas_bp, url_prefix="/api/pantallas")
+    app.register_blueprint(ciudad_bp,  url_prefix="/api/ciudades")
 
     
 

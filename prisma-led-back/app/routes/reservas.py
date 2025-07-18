@@ -92,23 +92,45 @@ def disponibilidad():
         segundos_disponibles = max(0, 60 - ocupacion_total.get(id_pantalla, 0))
         conflictos_reserva = obtener_conflictos(detalle_reserva_dict, reservas, id_pantalla, fecha_inicio, fecha_fin)
         conflictos_prereserva = obtener_conflictos(detalle_prereserva_dict, prereservas, id_pantalla, fecha_inicio, fecha_fin)
-        conflictos = conflictos_reserva + conflictos_prereserva
-
-        if conflictos:
-            estado = "parcial" if segundos_disponibles > 0 else "ocupado"
-            mensaje = "Pauta activa periodo: " + ", ".join([f"{f[0]} a {f[1]}" for f in conflictos])
+        if conflictos_prereserva:
+            estado = "parcial" if segundos_disponibles > 0 else "reservado"
+            mensaje = "Pauta activa periodo: " + ", ".join([f"{f[0]} a {f[1]}" for f in conflictos_prereserva])
+            print("entro en conflictos prereserva con estado:", estado, "y mensaje:", mensaje)
         elif segundos_disponibles < 60:
             estado = "parcial"
             mensaje = f"Disponible parcialmente ({segundos_disponibles} segundos libres)"
         else:
             estado = "disponible"
             mensaje = "Pantalla completamente disponible"
-
-        if estado == "disponible":
+        if estado != "reservado":
+            if conflictos_reserva:
+                estado = "parcial" if segundos_disponibles > 0 else "ocupado"
+                mensaje = "Pauta activa periodo: " + ", ".join([f"{f[0]} a {f[1]}" for f in conflictos_reserva])
+            elif segundos_disponibles < 60:
+                estado = "parcial"
+                mensaje = f"Disponible parcialmente ({segundos_disponibles} segundos libres)"
+            else:
+                estado = "disponible"
+                mensaje = "Pantalla completamente disponible"
+        if estado in ("disponible" , "parcial"):
             for r in reservas:
                 pantallas_en_r = [p["id_pantalla"] for p in detalle_reserva_dict.get(r["id_reserva"], [])]
                 cilindros_cruzados = [p for p, c in pantallas_dict.items() if c == cilindro]
-                if r["id_cliente"] != identidad and r.get("categoria") == categoria_cliente:
+                detalles = detalle_reserva_dict.get(r["id_reserva"], [])
+                categoria = detalles[0].get("categoria") if detalles else None
+                if r["id_cliente"] != identidad and categoria == categoria_cliente:
+                    if any(p in pantallas_en_r for p in cilindros_cruzados):
+                        if hay_cruce_de_fechas(r["fecha_inicio"], r["fecha_fin"], fecha_inicio, fecha_fin):
+                            estado = "restringido"
+                            mensaje = f"Conflicto de categoría con otra pauta en cilindro {cilindro}"
+                            break
+
+            for r in prereservas:
+                pantallas_en_r = [p["id_pantalla"] for p in detalle_prereserva_dict.get(r["id_prereserva"], [])]
+                cilindros_cruzados = [p for p, c in pantallas_dict.items() if c == cilindro]
+                detalles = detalle_prereserva_dict.get(r["id_prereserva"], [])
+                categoria = detalles[0].get("categoria") if detalles else None
+                if r["id_cliente"] != identidad and categoria == categoria_cliente:
                     if any(p in pantallas_en_r for p in cilindros_cruzados):
                         if hay_cruce_de_fechas(r["fecha_inicio"], r["fecha_fin"], fecha_inicio, fecha_fin):
                             estado = "restringido"
@@ -122,7 +144,7 @@ def disponibilidad():
             "identificador": pantallas_dict_info.get(id_pantalla, {}).get("identificador", ""),
             "segundos_disponibles": segundos_disponibles
         }
-
+        
     resultado_str_keys = {str(k): v for k, v in resultado.items()}
     return jsonify(resultado_str_keys), 200
 

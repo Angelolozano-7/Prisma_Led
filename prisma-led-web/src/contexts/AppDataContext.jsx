@@ -9,7 +9,8 @@ export const AppDataProvider = ({ children }) => {
     tarifas: [],
     pantallas: [],
     categorias: [],
-    cliente: null
+    cliente: null,
+    ciudades: []
   });
 
   const [loading, setLoading] = useState(true);
@@ -47,18 +48,20 @@ export const AppDataProvider = ({ children }) => {
       }
 
       try {
-        const [tarifasRes, pantallasRes, categoriasRes, clienteRes] = await Promise.all([
+        const [tarifasRes, pantallasRes, categoriasRes, clienteRes,ciudadesRes] = await Promise.all([
           api.get('/tarifas'),
           api.get('/pantallas'),
           api.get('/categorias'),
-          api.get('/cliente')
+          api.get('/cliente'),
+          api.get('/ciudades'),
         ]);
         console.log('Datos cargados:');
         setDatos({
           tarifas: tarifasRes.data || [],
           pantallas: pantallasRes.data || [],
           categorias: categoriasRes.data || [],
-          cliente: clienteRes.data || null
+          cliente: clienteRes.data || null,
+          ciudades: ciudadesRes.data || []
         });
       } catch (error) {
         console.error('Error al cargar datos globales:', error);
@@ -70,8 +73,15 @@ export const AppDataProvider = ({ children }) => {
     cargarDatos();
   }, [token]);
 
+  const agregarCiudad = (nuevaCiudad) => {
+    setDatos(prev => ({
+      ...prev,
+      ciudades: [...prev.ciudades, nuevaCiudad]
+    }));
+  };
+  
   return (
-    <AppDataContext.Provider value={{ ...datos, loading, setDatos }}>
+    <AppDataContext.Provider value={{ ...datos, loading, setDatos, agregarCiudad  }}>
       {children}
     </AppDataContext.Provider>
   );

@@ -62,3 +62,23 @@ def get_clientes():
 @retry_on_rate_limit()
 def get_categorias():
     return connect_sheet().worksheet("categorias").get_all_records()
+
+@retry_on_rate_limit()
+def get_ciudades():
+    """Devuelve una lista de todas las ciudades registradas."""
+    return connect_sheet().worksheet("ciudades").get_all_records()
+
+@retry_on_rate_limit()
+def add_ciudad(nombre_ciudad):
+    """
+    Agrega una ciudad a la hoja 'ciudades' si no existe aún (ignorando mayúsculas).
+    Devuelve True si fue agregada, False si ya existía.
+    """
+    ws = connect_sheet().worksheet("ciudades")
+    ciudades = [c["nombre_ciudad"].strip().lower() for c in ws.get_all_records()]
+
+    if nombre_ciudad.strip().lower() in ciudades:
+        return False
+
+    ws.append_row([nombre_ciudad.strip()])
+    return True

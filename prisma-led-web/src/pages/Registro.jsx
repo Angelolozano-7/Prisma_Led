@@ -4,12 +4,24 @@ import api from '../services/api';
 import logo from '../assets/logo_prisma.png';
 import VideoLoader from '../components/VideoLoader';
 import Swal from 'sweetalert2';
+import { useAppData } from '../hooks/useAppData';
+import { postCiudad } from '../services/ciudadService';
+import Select from 'react-select';
+
+
+
 
 export default function Registro() {
   const navigate = useNavigate();
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
   const [otraCiudad, setOtraCiudad] = useState(false);
+  const { ciudades, setDatos } = useAppData();
+  const opcionesCiudades = [
+    ...ciudades.map(c => ({ label: c, value: c })),
+    { label: 'Otra ciudad...', value: 'Otra ciudad...' }
+  ];
+
   const [form, setForm] = useState({
     razon_social: '',
     nit: '',
@@ -21,11 +33,7 @@ export default function Registro() {
     password: ''
   });
 
-  const ciudadesColombia = [
-    "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta",
-    "Bucaramanga", "Soacha", "Ibagué", "Villavicencio", "Santa Marta",
-    "Pereira", "Manizales", "Neiva", "Armenia", "Otra ciudad..."
-  ];
+  
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -88,6 +96,18 @@ export default function Registro() {
     const payload = { ...form };
 
     try {
+      if (otraCiudad && form.ciudad.trim()) {
+        try {
+          await postCiudad(form.ciudad.trim());
+          setDatos(prev => ({
+            ...prev,
+            ciudades: [...prev.ciudades, form.ciudad.trim()]
+          }));
+        } catch (err) {
+          console.error("Error registrando ciudad nueva:", err);
+        }
+      }
+
       const res = await api.post('/auth/register', payload);
       localStorage.setItem('token', res.data.access_token);
 
@@ -142,33 +162,38 @@ export default function Registro() {
 
         <div>
           <label className="block text-sm font-medium mb-1">Ciudad</label>
-          <select name="ciudad"
-            className="w-full border rounded px-3 py-2"
-            value={ciudadesColombia.includes(form.ciudad) ? form.ciudad : "Otra ciudad..."}
+          <Select
+            options={opcionesCiudades}
+            value={opcionesCiudades.find(opt => opt.value === form.ciudad) || null}
             onChange={(e) => {
-              if (e.target.value === "Otra ciudad...") {
+              if (e.value === "Otra ciudad...") {
                 setOtraCiudad(true);
                 setForm({ ...form, ciudad: '' });
               } else {
                 setOtraCiudad(false);
-                setForm({ ...form, ciudad: e.target.value });
+                setForm({ ...form, ciudad: e.value });
               }
-            }}>
-            <option value="">Seleccione una ciudad</option>
-            {ciudadesColombia.map((ciudad, idx) => (
-              <option key={idx} value={ciudad}>{ciudad}</option>
-            ))}
-          </select>
+            }}
+            placeholder="Seleccione una ciudad"
+            className="w-full"
+            isSearchable
+          />
         </div>
 
         {otraCiudad && (
           <div>
             <label className="block text-sm font-medium mb-1">Otra ciudad</label>
-            <input name="ciudad" type="text" value={form.ciudad} onChange={handleChange}
+            <input
+              name="ciudad"
+              type="text"
+              value={form.ciudad}
+              onChange={handleChange}
               placeholder="Escribe tu ciudad"
-              className="w-full border rounded px-3 py-2" />
+              className="w-full border rounded px-3 py-2"
+            />
           </div>
         )}
+
 
         <div>
           <label className="block text-sm font-medium mb-1">Dirección</label>

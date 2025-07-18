@@ -3,10 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import api from '../services/api';
 import { useAppData } from '../hooks/useAppData';
+import { postCiudad } from '../services/ciudadService';
 import Swal from 'sweetalert2';
+import Select from 'react-select';
 
 
 export default function Editar_Cliente() {
+  const { ciudades} = useAppData();
+  const opcionesCiudades = [
+    ...ciudades.map(c => ({ label: c, value: c })),
+    { label: 'Otra ciudad...', value: 'Otra ciudad...' }
+  ];
   const navigate = useNavigate();
   const { cliente, setDatos } = useAppData();
   const [mensaje, setMensaje] = useState('');
@@ -27,11 +34,11 @@ export default function Editar_Cliente() {
     if (cliente) {
       setForm({
         razon_social: cliente.razon_social || '',
-        nit: cliente.nit || '',
+        nit: String(cliente.nit) || '',
         correo: cliente.correo || '',
         ciudad: cliente.ciudad || '',
         direccion: cliente.direccion || '',
-        telefono: cliente.telefono || '',
+        telefono: String(cliente.telefono) || '',
         nombre_contacto: cliente.nombre_contacto || '',
         usuario: cliente.correo || '',
         password: ''
@@ -39,11 +46,14 @@ export default function Editar_Cliente() {
     }
   }, [cliente]);
 
-  const ciudadesColombia = [
-    "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Cúcuta",
-    "Bucaramanga", "Soacha", "Ibagué", "Villavicencio", "Santa Marta",
-    "Pereira", "Manizales", "Neiva", "Armenia", "Otra ciudad..."
-  ];
+ useEffect(() => {
+    if (cliente && cliente.ciudad && !ciudades.includes(cliente.ciudad)) {
+      setOtraCiudad(true);
+    } else {
+      setOtraCiudad(false);
+    }
+  }, [cliente, ciudades]);
+
 
 
 
@@ -106,19 +116,33 @@ export default function Editar_Cliente() {
 
     const payload = {
       razon_social: form.razon_social,
-      nit: form.nit,
+      nit: String(form.nit),
       correo: form.correo,
       ciudad: form.ciudad,
       direccion: form.direccion,
-      telefono: form.telefono,
+      telefono: String(form.telefono),
       nombre_contacto: form.nombre_contacto
     };
 
     if (form.password.trim()) {
       payload.password = form.password;
     }
-
+    console.log("payload" , payload);
     try {
+      if (otraCiudad && form.ciudad.trim()) {
+        try {
+          await postCiudad(form.ciudad.trim());
+
+          // Actualizar context para que la ciudad aparezca inmediatamente
+          setDatos(prev => ({
+            ...prev,
+            ciudades: [...prev.ciudades, form.ciudad.trim()]
+          }));
+        } catch (error) {
+          console.error("Error al registrar nueva ciudad", error);
+        }
+      }
+
       await api.put(`/cliente`, payload);
       const refreshed = await api.get('/cliente');
       setDatos((prev) => ({ ...prev, cliente: refreshed.data }));
@@ -157,35 +181,42 @@ export default function Editar_Cliente() {
           <input name="correo" type="email" value={form.correo} onChange={handleChange} className="w-full border border-gray-300 rounded px-3 py-2" />
         </div>
         
-          <div>
+        <div>
           <label className="block text-sm font-medium mb-1">Ciudad</label>
-          <select name="ciudad"
-            className="w-full border rounded px-3 py-2"
-            value={ciudadesColombia.includes(form.ciudad) ? form.ciudad : "Otra ciudad..."}
+          <Select
+            options={opcionesCiudades}
+            value={opcionesCiudades.find(opt => opt.value === form.ciudad) || null}
             onChange={(e) => {
-              if (e.target.value === "Otra ciudad...") {
+              if (e.value === "Otra ciudad...") {
                 setOtraCiudad(true);
                 setForm({ ...form, ciudad: '' });
               } else {
                 setOtraCiudad(false);
-                setForm({ ...form, ciudad: e.target.value });
+                setForm({ ...form, ciudad: e.value });
               }
-            }}>
-            <option value="">Seleccione una ciudad</option>
-            {ciudadesColombia.map((ciudad, idx) => (
-              <option key={idx} value={ciudad}>{ciudad}</option>
-            ))}
-          </select>
+            }}
+            placeholder="Seleccione una ciudad"
+            className="w-full"
+            isSearchable
+          />
+          {otraCiudad && (
+            <div className="mt-2">
+              <label className="block text-sm font-medium mb-1">Otra ciudad</label>
+              <input
+                type="text"
+                name="ciudad"
+                value={form.ciudad}
+                onChange={handleChange}
+                placeholder="Escribe tu ciudad"
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+          )}
+
+
+
         </div>
 
-        {otraCiudad && (
-          <div>
-            <label className="block text-sm font-medium mb-1">Otra ciudad</label>
-            <input name="ciudad" type="text" value={form.ciudad} onChange={handleChange}
-              placeholder="Escribe tu ciudad"
-              className="w-full border rounded px-3 py-2" />
-          </div>
-        )}
         
         <div>
           <label className="block text-sm font-medium mb-1">Dirección</label>
