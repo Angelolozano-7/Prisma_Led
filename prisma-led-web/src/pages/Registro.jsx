@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import logo from '../assets/logo_prisma.png';
@@ -18,8 +19,9 @@ export default function Registro() {
   const [cargando, setCargando] = useState(false);
   const [otraCiudad, setOtraCiudad] = useState(false);
   const { ciudades, setDatos } = useAppData();
+  const [ciudadesLocal, setCiudadesLocal] = useState([]);
   const opcionesCiudades = [
-    ...ciudades.map(c => ({ label: c, value: c })),
+    ...ciudadesLocal.map(c => ({ label: c, value: c })),
     { label: 'Otra ciudad...', value: 'Otra ciudad...' }
   ];
 
@@ -34,6 +36,18 @@ export default function Registro() {
     password: ''
   });
 
+useEffect(() => {
+  const fetchCiudades = async () => {
+    try {
+      const res = await api.get('/ciudades');
+      setCiudadesLocal(res.data); // Asegúrate que el backend retorna un array de strings
+    } catch (error) {
+      console.error("Error al cargar ciudades:", error);
+    }
+  };
+
+  fetchCiudades();
+}, []);
   
 
   const handleChange = (e) => {
