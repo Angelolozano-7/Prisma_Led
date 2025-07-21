@@ -5,8 +5,8 @@
  * 1. Registro de usuario y empresa con datos únicos en cada iteración para evitar colisiones.
  * 2. Login y verificación de obtención de JWT.
  * 3. Consulta de disponibilidad de pantallas para una fecha, duración y categoría.
- * 4. Creación de prereserva y detalle de prereserva con pantallas seleccionadas.
- * 5. (Opcional) Envío de correo de confirmación de prereserva.
+ * 4. Creación de prereserva y 
+ * 5. Creación de detalle de prereserva con pantallas seleccionadas.
  *
  * Características clave:
  * - Cada iteración genera datos únicos para usuario, correo y NIT, permitiendo pruebas concurrentes y robustas.
@@ -70,10 +70,10 @@ export default function () {
 
   check(resLogin, {
     'login exitoso': (r) => r.status === 200,
-    'recibe JWT': (r) => !!r.json('access_token'),
+    'recibe JWT': (r) => !!r.json('token'),
   });
 
-  const token = resLogin.json('access_token');
+  const token = resLogin.json('token');
   if (!token) return;
 
   // Paso 3: Disponibilidad
@@ -117,57 +117,19 @@ export default function () {
   const fecha_inicio = "2025-08-01";
   const fecha_fin = "2025-08-14";
 
-  const prerreserva = http.post(`${BASE_URL}/api/prereservas/crear`, JSON.stringify({
-    fecha_inicio, fecha_fin, categoria: "Alimentos y Bebidas",
-  }), { headers: authHeaders });
-
+  const prerreserva = http.post(`${BASE_URL}/api/prereservas/crear-completo`, JSON.stringify({
+          fecha_inicio,
+          fecha_fin,
+          categoria: "Alimentos y Bebidas",
+          duracion: "2",
+          pantallas: payloadPantallas
+}), { headers: authHeaders });
   check(prerreserva, {
     'prerreserva creada': (r) => r.status === 201,
   });
 
   const id_prereserva = prerreserva.json('id_prereserva');
   if (!id_prereserva) return;
-
-  sleep(1);
-
-  // Paso 5: Crear detalle prereserva
-  const detalle = http.post(`${BASE_URL}/api/prereservas/detalle_prereserva/crear`, JSON.stringify({
-    id_prereserva,
-    pantallas: payloadPantallas,
-    categoria: "Alimentos y Bebidas",
-  }), { headers: authHeaders });
-
-  check(detalle, {
-    'detalle creado': (r) => r.status === 201,
-  });
-
-  sleep(1);
-
-  // Paso 6 (opcional): enviar correo de confirmación
-  /*
-  const confirmacion = http.post(`${BASE_URL}/api/prereservas/enviar-correo`, JSON.stringify({
-    id_prereserva,
-    correo,
-    razon_social: `Empresa ${uid}`,
-    nit,
-    fecha_inicio,
-    fecha_fin,
-    categoria: "comercial",
-    pantallas: payloadPantallas.map(p => ({
-      ...p,
-      base: 1400000,
-      precio: 1400000,
-    })),
-    subtotal: 1400000,
-    iva: 266000,
-    total: 1666000,
-    duracion: 1,
-  }), { headers: authHeaders });
-
-  check(confirmacion, {
-    'correo enviado o aceptado': (r) => [200, 409].includes(r.status),
-  });
-  */
-
+  console.log(`✅ Prerreserva creada con ID: ${id_prereserva}`);
   sleep(1);
 }

@@ -33,7 +33,8 @@ export default function Login() {
 
     try {
       const res = await api.post('/auth/login', { correo, password });
-      localStorage.setItem('token', res.data.access_token);
+      console.log("Respuesta del login:", res.data);
+      localStorage.setItem('token', res.data.token);
       window.dispatchEvent(new Event('storage'));
 
       await Swal.fire({
