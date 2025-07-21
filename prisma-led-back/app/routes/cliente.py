@@ -1,3 +1,23 @@
+"""
+Rutas relacionadas con la gestión y consulta de clientes en prisma-led-back.
+
+Este módulo expone endpoints para:
+- Actualizar los datos del cliente autenticado.
+- Obtener los datos del cliente autenticado.
+
+Características clave:
+- Validaciones estrictas de formato para correo y NIT.
+- Verificación de duplicados para evitar conflictos en la base de datos.
+- Actualización eficiente en Google Sheets, tanto en la hoja de usuarios como de clientes.
+- Uso de JWT para autenticación y protección de endpoints.
+- Rate limiting para evitar abuso de los endpoints.
+
+Futuro desarrollador:
+- Puedes agregar endpoints para eliminar clientes, cambiar contraseña, o consultar historial.
+- Si cambias la estructura de las hojas de Google Sheets, ajusta los mapeos de campos aquí.
+- El manejo de errores y mensajes está centralizado para facilitar la internacionalización y mantenimiento.
+"""
+
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -15,6 +35,33 @@ cliente_bp = Blueprint('cliente_bp', __name__)
 @jwt_required()
 @limiter.limit("5 per minute")
 def actualizar_cliente():
+    """
+    Actualiza los datos del cliente autenticado.
+
+    - Realiza validaciones de formato para correo y NIT.
+    - Verifica duplicados en correo y NIT para evitar conflictos.
+    - Actualiza los datos en las hojas 'usuarios' y 'clientes' de Google Sheets.
+    - Permite actualizar la contraseña si se proporciona.
+
+    Request:
+        JSON con los campos a actualizar:
+        {
+            "razon_social": str,
+            "nit": str,
+            "correo": str,
+            "ciudad": str,
+            "direccion": str,
+            "telefono": str,
+            "nombre_contacto": str,
+            "password": str (opcional)
+        }
+
+    Response:
+        200: { "msg": "Datos actualizados correctamente" }
+        400: { "msg": "Correo inválido" / "El NIT debe contener solo números..." }
+        404: { "msg": "Usuario no encontrado" }
+        409: { "msg": "El correo ya está registrado" / "El NIT ya está registrado" }
+    """
     id_usuario = get_jwt_identity()
     data = request.get_json()
 
@@ -89,10 +136,28 @@ def actualizar_cliente():
 
     return jsonify({"msg": "Datos actualizados correctamente"}), 200
 
-
 @cliente_bp.route('/cliente', methods=['GET'])
 @jwt_required()
 def obtener_cliente():
+    """
+    Obtiene los datos del cliente autenticado.
+
+    - Retorna información relevante del cliente y usuario, como razón social, NIT,
+      correo, ciudad, dirección, teléfono, nombre de contacto y usuario.
+
+    Response:
+        200: {
+            "razon_social": str,
+            "nit": str,
+            "correo": str,
+            "ciudad": str,
+            "direccion": str,
+            "telefono": str,
+            "nombre_contacto": str,
+            "usuario": str
+        }
+        404: { "msg": "Usuario no encontrado" }
+    """
     id_usuario = get_jwt_identity()
 
     usuarios = get_usuarios()

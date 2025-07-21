@@ -1,9 +1,24 @@
+"""
+Módulo de configuración para la aplicación Flask de prisma-led-back.
+
+Carga variables de entorno y define la clase Config con los parámetros globales
+para seguridad, acceso a Google Sheets, JWT y correo electrónico.
+"""
+
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 class Config:
+    """
+    Clase de configuración global para la aplicación Flask.
+
+    Los atributos se cargan desde variables de entorno y se utilizan para:
+    - Seguridad (SECRET_KEY, JWT_SECRET_KEY)
+    - Acceso a Google Sheets (SPREADSHEET_ID, GOOGLE_CREDENTIALS_PATH)
+    - Configuración de correo electrónico (MAIL_SERVER, MAIL_PORT, etc.)
+    """
     SECRET_KEY = os.getenv("SECRET_KEY")
     SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
     GOOGLE_CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH")

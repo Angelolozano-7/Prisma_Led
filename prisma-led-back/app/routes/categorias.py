@@ -1,18 +1,30 @@
+"""
+Rutas relacionadas con la consulta de categorías en prisma-led-back.
+
+Incluye el endpoint protegido para obtener todas las categorías desde Google Sheets.
+"""
+
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.sheets_client import connect_sheet, get_categorias
 import uuid
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
 categorias_bp = Blueprint('categorias_bp', __name__)
 
 
 @categorias_bp.route('/categorias', methods=['GET'])
+@jwt_required()
 def obtener_categorias():
-    try:
-        categorias = get_categorias()
-        return jsonify(categorias), 200
-    except Exception as e:
-        return jsonify({'error': f'Error al obtener categorías: {str(e)}'}), 500
+    """
+    Endpoint para obtener todas las categorías.
+
+    Requiere autenticación JWT.
+
+    Returns:
+        Response: JSON con la lista de categorías y código HTTP 200.
+    """
+    categorias = get_categorias()
+    return jsonify(categorias), 200
 
 
 @categorias_bp.route('/categorias', methods=['POST'])

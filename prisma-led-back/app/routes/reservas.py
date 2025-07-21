@@ -1,3 +1,25 @@
+"""
+Rutas relacionadas con reservas y disponibilidad en prisma-led-back.
+
+Este módulo expone endpoints para:
+- Consultar la disponibilidad de pantallas para reservas y prereservas.
+- Obtener tarifas y detalles de pantallas.
+- Consultar reservas del cliente autenticado, incluyendo detalles completos.
+
+Características clave:
+- Lógica avanzada para calcular ocupación de pantallas por segundos y detectar conflictos de fechas y categorías.
+- Integración con Google Sheets para obtener y actualizar datos de pantallas, tarifas, reservas y prereservas.
+- Rate limiting para proteger los endpoints contra abuso.
+- Uso de JWT para autenticación y protección de rutas.
+- Funciones auxiliares para calcular ocupación, conflictos y lógica de negocio de disponibilidad.
+
+Futuro desarrollador:
+- Puedes agregar endpoints para crear, modificar o eliminar reservas desde aquí.
+- Si cambias la estructura de las hojas de Google Sheets, ajusta los mapeos y validaciones en las funciones auxiliares.
+- El manejo de estados de pantalla (disponible, parcial, reservado, ocupado, restringido) puede ser extendido para nuevas reglas de negocio.
+- El cálculo de ocupación y conflictos está desacoplado y puede ser reutilizado en otros módulos.
+"""
+
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
@@ -16,17 +38,51 @@ reservas_bp = Blueprint('reservas_bp', __name__)
 
 
 def hay_cruce_de_fechas(f1_inicio, f1_fin, f2_inicio, f2_fin):
+    """
+    Determina si dos intervalos de fechas se cruzan.
+
+    Args:
+        f1_inicio (str): Fecha de inicio del primer intervalo (YYYY-MM-DD).
+        f1_fin (str): Fecha de fin del primer intervalo (YYYY-MM-DD).
+        f2_inicio (str): Fecha de inicio del segundo intervalo (YYYY-MM-DD).
+        f2_fin (str): Fecha de fin del segundo intervalo (YYYY-MM-DD).
+
+    Returns:
+        bool: True si los intervalos se cruzan, False en caso contrario.
+    """
     i1 = datetime.strptime(f1_inicio, "%Y-%m-%d")
     f1 = datetime.strptime(f1_fin, "%Y-%m-%d")
     return i1 <= f2_fin and f2_inicio <= f1
 
 def construir_mapa_tarifas(tarifas_sheet):
+    """
+    Construye un diccionario de códigos de tarifa a duración en segundos.
+
+    Args:
+        tarifas_sheet (list): Lista de dicts con datos de tarifas.
+
+    Returns:
+        dict: {codigo_tarifa: duracion_seg}
+    """
     codigos = {}
     for row in tarifas_sheet:
         codigos[row["codigo_tarifa"]] = int(row["duracion_seg"])
     return codigos
 
 def segundos_ocupados_en_intervalo(detalles_dict, reservas, fecha_inicio, fecha_fin, codigos_tarifa):
+    """
+    Calcula los segundos ocupados por pantalla en un intervalo de fechas.
+
+    Args:
+        detalles_dict (dict): Detalles de reservas/prereservas por ID.
+        reservas (list): Lista de reservas/prereservas.
+        fecha_inicio (datetime): Fecha de inicio del intervalo.
+        fecha_fin (datetime): Fecha de fin del intervalo.
+        codigos_tarifa (dict): Mapa de códigos de tarifa a segundos.
+
+    Returns:
+        dict: {id_pantalla: segundos_ocupados}
+    """
     ocupacion = {}
     for r in reservas:
         if not hay_cruce_de_fechas(r["fecha_inicio"], r["fecha_fin"], fecha_inicio, fecha_fin):
@@ -41,6 +97,19 @@ def segundos_ocupados_en_intervalo(detalles_dict, reservas, fecha_inicio, fecha_
     return ocupacion
 
 def obtener_conflictos(detalles_dict, reservas, id_pantalla, fecha_inicio, fecha_fin):
+    """
+    Obtiene los conflictos de ocupación para una pantalla en un intervalo de fechas.
+
+    Args:
+        detalles_dict (dict): Detalles de reservas/prereservas por ID.
+        reservas (list): Lista de reservas/prereservas.
+        id_pantalla (str): ID de la pantalla a consultar.
+        fecha_inicio (datetime): Fecha de inicio del intervalo.
+        fecha_fin (datetime): Fecha de fin del intervalo.
+
+    Returns:
+        list: Lista de tuplas (fecha_inicio, fecha_fin) de los conflictos encontrados.
+    """
     conflictos = []
     for r in reservas:
         key = r.get("id_reserva") or r.get("id_prereserva")
@@ -53,8 +122,19 @@ def obtener_conflictos(detalles_dict, reservas, id_pantalla, fecha_inicio, fecha
 @jwt_required()
 @limiter.limit("5 per minute")
 def disponibilidad():
+    """
+    Endpoint para consultar la disponibilidad de pantallas.
+
+    Calcula el estado de cada pantalla (disponible, parcial, reservado, ocupado, restringido)
+    según reservas, prereservas, categoría y fechas solicitadas.
+
+    Returns:
+        Response: JSON con el estado de cada pantalla y código HTTP 200.
+    """
     identidad = get_jwt_identity()
     data = request.get_json()
+    excluir_prereserva_id = data.get("excluir_prereserva_id")  # Permite excluir la prereserva propia en edición
+
     fecha_inicio = datetime.strptime(data["fecha_inicio"], "%Y-%m-%d")
     semanas = int(data["duracion_semanas"])
     if semanas <= 0 or semanas > 52:
@@ -67,6 +147,11 @@ def disponibilidad():
     prereservas = get_prereservas()
     detalle_reserva_raw = get_detalle_reserva()
     detalle_prereserva_raw = get_detalle_prereserva()
+    # Filtrar las prereservas excluidas (solo si el cliente está editando la suya)
+    if excluir_prereserva_id:
+        prereservas = [p for p in prereservas if p["id_prereserva"] != excluir_prereserva_id]
+        detalle_prereserva_raw = [d for d in detalle_prereserva_raw if d["id_prereserva"] != excluir_prereserva_id]
+
     tarifas_sheet = get_tarifas()
 
     codigos_tarifa = construir_mapa_tarifas(tarifas_sheet)
@@ -98,7 +183,6 @@ def disponibilidad():
         if conflictos_prereserva:
             estado = "parcial" if segundos_disponibles > 0 else "reservado"
             mensaje = "Pauta activa periodo: " + ", ".join([f"{f[0]} a {f[1]}" for f in conflictos_prereserva])
-            print("entro en conflictos prereserva con estado:", estado, "y mensaje:", mensaje)
         elif segundos_disponibles < 60:
             estado = "parcial"
             mensaje = f"Disponible parcialmente ({segundos_disponibles} segundos libres)"
@@ -156,6 +240,12 @@ def disponibilidad():
 @jwt_required()
 @limiter.limit("20 per minute")
 def obtener_tarifas():
+    """
+    Endpoint para obtener todas las tarifas.
+
+    Returns:
+        Response: JSON con la lista de tarifas y código HTTP 200.
+    """
     tarifas = get_tarifas()
     return jsonify(tarifas), 200
 
@@ -163,6 +253,12 @@ def obtener_tarifas():
 @reservas_bp.route('/cliente', methods=['GET', 'OPTIONS'])
 @jwt_required()
 def obtener_reservas_del_cliente():
+    """
+    Endpoint para obtener las reservas del cliente autenticado.
+
+    Returns:
+        Response: JSON con la lista de reservas del cliente y código HTTP 200.
+    """
     if request.method == 'OPTIONS':
         return '', 200
 
@@ -179,6 +275,13 @@ def obtener_reservas_del_cliente():
 @reservas_bp.route('/cliente/completo', methods=['GET'])
 @jwt_required()
 def obtener_reservas_cliente_completo():
+    """
+    Endpoint para obtener las reservas completas del cliente autenticado,
+    incluyendo detalles de pantallas y tarifas.
+
+    Returns:
+        Response: JSON con la lista de reservas completas y código HTTP 200.
+    """
     identidad = get_jwt_identity()
     reservas = get_reservas()
     detalles = get_detalle_reserva()

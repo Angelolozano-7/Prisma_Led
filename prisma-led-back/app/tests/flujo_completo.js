@@ -1,3 +1,25 @@
+/**
+ * Script de prueba de flujo completo para prisma-led-back usando k6.
+ *
+ * Este script automatiza el test de onboarding y reserva de un usuario, simulando el flujo real de la aplicación:
+ * 1. Registro de usuario y empresa con datos únicos en cada iteración para evitar colisiones.
+ * 2. Login y verificación de obtención de JWT.
+ * 3. Consulta de disponibilidad de pantallas para una fecha, duración y categoría.
+ * 4. Creación de prereserva y detalle de prereserva con pantallas seleccionadas.
+ * 5. (Opcional) Envío de correo de confirmación de prereserva.
+ *
+ * Características clave:
+ * - Cada iteración genera datos únicos para usuario, correo y NIT, permitiendo pruebas concurrentes y robustas.
+ * - Verifica el éxito en cada paso usando checks de k6, asegurando la correcta respuesta de la API.
+ * - Permite ajustar el número de usuarios virtuales y repeticiones para pruebas de carga y estrés.
+ * - El flujo puede ser extendido para probar otros endpoints o escenarios de error.
+ *
+ * Futuro desarrollador:
+ * - Puedes agregar validaciones adicionales, pruebas de error, o extender el flujo para cubrir más casos de negocio.
+ * - El script puede ser adaptado para pruebas en ambientes de staging, QA o producción.
+ * - Los datos de tarifas y pantallas pueden ser parametrizados para mayor flexibilidad.
+ */
+
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
@@ -11,6 +33,7 @@ const BASE_URL = 'http://127.0.0.1:5000';
 const PASSWORD = 'Que.3902211!';
 
 export default function () {
+  // Genera datos únicos para cada usuario
   const uid = uuidv4().replace(/-/g, '').slice(0, 8);
   const correo = `flow_${uid}@demo.com`;
   const nit = `900${Math.floor(Math.random() * 1000000)}-1`;
@@ -71,25 +94,26 @@ export default function () {
     'disponibilidad OK': (r) => r.status === 200,
   });
 
-    const rawDisponibles = resDisponibilidad.json();
+  const rawDisponibles = resDisponibilidad.json();
 
-    const pantallasValidas = Object.entries(rawDisponibles)
+  // Selecciona pantallas disponibles
+  const pantallasValidas = Object.entries(rawDisponibles)
     .filter(([_, p]) => p.estado === 'disponible')
     .map(([id_pantalla, p]) => ({
-        id_pantalla,
-        cod_tarifas: 'a' // por ahora usamos tarifa fija, puedes hacerla dinámica
+      id_pantalla,
+      cod_tarifas: 'a' // puedes hacer dinámico según tu lógica de tarifas
     }));
 
-    if (pantallasValidas.length === 0) {
+  if (pantallasValidas.length === 0) {
     console.warn('❌ No hay pantallas disponibles para reserva');
     return;
-    }
+  }
 
-const payloadPantallas = pantallasValidas.slice(0, 1); // solo una pantalla
+  const payloadPantallas = pantallasValidas.slice(0, 1); // solo una pantalla
 
   sleep(1);
 
-  // Crear prerreserva
+  // Paso 4: Crear prerreserva
   const fecha_inicio = "2025-08-01";
   const fecha_fin = "2025-08-14";
 
@@ -106,7 +130,7 @@ const payloadPantallas = pantallasValidas.slice(0, 1); // solo una pantalla
 
   sleep(1);
 
-  // Crear detalle prereserva
+  // Paso 5: Crear detalle prereserva
   const detalle = http.post(`${BASE_URL}/api/prereservas/detalle_prereserva/crear`, JSON.stringify({
     id_prereserva,
     pantallas: payloadPantallas,
@@ -119,7 +143,7 @@ const payloadPantallas = pantallasValidas.slice(0, 1); // solo una pantalla
 
   sleep(1);
 
-  // Opcional: enviar correo (si está habilitado)
+  // Paso 6 (opcional): enviar correo de confirmación
   /*
   const confirmacion = http.post(`${BASE_URL}/api/prereservas/enviar-correo`, JSON.stringify({
     id_prereserva,
@@ -129,9 +153,9 @@ const payloadPantallas = pantallasValidas.slice(0, 1); // solo una pantalla
     fecha_inicio,
     fecha_fin,
     categoria: "comercial",
-    pantallas: seleccionadas.map(p => ({
+    pantallas: payloadPantallas.map(p => ({
       ...p,
-      base: 1400000, // solo si necesitas campos para correo
+      base: 1400000,
       precio: 1400000,
     })),
     subtotal: 1400000,

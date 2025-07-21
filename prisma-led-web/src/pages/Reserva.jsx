@@ -1,22 +1,41 @@
+/**
+ * Página de reserva para prisma-led-web.
+ *
+ * Permite al usuario seleccionar fecha de inicio, duración en semanas y categoría para consultar disponibilidad de pantallas.
+ * Incluye validaciones de campos, resumen visual y condición obligatoria de no competencia con Emcali.
+ * El botón "Mostrar disponibilidad" realiza la consulta al backend y navega a la página de resultados.
+ *
+ * Detalles clave:
+ * - El campo de fecha no permite edición manual ni pegado para evitar errores de formato.
+ * - La duración está limitada entre 1 y 52 semanas.
+ * - La categoría se selecciona desde el contexto global de categorías.
+ * - El checkbox de condición es obligatorio y muestra ayuda contextual.
+ * - Los errores se muestran de forma clara junto a cada campo.
+ * - El resumen a la derecha muestra los datos seleccionados antes de consultar.
+ *
+ * Futuro desarrollador:
+ * - Puedes agregar más filtros o validaciones según la lógica de negocio.
+ * - El manejo de errores y navegación está centralizado en el botón principal.
+ * - El componente usa hooks y contexto para mantener la lógica desacoplada.
+ */
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { useAppData } from '../hooks/useAppData';
 import api from '../services/api'; 
 import Swal from 'sweetalert2';
-
 
 export default function Reserva() {
   const [fechaInicio, setFechaInicio] = useState('');
   const [duracion, setDuracion] = useState('');
   const [categoria, setCategoria] = useState('');
-  const [mostrarCalendario, setMostrarCalendario] = useState(false);
   const [aceptaCondicion, setAceptaCondicion] = useState(false);
   const [errores, setErrores] = useState({});
   const { categorias } = useAppData();
 
   const navigate = useNavigate();
 
+  // Maneja la consulta de disponibilidad y navegación
   const handleMostrarDisponibilidad = async () => {
     const nuevosErrores = {};
     if (!fechaInicio) nuevosErrores.fechaInicio = true;
@@ -56,6 +75,7 @@ export default function Reserva() {
     }
   };
 
+  // Calcula la fecha de fin según la duración
   const calcularFechaFin = () => {
     if (!fechaInicio || !duracion) return '';
     const inicio = new Date(fechaInicio);
@@ -63,11 +83,13 @@ export default function Reserva() {
     return inicio.toISOString().split('T')[0];
   };
 
+  // Fecha mínima para el input de fecha
   const today = new Date();
   const localISODate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
     .toISOString()
     .split('T')[0];
 
+  // Valida y actualiza la duración
   const handleDuracionChange = (e) => {
     const value = parseInt(e.target.value);
     setDuracion(!isNaN(value) && value >= 1 && value <= 52 ? value : '');
@@ -92,8 +114,8 @@ export default function Reserva() {
                 setFechaInicio(e.target.value);
                 setErrores({ ...errores, fechaInicio: null });
               }}
-              onKeyDown={(e) => e.preventDefault()} 
-              onPaste={(e) => e.preventDefault()}   
+              onKeyDown={(e) => e.preventDefault()} // Evita edición manual
+              onPaste={(e) => e.preventDefault()}   // Evita pegado manual
               className={`border rounded px-3 py-2 ${errores.fechaInicio ? 'border-red-500' : 'border-gray-300'}`}
             />
             {errores.fechaInicio && (

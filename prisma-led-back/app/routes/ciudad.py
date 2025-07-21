@@ -1,3 +1,9 @@
+"""
+Rutas relacionadas con la gestión de ciudades en prisma-led-back.
+
+Incluye endpoints para listar y registrar ciudades, con validaciones de nombre y control de concurrencia.
+"""
+
 from flask import Blueprint, jsonify, request
 from app.services.sheets_client import get_ciudades, add_ciudad
 from flask_jwt_extended import jwt_required
@@ -9,6 +15,12 @@ ciudad_bp = Blueprint('ciudad_bp', __name__)
 @ciudad_bp.route('', methods=['GET'])
 @limiter.limit("10 per minute")
 def listar_ciudades():
+    """
+    Endpoint para listar todas las ciudades registradas.
+
+    Returns:
+        Response: JSON con la lista de nombres de ciudades y código HTTP 200.
+    """
     ciudades = get_ciudades()
     return jsonify([c["nombre_ciudad"] for c in ciudades]), 200
 
@@ -16,6 +28,14 @@ def listar_ciudades():
 @jwt_required()
 @limiter.limit("3 per minute")
 def registrar_ciudad():
+    """
+    Endpoint para registrar una nueva ciudad.
+
+    Realiza validaciones de nombre y controla concurrencia con un lock.
+
+    Returns:
+        Response: JSON con mensaje de éxito o error.
+    """
     with ciudad_lock:
         data = request.get_json()
         nombre = data.get("nombre", "").strip().title()

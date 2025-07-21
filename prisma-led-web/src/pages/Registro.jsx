@@ -1,5 +1,25 @@
-import { useState, useEffect } from 'react';
+/**
+ * Página de registro de clientes para prisma-led-web.
+ *
+ * Permite crear una cuenta de cliente con validaciones exhaustivas de todos los campos.
+ * - Utiliza react-select para la selección de ciudad, permitiendo agregar una nueva ciudad si no existe.
+ * - Muestra mensajes de error claros y alertas con SweetAlert2.
+ * - Al registrar una nueva ciudad, la agrega al contexto global y la envía al backend.
+ * - El formulario está dividido en dos columnas: datos generales y credenciales.
+ *
+ * Detalles clave:
+ * - Validación de NIT, correo, teléfono, nombre y contraseña con expresiones regulares y reglas de longitud.
+ * - El botón "Registrarse" envía los datos al backend y guarda el token JWT en localStorage.
+ * - El botón "Cancelar" redirige al login sin guardar cambios.
+ * - El loader de video se muestra mientras se procesa el registro.
+ *
+ * Futuro desarrollador:
+ * - Puedes agregar más campos o validaciones según la lógica de negocio.
+ * - El manejo de ciudades permite escalabilidad y flexibilidad para nuevos registros.
+ * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ */
 
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import logo from '../assets/logo_prisma.png';
@@ -8,10 +28,6 @@ import Swal from 'sweetalert2';
 import { useAppData } from '../hooks/useAppData';
 import { postCiudad } from '../services/ciudadService';
 import Select from 'react-select';
-
-
-
-
 
 export default function Registro() {
   const navigate = useNavigate();
@@ -36,24 +52,28 @@ export default function Registro() {
     password: ''
   });
 
-useEffect(() => {
-  const fetchCiudades = async () => {
-    try {
-      const res = await api.get('/ciudades');
-      setCiudadesLocal(res.data); // Asegúrate que el backend retorna un array de strings
-    } catch (error) {
-      console.error("Error al cargar ciudades:", error);
-    }
-  };
+  useEffect(() => {
+    // Carga la lista de ciudades desde el backend al montar el componente
+    const fetchCiudades = async () => {
+      try {
+        const res = await api.get('/ciudades');
+        setCiudadesLocal(res.data); // El backend debe retornar un array de strings
+      } catch (error) {
+        console.error("Error al cargar ciudades:", error);
+      }
+    };
+    fetchCiudades();
+  }, []);
 
-  fetchCiudades();
-}, []);
-  
-
+  // Actualiza el estado del formulario al cambiar cualquier campo
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  /**
+   * Valida todos los campos del formulario antes de enviar.
+   * Retorna un mensaje de error si alguna validación falla, o null si todo está correcto.
+   */
   const validarFormulario = () => {
     const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const nitRegex = /^\d+-?\d$/;
@@ -74,14 +94,11 @@ useEffect(() => {
     if (!form.password) return "La contraseña es obligatoria";
     if (form.razon_social.length < 3 || form.razon_social.length > 50) return "La razón social debe tener al menos 3 caracteres y máximo 50";
     if (!nitRegex.test(form.nit)) return "El NIT debe contener solo números y puede tener un '-' antes del último dígito";
-    if( form.nit.length != 11) return "El NIT debe tener 9 digitos + el digito verificador, 000000000-1";
+    if (form.nit.length != 11) return "El NIT debe tener 9 digitos + el digito verificador, 000000000-1";
     if (!correoRegex.test(form.correo)) return "El correo no tiene un formato válido";    
     if (form.correo.length < 5 || form.correo.length > 50) return "El correo debe tener al menos 5 caracteres y máximo 50";
     if (form.ciudad.length < 3 || form.ciudad.length > 15 ) return "La ciudad debe tener al menos 3 caracteres y máximo 15";
     if (form.direccion.length < 5 || form.direccion.length > 100) return "La dirección debe tener al menos 5 caracteres y máximo 100";
-    if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
-    if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
-    if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
     if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
     if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
     if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
@@ -90,6 +107,10 @@ useEffect(() => {
     return null;
   };
 
+  /**
+   * Envía el formulario al backend y maneja el registro de ciudad nueva si aplica.
+   * Muestra alertas de éxito o error según la respuesta del backend.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje('');
@@ -111,6 +132,7 @@ useEffect(() => {
     const payload = { ...form };
 
     try {
+      // Si el usuario seleccionó "Otra ciudad", registra la nueva ciudad en el backend
       if (otraCiudad && form.ciudad.trim()) {
         try {
           await postCiudad(form.ciudad.trim());
@@ -123,6 +145,7 @@ useEffect(() => {
         }
       }
 
+      // Envía el registro al backend
       const res = await api.post('/auth/register', payload);
       localStorage.setItem('token', res.data.access_token);
 
@@ -153,7 +176,7 @@ useEffect(() => {
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Columna izquierda */}
+      {/* Columna izquierda: datos generales */}
       <div className="space-y-4 border border-gray-200 p-4 rounded">
         <h2 className="text-lg font-semibold">Registro</h2>
 
@@ -209,7 +232,6 @@ useEffect(() => {
           </div>
         )}
 
-
         <div>
           <label className="block text-sm font-medium mb-1">Dirección</label>
           <input name="direccion" type="text" value={form.direccion} onChange={handleChange}
@@ -229,7 +251,7 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Columna derecha */}
+      {/* Columna derecha: credenciales y acciones */}
       <div className="space-y-4 border border-gray-200 p-4 rounded h-fit flex flex-col items-center">
         <img src={logo} alt="Logo PrismaLED" className="h-16 sm:h-20 mb-2" />
         <div className="w-full space-y-4">

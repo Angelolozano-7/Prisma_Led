@@ -1,3 +1,23 @@
+/**
+ * Página para editar datos del cliente en prisma-led-web.
+ *
+ * Permite al usuario modificar sus datos personales y de empresa, incluyendo ciudad y contraseña.
+ * - Usa react-select para la selección de ciudad, permitiendo agregar una nueva ciudad si no existe.
+ * - Valida todos los campos antes de enviar y muestra mensajes de error claros con SweetAlert2.
+ * - Actualiza el contexto global tras la modificación y redirige al dashboard del cliente.
+ *
+ * Detalles clave:
+ * - El campo "Usuario" es solo lectura y corresponde al correo registrado.
+ * - El campo "Nueva contraseña" es opcional y solo se envía si el usuario lo modifica.
+ * - El botón "Regresar sin cambios" permite volver al dashboard sin guardar.
+ * - El formulario está dividido en dos columnas para mejor experiencia visual.
+ *
+ * Futuro desarrollador:
+ * - Puedes agregar más campos o validaciones según la lógica de negocio.
+ * - El manejo de ciudades permite escalabilidad y flexibilidad para nuevos registros.
+ * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ */
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
@@ -7,9 +27,8 @@ import { postCiudad } from '../services/ciudadService';
 import Swal from 'sweetalert2';
 import Select from 'react-select';
 
-
 export default function Editar_Cliente() {
-  const { ciudades} = useAppData();
+  const { ciudades } = useAppData();
   const opcionesCiudades = [
     ...ciudades.map(c => ({ label: c, value: c })),
     { label: 'Otra ciudad...', value: 'Otra ciudad...' }
@@ -46,7 +65,7 @@ export default function Editar_Cliente() {
     }
   }, [cliente]);
 
- useEffect(() => {
+  useEffect(() => {
     if (cliente && cliente.ciudad && !ciudades.includes(cliente.ciudad)) {
       setOtraCiudad(true);
     } else {
@@ -54,14 +73,14 @@ export default function Editar_Cliente() {
     }
   }, [cliente, ciudades]);
 
-
-
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-
+  /**
+   * Valida todos los campos del formulario antes de enviar.
+   * Retorna un mensaje de error si alguna validación falla, o null si todo está correcto.
+   */
   const validarFormulario = () => {
     const correoRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const nitRegex = /^\d+-?\d$/;
@@ -81,8 +100,7 @@ export default function Editar_Cliente() {
     if (!form.nombre_contacto) return "El nombre de contacto es obligatorio";
     if (form.razon_social.length < 3 || form.razon_social.length > 50) return "La razón social debe tener al menos 3 caracteres y máximo 50";
     if (!nitRegex.test(form.nit)) return "El NIT debe contener solo números y puede tener un '-' antes del último dígito";
-    console.log(form.nit.length);
-    if( form.nit.length != 11) return "El NIT debe tener 9 digitos mas el digito verificador, 000000000-1";
+    if (form.nit.length !== 11) return "El NIT debe tener 9 digitos más el dígito verificador, 000000000-1";
     if (!correoRegex.test(form.correo)) return "El correo no tiene un formato válido";    
     if (form.correo.length < 5 || form.correo.length > 50) return "El correo debe tener al menos 5 caracteres y máximo 50";
     if (form.ciudad.length < 3 || form.ciudad.length > 15 ) return "La ciudad debe tener al menos 3 caracteres y máximo 15";
@@ -90,29 +108,28 @@ export default function Editar_Cliente() {
     if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
     if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
     if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
-    if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
-    if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
-    if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
-    
     return null;
   };
 
+  /**
+   * Envía el formulario al backend y maneja el registro de ciudad nueva si aplica.
+   * Muestra alertas de éxito o error según la respuesta del backend.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensaje('');
 
     const error = validarFormulario();
-      if (error) {
-        setMensaje(error);
-        await Swal.fire({
-          title: 'Error de validación',
-          text: error,
-          icon: 'warning',
-          confirmButtonText: 'Aceptar'
-        });
-        return;
-      }
-
+    if (error) {
+      setMensaje(error);
+      await Swal.fire({
+        title: 'Error de validación',
+        text: error,
+        icon: 'warning',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
 
     const payload = {
       razon_social: form.razon_social,
@@ -127,13 +144,11 @@ export default function Editar_Cliente() {
     if (form.password.trim()) {
       payload.password = form.password;
     }
-    console.log("payload" , payload);
+
     try {
       if (otraCiudad && form.ciudad.trim()) {
         try {
           await postCiudad(form.ciudad.trim());
-
-          // Actualizar context para que la ciudad aparezca inmediatamente
           setDatos(prev => ({
             ...prev,
             ciudades: [...prev.ciudades, form.ciudad.trim()]
@@ -147,20 +162,20 @@ export default function Editar_Cliente() {
       const refreshed = await api.get('/cliente');
       setDatos((prev) => ({ ...prev, cliente: refreshed.data }));
       await Swal.fire({
-              title: '¡Actualización exitosa!',
-              text: 'Tu cuenta ha sido actualizada correctamente.',
-              icon: 'success',
-              confirmButtonText: 'Cerrar'
-            });
+        title: '¡Actualización exitosa!',
+        text: 'Tu cuenta ha sido actualizada correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Cerrar'
+      });
       setTimeout(() => navigate('/cliente'), 2000);
     } catch (error) {
       const msg = error.response?.data?.msg || 'Error al registrar';
-            await Swal.fire({
-              title: 'Error al registrar',
-              text: msg,
-              icon: 'error',
-              confirmButtonText: 'Cerrar'
-            });
+      await Swal.fire({
+        title: 'Error al registrar',
+        text: msg,
+        icon: 'error',
+        confirmButtonText: 'Cerrar'
+      });
     }
   };
 
@@ -212,11 +227,7 @@ export default function Editar_Cliente() {
               />
             </div>
           )}
-
-
-
         </div>
-
         
         <div>
           <label className="block text-sm font-medium mb-1">Dirección</label>
@@ -261,4 +272,3 @@ export default function Editar_Cliente() {
     </form>
   );
 }
-  

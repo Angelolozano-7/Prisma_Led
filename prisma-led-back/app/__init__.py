@@ -1,9 +1,15 @@
-from flask import Flask,jsonify
+"""
+Módulo principal de inicialización para la aplicación Flask de prisma-led-back.
+
+Configura la aplicación, registra los blueprints de rutas, inicializa extensiones
+(CORS, JWT, Mail, Limiter) y define el manejador de errores para límites de peticiones.
+"""
+
+from flask import Flask, jsonify
 from flask_cors import CORS
 from app.config import Config
 from flask_jwt_extended import JWTManager
 from .extensions import mail
-from app.config import Config
 from app.routes.cliente import cliente_bp
 from app.routes.reservas import reservas_bp
 from app.routes.auth import auth_bp
@@ -15,9 +21,13 @@ import os
 from app.routes.ciudad import ciudad_bp
 from app.extensions import limiter
 
-
-
 def create_app():
+    """
+    Crea e inicializa la aplicación Flask, registra blueprints y extensiones.
+
+    Returns:
+        Flask: Instancia de la aplicación Flask configurada.
+    """
     app = Flask(__name__)
     app.config.from_object(Config)
     mail.init_app(app)
@@ -36,9 +46,17 @@ def create_app():
     
     @app.errorhandler(429)
     def ratelimit_handler(e):
+        """
+        Manejador de error para límite de peticiones (HTTP 429).
+
+        Args:
+            e (Exception): Excepción lanzada por el limitador.
+
+        Returns:
+            Response: Mensaje de error en formato JSON y código 429.
+        """
         return jsonify({
             "error": "Has excedido el número de intentos permitidos. Por favor, intenta de nuevo más tarde."
         }), 429
-
 
     return app

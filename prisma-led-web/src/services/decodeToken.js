@@ -1,3 +1,11 @@
+/**
+ * Extrae el ID de usuario desde el token JWT almacenado en localStorage.
+ *
+ * Decodifica el payload del token y retorna un objeto con el ID.
+ * Si ocurre un error o no existe el token, retorna null.
+ *
+ * @returns {Object|null} Objeto con el id extraído del token o null si no es válido.
+ */
 export function getUserFromToken() {
   try {
     const token = localStorage.getItem('token');

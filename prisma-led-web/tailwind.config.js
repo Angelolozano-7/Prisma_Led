@@ -1,3 +1,12 @@
+/** 
+ * Configuración de Tailwind CSS para prisma-led-web.
+ *
+ * Define los archivos a analizar para generar las clases CSS, 
+ * extiende la paleta de colores personalizada y permite la integración de plugins.
+ * 
+ * Los colores personalizados facilitan la coherencia visual en toda la aplicación.
+ */
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],

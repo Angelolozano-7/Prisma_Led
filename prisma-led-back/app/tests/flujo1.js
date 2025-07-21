@@ -1,3 +1,11 @@
+/**
+ * Script de prueba de flujo completo para prisma-led-back usando k6.
+ *
+ * Simula el registro de usuario, login, y consulta de disponibilidad de pantallas.
+ * Cada iteración genera datos únicos para evitar colisiones y prueba el flujo principal de onboarding.
+ * Verifica el éxito en cada paso y la obtención de JWT.
+ */
+
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
@@ -11,6 +19,7 @@ const BASE_URL = 'http://127.0.0.1:5000';
 const PASSWORD = 'Que.3902211!';
 
 export default function () {
+  // Genera datos únicos para cada usuario
   const uid = uuidv4().replace(/-/g, '').slice(0, 8);
   const correo = `flow_${uid}@demo.com`;
   const nit = `900${Math.floor(Math.random() * 1000000)}-1`;

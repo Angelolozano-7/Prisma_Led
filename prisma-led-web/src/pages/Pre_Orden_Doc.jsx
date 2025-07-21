@@ -1,3 +1,24 @@
+/**
+ * Página de documento de prereserva para prisma-led-web.
+ *
+ * Muestra el resumen final de la prereserva y envía automáticamente la información al correo del cliente.
+ * - Obtiene los datos del cliente autenticado y los muestra junto al detalle de la prereserva.
+ * - Calcula y muestra el subtotal, IVA y total de la orden.
+ * - Envía el correo solo una vez usando una bandera persistente (useRef).
+ * - Permite al usuario regresar al dashboard tras la confirmación.
+ *
+ * Detalles clave:
+ * - El correo se envía automáticamente al montar el componente, evitando duplicados.
+ * - Los datos del cliente y la prereserva se obtienen del backend y del estado de navegación.
+ * - Los valores monetarios se formatean en COP para claridad.
+ * - El botón "Aceptar" redirige al usuario al dashboard de cliente.
+ *
+ * Futuro desarrollador:
+ * - Puedes agregar más información en el correo o modificar el formato visual del resumen.
+ * - El manejo de envío de correo está desacoplado y centralizado para fácil mantenimiento.
+ * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ */
+
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -6,7 +27,7 @@ export default function PreOrdenDoc() {
   const navigate = useNavigate();
   const location = useLocation();
   const [cliente, setCliente] = useState(null);
-  const correoEnviadoRef = useRef(false); // 👈 bandera persistente
+  const correoEnviadoRef = useRef(false); // Bandera persistente para evitar doble envío
 
   const {
     id_prereserva,
@@ -22,6 +43,10 @@ export default function PreOrdenDoc() {
   const total = subtotal + iva;
 
   useEffect(() => {
+    /**
+     * Obtiene los datos del cliente y envía el correo de confirmación de prereserva.
+     * El correo solo se envía una vez por render usando la bandera correoEnviadoRef.
+     */
     const fetchYEnviar = async () => {
       if (correoEnviadoRef.current) return; // ⛔ evitar segundo envío
       correoEnviadoRef.current = true; // ✅ marcar como enviado

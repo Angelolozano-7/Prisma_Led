@@ -1,10 +1,30 @@
+/**
+ * Página de pre-orden para prisma-led-web.
+ *
+ * Muestra el resumen de la prereserva antes de confirmar, permitiendo modificar, confirmar o cancelar la orden.
+ * - Actualiza o crea la prereserva según si existe una edición previa.
+ * - Calcula y muestra el desglose de precios, descuentos, IVA y total usando useResumenReserva.
+ * - Permite modificar la selección de pantallas, cancelar la prereserva con confirmación, o confirmar y avanzar.
+ *
+ * Detalles clave:
+ * - El botón "Modificar" permite regresar a la selección de pantallas con los datos actuales.
+ * - El botón "Confirmar" guarda la prereserva (crea o actualiza) y navega a la página de documento.
+ * - El botón "Cancelar" muestra un modal de confirmación y permite limpiar el contexto y volver al dashboard.
+ * - Los precios se formatean en COP y se muestran los descuentos aplicados.
+ *
+ * Futuro desarrollador:
+ * - Puedes agregar validaciones adicionales antes de confirmar la prereserva.
+ * - El manejo de edición y creación está desacoplado y centralizado para fácil mantenimiento.
+ * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ */
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import api from '../services/api';
 import { useAppData } from '../hooks/useAppData';
 import { useResumenReserva } from '../hooks/useResumenReserva';
 import { usePrereserva } from '../contexts/PrereservaContext';
-import Swal from 'sweetalert2'
+import Swal from 'sweetalert2';
 
 
 export default function PreOrden() {
@@ -23,13 +43,16 @@ export default function PreOrden() {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const { tarifas: tarifasContext } = useAppData();
 
+  // Mapea tarifas por duración en segundos
   const tarifas = tarifasContext.reduce((acc, t) => {
     acc[t.duracion_seg] = t.precio_semana;
     return acc;
   }, {});
 
+  // Calcula el resumen de precios y descuentos
   const resumen = useResumenReserva(pantallas, duracion, tarifas, fecha_inicio);
 
+  // Formatea valores en COP
   const formatCOP = (valor) =>
     valor.toLocaleString('es-CO', {
       style: 'currency',
@@ -37,6 +60,7 @@ export default function PreOrden() {
       minimumFractionDigits: 0
     });
 
+  // Calcula la fecha de fin según la duración
   const calcularFechaFin = () => {
     if (!fecha_inicio || !duracion) return '';
     const inicio = new Date(fecha_inicio);
@@ -44,6 +68,7 @@ export default function PreOrden() {
     return inicio.toISOString().split('T')[0];
   };
 
+  // Modal de confirmación para cancelar la prereserva
   const confirmarCancelacion = () => {
     setMostrarConfirmacion(true);
   };
@@ -57,29 +82,29 @@ export default function PreOrden() {
     navigate('/cliente');
   };
 
+  // Confirma la prereserva (crea o actualiza según contexto)
   const handleConfirmar = async () => {
     try {
       let id_prereserva_final = prereserva?.original?.id_reserva;
 
       if (prereserva?.original?.id_reserva) {
-        // 🔄 Actualizar prereserva existente
-        await api.put(`/prereservas/${prereserva.original.id_reserva}`, {
+        // Actualizar prereserva existente
+        const res = await api.put(`/prereservas/actualizar-completo/${prereserva.original.id_reserva}`, {
           fecha_inicio,
           fecha_fin: calcularFechaFin(),
-          categoria
-        });
-
-        await api.put(`/prereservas/detalle_prereserva/${prereserva.original.id_reserva}`, {
           categoria,
           duracion,
           pantallas: pantallas.map(p => ({
             id_pantalla: p.id_pantalla,
+            cod_tarifas: p.cod_tarifas,
             precio: p.precio,
-            cod_tarifas: p.cod_tarifas
+            cilindro: p.cilindro,
+            identificador: p.identificador,
           }))
         });
 
-        id_prereserva_final = prereserva.original.id_reserva;
+        id_prereserva_final = res.data.id_prereserva;
+
 
         await Swal.fire({
           title: '¡Prereserva actualizada!',
@@ -89,25 +114,22 @@ export default function PreOrden() {
         });
 
       } else {
-        // ✨ Crear nueva prereserva
-        const response = await api.post('/prereservas/crear', {
+        // Crear nueva prereserva
+        const res = await api.post('/prereservas/crear-completo', {
           fecha_inicio,
           fecha_fin: calcularFechaFin(),
-          categoria
-        });
-
-        id_prereserva_final = response.data.id_prereserva;
-
-        await api.post('/prereservas/detalle_prereserva/crear', {
-          id_prereserva: id_prereserva_final,
           categoria,
           duracion,
           pantallas: pantallas.map(p => ({
             id_pantalla: p.id_pantalla,
+            cod_tarifas: p.cod_tarifas,
             precio: p.precio,
-            cod_tarifas: p.cod_tarifas
+            cilindro: p.cilindro,
+            identificador: p.identificador,
           }))
         });
+
+        id_prereserva_final = res.data.id_prereserva;
 
         await Swal.fire({
           title: '¡Prereserva creada!',
@@ -117,7 +139,7 @@ export default function PreOrden() {
         });
       }
 
-      // 🚀 Redirigir a PreOrdenDoc con los datos actualizados
+      // Redirigir a PreOrdenDoc con los datos actualizados
       navigate('/cliente/pre-orden-doc', {
         state: {
           id_prereserva: id_prereserva_final,
@@ -139,7 +161,6 @@ export default function PreOrden() {
       });
     }
   };
-
 
 
   return (
@@ -212,7 +233,6 @@ export default function PreOrden() {
 
       <div className="mt-6 flex gap-4">
         <button
-        
           onClick={() => navigate('/cliente/disponibilidad', {
             state: {
               fecha_inicio,

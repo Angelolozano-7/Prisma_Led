@@ -1,9 +1,17 @@
+/**
+ * Script de prueba de carga para el login masivo de usuarios en prisma-led-back usando k6.
+ *
+ * Utiliza una lista de correos previamente registrados y simula intentos de autenticación concurrentes.
+ * Verifica que el login sea exitoso (status 200) y que se reciba un JWT válido.
+ * Configura usuarios virtuales y número de iteraciones para simular concurrencia.
+ */
+
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 export let options = {
-  vus: 2,             // hasta 10 usuarios en paralelo
-  iterations: 40,      // 40 intentos (1 por correo)
+  vus: 2,             // hasta 2 usuarios en paralelo
+  iterations: 40,     // 40 intentos (1 por correo)
 };
 
 const BASE_URL = 'http://127.0.0.1:5000';
@@ -28,6 +36,7 @@ const correos = [
 ];
 
 export default function () {
+  // Obtiene el correo correspondiente a la iteración actual
   const index = __ITER;
   const correo = correos[index];
   const headers = { 'Content-Type': 'application/json' };
@@ -37,6 +46,7 @@ export default function () {
     password: PASSWORD,
   });
 
+  // Realiza la petición de login
   const res = http.post(`${BASE_URL}/api/auth/login`, loginPayload, { headers });
 
   check(res, {
