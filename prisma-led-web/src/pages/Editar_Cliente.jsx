@@ -108,6 +108,10 @@ export default function Editar_Cliente() {
     if (!telefonoRegex.test(form.telefono)) return "El teléfono debe contener solo números, puede iniciar con '+' y contener espacios";
     if (form.telefono.length < 7 || form.telefono.length > 15) return "El teléfono debe tener entre 7 y 15 dígitos";
     if (form.nombre_contacto.length < 3 || form.nombre_contacto.length > 50) return "El nombre de contacto debe tener al menos 3 caracteres y máximo 50";
+    if (form.password.trim() && !passwordRegex.test(form.password)) {
+      return "La nueva contraseña debe tener al menos 8 caracteres y un carácter especial";
+    }
+
     return null;
   };
 
@@ -144,7 +148,7 @@ export default function Editar_Cliente() {
     if (form.password.trim()) {
       payload.password = form.password;
     }
-
+    //console.log("Payload a enviar:", payload);
     try {
       if (otraCiudad && form.ciudad.trim()) {
         try {

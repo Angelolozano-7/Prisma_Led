@@ -217,7 +217,7 @@ def recovery():
 
     Atentamente,
     Equipo PrismaLED
-    https://prismaled.com
+    comercial@prismaled.com
     """
         try:
             mail.send(msg)
