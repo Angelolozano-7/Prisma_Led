@@ -31,8 +31,8 @@ export default function ClientHome() {
 
   const links = [
     { path: '/cliente/reserva', text: 'Realizar reserva' },
-    { path: '/cliente/historial-reservas', text: 'Ver historial reservas' },
-    { path: '/cliente/editar-reserva', text: 'Editar Prereserva' }
+    { path: '/cliente/historial-reservas', text: 'Ver historial pautas' },
+    { path: '/cliente/editar-reserva', text: 'Editar reserva' }
   ];
 
   if (cargando) {

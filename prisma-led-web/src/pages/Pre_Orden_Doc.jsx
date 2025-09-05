@@ -92,7 +92,7 @@ export default function PreOrdenDoc() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
       <div className="bg-white border shadow-lg rounded-lg w-full max-w-md">
         <div className="bg-violet-400 text-white text-center py-3 rounded-t font-semibold text-lg">
-          Prereserva # {id_prereserva?.toUpperCase()}
+          Reserva # {id_prereserva?.toUpperCase()}
         </div>
 
         <div className="p-4 space-y-4 text-sm text-gray-800">
@@ -104,7 +104,7 @@ export default function PreOrdenDoc() {
           </div>
 
           <div>
-            <p className="font-semibold underline mb-1">Descripción prereserva</p>
+            <p className="font-semibold underline mb-1">Descripción reserva</p>
             <p><strong>Fecha:</strong> {fecha_inicio} - {fecha_fin}</p>
             <p><strong>Categoría:</strong> {categoria}</p>
             {pantallas.map((p, i) => (

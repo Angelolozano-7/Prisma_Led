@@ -180,7 +180,7 @@ export default function Reserva() {
                 No competencia Emcali*
               </label>
               <div className="absolute top-full mt-1 left-0 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity w-64 z-10">
-                Confirma que su marca no es competencia directa de Emcali
+                Al seleccionar esta casilla, confirma que su marca no es competencia directa de Emcali; Telefonía hogar e internet hogar.
               </div>
             </div>
             {errores.condicion && (

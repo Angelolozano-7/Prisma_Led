@@ -227,3 +227,21 @@ def recovery():
             }), 200
         except Exception as e:
             return jsonify({"msg": "Error al enviar el correo", "error": str(e)}), 500
+
+
+@auth_bp.route("/refresh-token", methods=["POST"])
+@jwt_required()
+@limiter.limit("20 per minute")
+def refresh_token():
+    """
+    Renueva el token JWT antes de su expiración.
+
+    Requiere que el token actual sea válido (no expirado) para emitir uno nuevo.
+
+    Response:
+        200: { "token": str }
+        401: { "msg": "Token inválido o expirado" }
+    """
+    current_user = get_jwt_identity()
+    new_token = create_access_token(identity=current_user)
+    return jsonify({"token": new_token}), 200

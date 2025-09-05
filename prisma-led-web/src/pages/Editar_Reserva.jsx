@@ -47,7 +47,7 @@ export default function EditarReserva() {
         const res = await api.get('/prereservas/cliente');
         setReservas(res.data || []);
       } catch (error) {
-        setMensaje('No se pudieron cargar tus prereservas');
+        setMensaje('No se pudieron cargar tus reservas');
       } finally {
         setLoading(false);
       }
@@ -67,7 +67,7 @@ export default function EditarReserva() {
 
   const handleBuscar = async () => {
     if (!selectedReserva) {
-      setMensaje('Debes seleccionar una prereserva');
+      setMensaje('Debes seleccionar una reserva');
       return;
     }
 
@@ -88,8 +88,8 @@ export default function EditarReserva() {
       });
 
     } catch (error) {
-      console.error('Error al cargar detalles de la prereserva:', error);
-      setMensaje('No se pudo cargar el detalle de la prereserva.');
+      console.error('Error al cargar detalles de la reserva:', error);
+      setMensaje('No se pudo cargar el detalle de la reserva.');
       setTimeout(() => setMensaje(''), 4000);
     }
   };
@@ -100,7 +100,7 @@ export default function EditarReserva() {
     <div className="flex flex-col items-center justify-center w-full h-[70vh] px-4">
       <div className="bg-white border border-gray-300 rounded p-6 max-w-md w-full text-center space-y-4">
         <label className="block text-sm font-semibold mb-1">
-          Seleccione número de prereserva
+          Seleccione número de reserva
         </label>
 
         <div className="relative w-full" ref={dropdownRef}>
@@ -108,7 +108,7 @@ export default function EditarReserva() {
             onClick={() => setDropdownOpen(prev => !prev)}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-left flex justify-between items-center"
           >
-            {selectedReserva?.id_prereserva || 'Seleccione una prereserva'}
+            {selectedReserva?.id_prereserva || 'Seleccione una reserva'}
             <svg
               className="w-4 h-4 ml-2 text-gray-500"
               fill="none"

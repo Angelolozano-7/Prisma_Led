@@ -77,8 +77,8 @@ export default function PreVisualizacion() {
   const handleEliminar = async () => {
     if (!id_reserva) {
       await Swal.fire({
-        title: 'Sin prereserva',
-        text: 'No hay prereserva para eliminar.',
+        title: 'Sin reserva',
+        text: 'No hay reserva para eliminar.',
         icon: 'warning',
         confirmButtonText: 'Entendido'
       });
@@ -86,7 +86,7 @@ export default function PreVisualizacion() {
     }
 
     const confirm = await Swal.fire({
-      title: '¿Eliminar prereserva?',
+      title: '¿Eliminar reserva?',
       text: 'Esta acción no se puede deshacer.',
       icon: 'warning',
       showCancelButton: true,
@@ -102,16 +102,16 @@ export default function PreVisualizacion() {
       await api.delete(`/prereservas/${id_reserva}`);
       await Swal.fire({
         title: 'Eliminada',
-        text: 'La prereserva fue eliminada correctamente.',
+        text: 'La reserva fue eliminada correctamente.',
         icon: 'success',
         confirmButtonText: 'Continuar'
       });
       navigate("/cliente");
     } catch (error) {
-      console.error("Error al eliminar prereserva:", error);
+      console.error("Error al eliminar reserva:", error);
       await Swal.fire({
         title: 'Error',
-        text: 'Ocurrió un error al eliminar la prereserva.',
+        text: 'Ocurrió un error al eliminar la reserva.',
         icon: 'error',
         confirmButtonText: 'Cerrar'
       });
@@ -145,12 +145,12 @@ export default function PreVisualizacion() {
     <div className="flex flex-col items-center bg-white p-6">
       <div className="border rounded shadow-lg w-full max-w-md bg-white">
         <div className="bg-violet-500 text-white text-center py-3 font-bold text-lg rounded-t">
-          Resumen prereserva
+          Resumen reserva
         </div>
 
         <div className="p-4 space-y-2 text-sm">
           <ul className="space-y-1 text-gray-600 text-xs">
-            {id_reserva && <li><strong>ID Prereserva:</strong> {id_reserva}</li>}
+            {id_reserva && <li><strong>ID Reserva:</strong> {id_reserva}</li>}
             {fecha_creacion && <li><strong>Creación:</strong> {fecha_creacion}</li>}
           </ul>
 

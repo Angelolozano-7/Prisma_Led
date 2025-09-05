@@ -61,7 +61,7 @@ export default function HistorialReservas() {
       } catch (error) {
         console.error('Error al obtener historial:', error);
         if (isMounted) {
-          setMensaje('No se pudo cargar el historial de reservas');
+          setMensaje('No se pudo cargar el historial de pautas');
           setCargando(false);
         }
       }
@@ -104,12 +104,12 @@ export default function HistorialReservas() {
     <div className="flex flex-col items-center bg-white p-6">
       <div className="border rounded shadow-lg w-full max-w-2xl bg-white">
         <div className="bg-violet-500 text-white text-center py-3 font-bold text-lg rounded-t">
-          Historial de reservas
+          Historial de pautas
         </div>
 
         <div className="p-4 space-y-4 w-full overflow-x-auto">
           {reservas.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center">No se encontraron reservas.</p>
+            <p className="text-sm text-gray-500 text-center">No se encontraron pautas.</p>
           ) : (
             reservas.map((reserva, index) => {
               const resumen = useResumenReserva(

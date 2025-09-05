@@ -107,8 +107,8 @@ export default function PreOrden() {
 
 
         await Swal.fire({
-          title: '¡Prereserva actualizada!',
-          text: 'Tu prereserva ha sido modificada con éxito.',
+          title: '¡Reserva actualizada!',
+          text: 'Tu Reserva ha sido modificada con éxito.',
           icon: 'success',
           confirmButtonText: 'Aceptar'
         });
@@ -132,8 +132,8 @@ export default function PreOrden() {
         id_prereserva_final = res.data.id_prereserva;
 
         await Swal.fire({
-          title: '¡Prereserva creada!',
-          text: 'Tu prereserva fue registrada exitosamente.',
+          title: '¡Reserva creada!',
+          text: 'Tu reserva fue registrada exitosamente.',
           icon: 'success',
           confirmButtonText: 'Aceptar'
         });
@@ -155,7 +155,7 @@ export default function PreOrden() {
       console.error(error);
       Swal.fire({
         title: 'Error al confirmar',
-        text: 'Ocurrió un problema al guardar tu prereserva. Intenta nuevamente.',
+        text: 'Ocurrió un problema al guardar tu reserva. Intenta nuevamente.',
         icon: 'error',
         confirmButtonText: 'Ok'
       });
@@ -265,7 +265,7 @@ export default function PreOrden() {
       {mostrarConfirmacion && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-xl text-center max-w-sm w-full">
-            <p className="text-lg font-medium mb-4">¿Estás seguro que deseas cancelar la prereserva?</p>
+            <p className="text-lg font-medium mb-4">¿Estás seguro que deseas cancelar la reserva?</p>
             <p className="text-lg font-medium mb-4">Si ha tenido algun incoveniente puede comunicarnos al +57 300 7053297</p>
             <div className="flex justify-center gap-4">
               <button

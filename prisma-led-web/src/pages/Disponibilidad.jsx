@@ -378,9 +378,9 @@ export default function Disponibilidad() {
                         onChange={(e) => handleDuracionChange(id, parseInt(e.target.value))}
                         className="mt-1 border rounded px-2 py-1"
                       >
-                        <option value="">Duración (s)</option>
+                        <option value="">Duración (cupos)</option>
                         {opciones.map((seg) => (
-                          <option key={seg} value={seg}>{seg} segundos</option>
+                          <option key={seg} value={seg}>{seg/20} cupo{seg/20 > 1 ? 's' : ''}</option>
                         ))}
                       </select>
                       <span className="text-right text-xs mt-1 text-gray-500">

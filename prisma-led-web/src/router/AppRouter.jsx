@@ -52,7 +52,12 @@ import { AppDataProvider } from '../contexts/AppDataContext';
 import PrivateRoute from '../components/PrivateRoute';
 import { PrereservaProvider } from '../contexts/PrereservaContext';
 
+import { useSessionTimer } from '../hooks/useSessionTimer';
+
+
 export default function AppRouter() {
+  useSessionTimer();
+
   return (
     <PrereservaProvider>
       <AppDataProvider>

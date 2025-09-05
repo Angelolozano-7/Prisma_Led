@@ -207,7 +207,7 @@ def enviar_correo_prereserva():
 
                     <p>Le agradecemos por confiar en nosotros para que su marca llegue al corazón de Cali, el <strong>Bulevar del Río</strong>.</p>
 
-                    <p>A continuación encontrará los detalles de su <strong style="color:#3B82F6;">pre-reserva #{id_prereserva}</strong>:</p>
+                    <p>A continuación encontrará los detalles de su <strong style="color:#3B82F6;">reserva #{id_prereserva}</strong>:</p>
                     
                     <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
 
@@ -234,7 +234,7 @@ def enviar_correo_prereserva():
 
                     <p style="font-size:14px;"><strong>Información adicional:</strong></p>
                     <p style="font-size:14px;">
-                        Su pre-reserva se encuentra en estado <strong style="color:#dc2626;">pendiente</strong>.
+                        Su preserva se encuentra en estado <strong style="color:#dc2626;">pendiente</strong>.
                         Recuerde que tiene <strong>5 días</strong> para compartir el video de la campaña. Si este aún está en producción, puede compartir una imagen de referencia.
                     </p>
 
@@ -247,7 +247,7 @@ def enviar_correo_prereserva():
 
             # Envío del correo
             msg = Message(
-                subject=f" Confirmación de Prereserva #{id_prereserva} - Prisma Wall",
+                subject=f" Confirmación de reserva #{id_prereserva} - Prisma Wall",
                 recipients=[correo],
                 html=cuerpo_html
             )
