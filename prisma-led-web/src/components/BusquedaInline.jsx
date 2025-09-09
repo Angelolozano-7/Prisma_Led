@@ -1,11 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAppData } from '../hooks/useAppData';
 
-export default function BusquedaInline({ fechaInicio, duracion, categoria, onChange, onBuscar }) {
+export default function BusquedaInline({
+  fechaInicio,
+  duracion,
+  categoria,
+  onChange,
+  onBuscar
+}) {
   const { categorias } = useAppData();
-  const [localFecha, setLocalFecha] = useState(fechaInicio);
-  const [localDuracion, setLocalDuracion] = useState(duracion);
-  const [localCategoria, setLocalCategoria] = useState(categoria);
+
+  const [localFecha, setLocalFecha] = useState(fechaInicio || '');
+  const [periodo, setPeriodo] = useState('week'); // 'week' | 'month'
+  const [localDuracion, setLocalDuracion] = useState(duracion || '');
+  const [localCategoria, setLocalCategoria] = useState(categoria || '');
   const [errores, setErrores] = useState({});
 
   const today = new Date();
@@ -13,24 +21,57 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
     .toISOString()
     .split('T')[0];
 
+  const limits = periodo === 'week' ? { min: 1, max: 52 } : { min: 1, max: 12 };
+  const toInt = (v) => {
+    const n = parseInt(v, 10);
+    return Number.isFinite(n) ? n : '';
+  };
+
+  const toWeeks = () => {
+    const n = toInt(localDuracion);
+    if (!n) return 0;
+    return periodo === 'week' ? n : n * 4; // Regla: 1 mes = 4 semanas
+  };
+
   const validarCampos = () => {
-    const nuevosErrores = {};
-    if (!localFecha) nuevosErrores.fecha = 'La fecha es obligatoria.';
-    if (!localDuracion || localDuracion < 1 || localDuracion > 52) nuevosErrores.duracion = 'Duración entre 1 y 52 semanas.';
-    if (!localCategoria) nuevosErrores.categoria = 'Selecciona una categoría.';
-    setErrores(nuevosErrores);
-    return Object.keys(nuevosErrores).length === 0;
+    const errs = {};
+    if (!localFecha) errs.fecha = 'La fecha es obligatoria.';
+    const n = toInt(localDuracion);
+    if (!n || n < limits.min || n > limits.max) {
+      errs.duracion =
+        periodo === 'week'
+          ? 'Duración entre 1 y 52 semanas.'
+          : 'Duración entre 1 y 12 meses.';
+    }
+    if (!localCategoria) errs.categoria = 'Selecciona una categoría.';
+    setErrores(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleBuscar = () => {
     if (!validarCampos()) return;
 
-    onChange({
+    const duracionSemanas = toWeeks();
+
+    // Notifica al padre el nuevo estado (duración en semanas)
+    onChange?.({
       fechaInicio: localFecha,
-      duracion: localDuracion,
-      categoria: localCategoria
+      duracion: duracionSemanas,
+      categoria: localCategoria,
+      // metadata opcional, no rompe al padre:
+      _periodo: periodo,
+      _duracionOriginal: toInt(localDuracion),
     });
-    onBuscar(localFecha, localDuracion, localCategoria);
+
+    // Mantiene la firma existente: (fecha, duracion_en_semanas, categoria)
+    onBuscar?.(localFecha, duracionSemanas, localCategoria);
+  };
+
+  const handlePeriodo = (value) => {
+    setPeriodo(value);
+    // limpiamos la duración para evitar inconsistencias (ej: 40 meses)
+    setLocalDuracion('');
+    setErrores((e) => ({ ...e, duracion: null }));
   };
 
   return (
@@ -46,31 +87,71 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
             setLocalFecha(e.target.value);
             setErrores({ ...errores, fecha: null });
           }}
-          onKeyDown={(e) => e.preventDefault()} 
-          onPaste={(e) => e.preventDefault()}   
+          onKeyDown={(e) => e.preventDefault()}
+          onPaste={(e) => e.preventDefault()}
           className="border border-gray-300 rounded px-2 py-1"
         />
-        {errores.fecha && <span className="text-red-500 text-xs mt-1">{errores.fecha}</span>}
+        {errores.fecha && (
+          <span className="text-red-500 text-xs mt-1">{errores.fecha}</span>
+        )}
+      </div>
+
+      {/* Periodo: Semanas | Meses */}
+      <div className="flex flex-col">
+        <label>Periodo:</label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => handlePeriodo('week')}
+            className={`px-3 py-1 rounded border ${
+              periodo === 'week'
+                ? 'bg-violet-600 text-white border-violet-600'
+                : 'bg-white border-gray-300'
+            }`}
+          >
+            Semanas
+          </button>
+          <button
+            type="button"
+            onClick={() => handlePeriodo('month')}
+            className={`px-3 py-1 rounded border ${
+              periodo === 'month'
+                ? 'bg-violet-600 text-white border-violet-600'
+                : 'bg-white border-gray-300'
+            }`}
+          >
+            Meses
+          </button>
+        </div>
       </div>
 
       {/* Duración */}
       <div className="flex flex-col">
-        <label>Duración:</label>
+        <label>
+          Duración: <span className="text-gray-500">({periodo === 'week' ? 'semanas' : 'meses'})</span>
+        </label>
         <div className="flex items-center gap-1">
           <input
             type="number"
-            min={1}
-            max={52}
+            min={limits.min}
+            max={limits.max}
             value={localDuracion}
             onChange={(e) => {
               setLocalDuracion(e.target.value);
               setErrores({ ...errores, duracion: null });
             }}
-            className="w-20 border border-gray-300 rounded px-2 py-1"
+            className="w-24 border border-gray-300 rounded px-2 py-1"
           />
-          <span>semanas</span>
+          <span>{periodo === 'week' ? 'semanas' : 'meses'}</span>
         </div>
-        {errores.duracion && <span className="text-red-500 text-xs mt-1">{errores.duracion}</span>}
+        {periodo === 'month' && toInt(localDuracion) && (
+          <span className="text-xs text-gray-500 mt-1">
+            Equivale a {toWeeks()} semana(s).
+          </span>
+        )}
+        {errores.duracion && (
+          <span className="text-red-500 text-xs mt-1">{errores.duracion}</span>
+        )}
       </div>
 
       {/* Categoría */}
@@ -91,7 +172,9 @@ export default function BusquedaInline({ fechaInicio, duracion, categoria, onCha
             </option>
           ))}
         </select>
-        {errores.categoria && <span className="text-red-500 text-xs mt-1">{errores.categoria}</span>}
+        {errores.categoria && (
+          <span className="text-red-500 text-xs mt-1">{errores.categoria}</span>
+        )}
       </div>
 
       {/* Botón */}

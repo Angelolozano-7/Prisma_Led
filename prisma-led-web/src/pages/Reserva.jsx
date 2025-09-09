@@ -1,32 +1,18 @@
 /**
  * Página de reserva para prisma-led-web.
- *
- * Permite al usuario seleccionar fecha de inicio, duración en semanas y categoría para consultar disponibilidad de pantallas.
- * Incluye validaciones de campos, resumen visual y condición obligatoria de no competencia con Emcali.
- * El botón "Mostrar disponibilidad" realiza la consulta al backend y navega a la página de resultados.
- *
- * Detalles clave:
- * - El campo de fecha no permite edición manual ni pegado para evitar errores de formato.
- * - La duración está limitada entre 1 y 52 semanas.
- * - La categoría se selecciona desde el contexto global de categorías.
- * - El checkbox de condición es obligatorio y muestra ayuda contextual.
- * - Los errores se muestran de forma clara junto a cada campo.
- * - El resumen a la derecha muestra los datos seleccionados antes de consultar.
- *
- * Futuro desarrollador:
- * - Puedes agregar más filtros o validaciones según la lógica de negocio.
- * - El manejo de errores y navegación está centralizado en el botón principal.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada.
+ * Ahora permite elegir periodo por Semanas o Meses (enteros),
+ * pero siempre envía la duración unificada en semanas al backend.
  */
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppData } from '../hooks/useAppData';
-import api from '../services/api'; 
+import api from '../services/api';
 import Swal from 'sweetalert2';
 
 export default function Reserva() {
   const [fechaInicio, setFechaInicio] = useState('');
+  const [periodo, setPeriodo] = useState('week'); // 'week' | 'month'
   const [duracion, setDuracion] = useState('');
   const [categoria, setCategoria] = useState('');
   const [aceptaCondicion, setAceptaCondicion] = useState(false);
@@ -35,7 +21,35 @@ export default function Reserva() {
 
   const navigate = useNavigate();
 
-  // Maneja la consulta de disponibilidad y navegación
+  // ---- Helpers de periodo
+  const limits = periodo === 'week' ? { min: 1, max: 52 } : { min: 1, max: 12 };
+  const toInt = (v) => Number.isFinite(parseInt(v, 10)) ? parseInt(v, 10) : '';
+
+  const semanasDesdePeriodo = () => {
+    const n = toInt(duracion);
+    if (!n) return 0;
+    return periodo === 'week' ? n : n * 4; // Regla: 1 mes = 4 semanas
+  };
+
+  // ---- Handlers
+  const handleDuracionChange = (e) => {
+    const value = toInt(e.target.value);
+    if (!value) { setDuracion(''); return; }
+    // validar según periodo
+    if (value >= limits.min && value <= limits.max) {
+      setDuracion(value);
+      setErrores((prev) => ({ ...prev, duracion: null }));
+    } else {
+      setDuracion('');
+    }
+  };
+
+  const handlePeriodoChange = (value) => {
+    setPeriodo(value);
+    setDuracion(''); // limpiar para evitar inconsistencias al cambiar de modo
+    setErrores((prev) => ({ ...prev, duracion: null }));
+  };
+
   const handleMostrarDisponibilidad = async () => {
     const nuevosErrores = {};
     if (!fechaInicio) nuevosErrores.fechaInicio = true;
@@ -44,26 +58,31 @@ export default function Reserva() {
     if (!aceptaCondicion) nuevosErrores.condicion = true;
 
     setErrores(nuevosErrores);
-
     if (Object.keys(nuevosErrores).length > 0) return;
 
     try {
+      const duracionSemanas = semanasDesdePeriodo();
+
       const payload = {
         fecha_inicio: fechaInicio,
-        duracion_semanas: duracion,
-        categoria: categoria
+        duracion_semanas: duracionSemanas,
+        categoria: categoria,
+        // periodo, // opcional, solo si quieres saber qué eligió el usuario
       };
 
       const res = await api.post('/reservas/disponibilidad', payload);
+
       navigate('/cliente/disponibilidad', {
         state: {
           disponibilidad: res.data,
           fecha_inicio: fechaInicio,
-          duracion: duracion,
+          duracion: duracionSemanas, // seguimos usando semanas hacia adelante
           categoria: categoria,
+          // extra opcional para UI:
+          _periodo_seleccionado: periodo,
+          _duracion_original: duracion,
         }
       });
-
     } catch (error) {
       console.error('Error al consultar disponibilidad:', error);
       await Swal.fire({
@@ -75,25 +94,19 @@ export default function Reserva() {
     }
   };
 
-  // Calcula la fecha de fin según la duración
+  // ---- Fecha fin basada en semanas unificadas
   const calcularFechaFin = () => {
-    if (!fechaInicio || !duracion) return '';
+    const dSemanas = semanasDesdePeriodo();
+    if (!fechaInicio || !dSemanas) return '';
     const inicio = new Date(fechaInicio);
-    inicio.setDate(inicio.getDate() + parseInt(duracion) * 7);
+    inicio.setDate(inicio.getDate() + dSemanas * 7);
     return inicio.toISOString().split('T')[0];
   };
 
-  // Fecha mínima para el input de fecha
+  // Fecha mínima para el input de fecha (hoy)
   const today = new Date();
   const localISODate = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
-    .toISOString()
-    .split('T')[0];
-
-  // Valida y actualiza la duración
-  const handleDuracionChange = (e) => {
-    const value = parseInt(e.target.value);
-    setDuracion(!isNaN(value) && value >= 1 && value <= 52 ? value : '');
-  };
+    .toISOString().split('T')[0];
 
   return (
     <div className="flex flex-col items-center bg-white px-4 py-6 md:py-4">
@@ -114,8 +127,8 @@ export default function Reserva() {
                 setFechaInicio(e.target.value);
                 setErrores({ ...errores, fechaInicio: null });
               }}
-              onKeyDown={(e) => e.preventDefault()} // Evita edición manual
-              onPaste={(e) => e.preventDefault()}   // Evita pegado manual
+              onKeyDown={(e) => e.preventDefault()}
+              onPaste={(e) => e.preventDefault()}
               className={`border rounded px-3 py-2 ${errores.fechaInicio ? 'border-red-500' : 'border-gray-300'}`}
             />
             {errores.fechaInicio && (
@@ -123,13 +136,40 @@ export default function Reserva() {
             )}
           </div>
 
+          {/* Periodo: Semanas | Meses */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium mb-1">Periodo</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handlePeriodoChange('week')}
+                className={`px-3 py-2 rounded border ${
+                  periodo === 'week' ? 'bg-violeta-medio text-white border-violeta-medio' : 'bg-white border-gray-300'
+                }`}
+              >
+                Semanas
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePeriodoChange('month')}
+                className={`px-3 py-2 rounded border ${
+                  periodo === 'month' ? 'bg-violeta-medio text-white border-violeta-medio' : 'bg-white border-gray-300'
+                }`}
+              >
+                Meses
+              </button>
+            </div>
+          </div>
+
           {/* Duración */}
           <div>
-            <label className="block text-sm font-medium mb-1">Duración (semanas)</label>
+            <label className="block text-sm font-medium mb-1">
+              Duración ({periodo === 'week' ? 'semanas' : 'meses'})
+            </label>
             <input
               type="number"
-              min={1}
-              max={52}
+              min={limits.min}
+              max={limits.max}
               value={duracion}
               onChange={handleDuracionChange}
               className={`w-full border rounded px-3 py-2 ${
@@ -138,6 +178,11 @@ export default function Reserva() {
             />
             {errores.duracion && (
               <p className="text-xs text-red-500 mt-1">Ingresa una duración válida</p>
+            )}
+            {periodo === 'month' && duracion && (
+              <p className="text-xs text-gray-500 mt-1">
+                Equivale a {semanasDesdePeriodo()} semana(s).
+              </p>
             )}
           </div>
 
@@ -196,24 +241,32 @@ export default function Reserva() {
           <h3 className="font-semibold text-lg mb-2">Resumen</h3>
           <p>Fecha pauta: {fechaInicio || '---'} - {calcularFechaFin() || '---'}</p>
           <p>Categoría: {categoria || '---'}</p>
+          {duracion ? (
+            <p>
+              Duración: {duracion} {periodo === 'week' ? 'semana(s)' : 'mes(es)'}
+              {periodo === 'month' && <> ({semanasDesdePeriodo()} semana(s))</>}
+            </p>
+          ) : (
+            <p>Duración: ---</p>
+          )}
         </div>
       </div>
+
       <div className="flex justify-between mt-4">
-          <button
-            onClick={() => navigate('/cliente')}
-            className="mt-6 border-gray-400 hover:bg-gray-100 text-black py-2 px-10 rounded"
-          >
-            Cancelar
-          </button>
-      {/* Botón */}
-      <button
-        onClick={handleMostrarDisponibilidad}
-        className="mt-6 bg-violeta-medio hover:bg-violeta-oscuro text-white py-2 px-6 rounded"
-      >
-        Mostrar disponibilidad
-      </button>
+        <button
+          onClick={() => navigate('/cliente')}
+          className="mt-6 border-gray-400 hover:bg-gray-100 text-black py-2 px-10 rounded"
+        >
+          Cancelar
+        </button>
+
+        <button
+          onClick={handleMostrarDisponibilidad}
+          className="mt-6 bg-violeta-medio hover:bg-violeta-oscuro text-white py-2 px-6 rounded"
+        >
+          Mostrar disponibilidad
+        </button>
       </div>
-      
     </div>
   );
 }
