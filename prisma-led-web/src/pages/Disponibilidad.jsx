@@ -55,6 +55,9 @@ export default function Disponibilidad() {
   const [duraciones, setDuraciones] = useState({});
   const [cilindroSeleccionado, setCilindroSeleccionado] = useState(null);
   const [tooltipInfo, setTooltipInfo] = useState(null);
+  // --- Selección mágica ---
+  const [magicCantidad, setMagicCantidad] = useState(6);   // N pantallas
+  const [magicSegundos, setMagicSegundos] = useState(20);  // M cupos en segundos: 20|40|60
 
   // Tarifas y códigos por duración
   const tarifas = tarifasContext.reduce((acc, t) => {
@@ -125,7 +128,7 @@ export default function Disponibilidad() {
         const noDisponibles = solicitadas.filter(id => !disponibles.includes(id));
         if (noDisponibles.length > 0) {
           const nombres = noDisponibles.map(id => {
-            const pantalla = res.dataVisual[id];
+            const pantalla = res.data[id];
             return pantalla
               ? `Cilindro ${pantalla.cilindro}${pantalla.identificador}`
               : id;
@@ -189,6 +192,82 @@ export default function Disponibilidad() {
     });
     return porCilindro;
   }, [dataVisual]);
+
+  /////----------------------------------------------------------------
+  // Selección mágica balanceada por cilindro (round-robin)
+// - Si `reemplazar` es true, limpia selección antes de aplicar.
+  // - Reparte 1 por cilindro en rondas hasta completar N o agotar candidatos.
+  const aplicarSeleccionMagica = async (reemplazar = false) => {
+    if (!dataVisual) return;
+
+    const segundosNecesarios = magicSegundos;
+
+    // Punto de partida (sumar o reemplazar)
+    const actualesSet = new Set(reemplazar ? [] : seleccionadas);
+    const nuevasSeleccion = reemplazar ? [] : [...seleccionadas];
+    const nuevasDur = reemplazar ? {} : { ...duraciones };
+
+    // ¿Cuántas ya hay por cilindro? (para priorizar cilindros menos cubiertos)
+    const conteoSelPorCil = {};
+    for (const id of actualesSet) {
+      const cil = parseInt(dataVisual[id]?.cilindro);
+      if (!isNaN(cil)) conteoSelPorCil[cil] = (conteoSelPorCil[cil] || 0) + 1;
+    }
+
+    // Orden de cilindros: menos seleccionados primero, y luego por número
+    const cilindrosOrdenados = Object.keys(agrupadasPorCilindro)
+      .map((c) => parseInt(c))
+      .sort((a, b) => {
+        const da = conteoSelPorCil[a] || 0;
+        const db = conteoSelPorCil[b] || 0;
+        return da === db ? a - b : da - db;
+      });
+
+    // Candidatos por cilindro, ya filtrados por disponibilidad real
+    const listas = cilindrosOrdenados.map((cil) => {
+      const arr = (agrupadasPorCilindro[cil] || []).filter(({ id, data }) => {
+        const disp = Number(data.segundos_disponibles ?? 0);
+        const estadoOk = data.estado === 'disponible' || data.estado === 'parcial';
+        return estadoOk && disp >= segundosNecesarios && !actualesSet.has(id);
+      });
+      return arr; // cada item: { id, data }
+    });
+
+    // Round-robin: tomamos una del "nivel 0" de cada cilindro, luego nivel 1, etc.
+    let agregadas = 0;
+    let nivel = 0;
+    while (agregadas < magicCantidad) {
+      let avancesEnRonda = 0;
+      for (let i = 0; i < listas.length && agregadas < magicCantidad; i++) {
+        const cand = listas[i][nivel];
+        if (cand) {
+          const { id } = cand;
+          if (!actualesSet.has(id)) {
+            nuevasSeleccion.push(id);
+            nuevasDur[id] = segundosNecesarios; // asigna M cupos a cada una
+            actualesSet.add(id);
+            agregadas++;
+            avancesEnRonda++;
+          }
+        }
+      }
+      if (avancesEnRonda === 0) break; // no quedan candidatos en ningún cilindro
+      nivel++;
+    }
+
+    setSeleccionadas(nuevasSeleccion);
+    setDuraciones(nuevasDur);
+
+    if (agregadas < magicCantidad) {
+      await Swal.fire({
+        title: 'Selección mágica incompleta',
+        icon: 'info',
+        html: `Se eligieron <strong>${agregadas}</strong> pantallas con ${segundosNecesarios/20} cupo(s) distribuidas por cilindro según los filtros.`,
+        confirmButtonText: 'Entendido',
+      });
+    }
+  };
+  /////----------------------------------------------------------------
 
   /**
    * Alterna la selección de una pantalla.
@@ -257,6 +336,12 @@ export default function Disponibilidad() {
       setTimeout(() => setTooltipInfo(null), 5000);
     }
   };
+  // Elimina toda la selección actual
+  const eliminarSeleccion = () => {
+    setSeleccionadas([]);
+    setDuraciones({});
+  };
+
 
   /**
    * Determina si la selección actual puede ser confirmada.
@@ -347,10 +432,63 @@ export default function Disponibilidad() {
             </div>
           )}
         </div>
+        
 
         {/* Resumen de selección y acciones */}
         <div className="w-full lg:w-80 border rounded p-4 bg-white shadow flex flex-col max-h-[85vh]">
           <div className="overflow-y-auto pr-2 flex-1">
+            {/* --- Selección mágica --- */}
+            <div className="mb-4 border rounded p-3 bg-violet-50/40">
+              <p className="font-semibold text-violet-700 mb-2">Selección mágica</p>
+
+              <div className="grid grid-cols-2 gap-2 items-end">
+                <div>
+                  <label className="block text-xs text-gray-600">Cantidad de pantallas</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={magicCantidad}
+                    onChange={(e) => setMagicCantidad(Math.max(1, parseInt(e.target.value || '1', 10)))}
+                    className="w-full border rounded px-2 py-1 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-gray-600">Cupos por pantalla</label>
+                  <select
+                    value={magicSegundos}
+                    onChange={(e) => setMagicSegundos(parseInt(e.target.value, 10))}
+                    className="w-full border rounded px-2 py-1 bg-white text-sm"
+                  >
+                    <option value={20}>1 cupo (20s)</option>
+                    <option value={40}>2 cupos (40s)</option>
+                    <option value={60}>3 cupos (60s)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Botonera pequeña y responsive */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                <button
+                  type="button"
+                  className="px-3 py-1.5 text-xs sm:text-sm rounded-md bg-violet-600 text-white hover:bg-violet-700"
+                  onClick={() => aplicarSeleccionMagica(false)}
+                >
+                  Agregar
+                </button>
+
+                <button
+                  type="button"
+                  className="px-3 py-1.5 text-xs sm:text-sm rounded-md border bg-white text-gray-700 hover:bg-gray-50"
+                  onClick={() => aplicarSeleccionMagica(true)}
+                >
+                  Limpiar y aplicar
+                </button>
+              </div>
+
+              
+            </div>
+
             <p className="text-lg font-bold mb-2 text-violet-700">Resumen selección</p>
             <p className="text-lg mb-2 text-violet-700">Fechas pauta </p>
             <p className="text-lg mb-2">Fecha inicio:  {fechaInicio || '---'}  </p>
@@ -465,14 +603,21 @@ export default function Disponibilidad() {
           }
         }}
       >
-        Confirmar selección
+        Confirmar reserva
       </button>
       {/* Botón para cancelar selección */}
       <button
         onClick={() => navigate('/cliente/reserva')}
         className="w-full bg-black text-white py-2 mt-2 rounded disabled:bg-gray-300"
       >
-        Cancelar selección
+        Cancelar reserva
+      </button>
+      <button
+        type="button"
+        className="px-3  text-xs sm:text-sm rounded-md py-2 mt-2 bg-rose-600 text-white hover:bg-rose-700"
+        onClick={eliminarSeleccion}
+      >
+        Borrar selección
       </button>
         </div>
       </div>
