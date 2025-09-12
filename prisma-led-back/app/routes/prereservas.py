@@ -172,6 +172,7 @@ def enviar_correo_prereserva():
 
             # Construcción del HTML por pantalla
             pantalla_html = []
+            ahorroTotal = 0
             for p in pantallas:
                 semanas = duracion
                 base = int(p['base'])
@@ -179,21 +180,22 @@ def enviar_correo_prereserva():
                 subtotal_pantalla = base * semanas
                 descuento = p.get('descuento', 0)
                 ahorro = subtotal_pantalla - precio
+                ahorroTotal += ahorro
+                cupos = p.get('segundos', 0) // 20  # Cada cupo es de 20 segundos
 
                 linea = f"""
                 <li style="margin-bottom: 12px;">
-                    <strong>Pantalla {p['cilindro']}{p['identificador']}</strong> - {semanas} semana{'s' if semanas > 1 else ''}<br/>
+                    <strong>Pantalla {p['cilindro']}{p['identificador']}</strong> - {semanas} semana{'s' if semanas > 1 else ''} - cupos {cupos}<br/>
                     Valor por semana: ${base:,.0f}<br/>
                     <strong>Subtotal ({semanas} semana{'s' if semanas > 1 else ''}) sin descuento:</strong> ${subtotal_pantalla:,.0f}<br/>
                 """
 
                 if descuento > 0:
                     linea += f"""
-                    <strong>Total con descuento:</strong> ${precio:,.0f}<br/>
                     <div style='color:#dc2626; font-size:13px;'>
-                        Descuento aplicado: -{descuento * 100:.1f}%<br/>
-                        Ahorro: ${ahorro:,.0f}
+                        Descuento aplicado:${ahorro:,.0f} (-{descuento * 100:.1f}%)<br/>
                     </div>
+                    <strong>Total con descuento:</strong> ${precio:,.0f}<br/>
                     """
                 linea += "</li>"
                 pantalla_html.append(linea)
@@ -225,7 +227,11 @@ def enviar_correo_prereserva():
                     {pantallas_html}
                     <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
                     <p style="margin-top: 20px;">
-                        <strong>Subtotal:</strong> ${subtotal:,.0f}<br/>
+                        <strong>Subtotal base:</strong> ${subtotal + ahorroTotal:,.0f}
+                        <div style='color:#dc2626; font-size:13px;'>
+                        Descuento aplicado:$ {ahorroTotal:,.0f}<br/>
+                        </div>
+                        <strong>Subtotal con descuento:</strong> ${subtotal:,.0f}<br/>
                         <strong>IVA (19%):</strong> ${iva:,.0f}<br/>
                         <strong style="font-size: 16px;">Total:</strong> <span style="font-size: 16px; font-weight: bold;">${total:,.0f}</span>
                     </p>
@@ -234,12 +240,19 @@ def enviar_correo_prereserva():
 
                     <p style="font-size:14px;"><strong>Información adicional:</strong></p>
                     <p style="font-size:14px;">
-                        Su preserva se encuentra en estado <strong style="color:#dc2626;">pendiente</strong>.
+                        Su reserva se encuentra en estado <strong style="color:#dc2626;">pendiente</strong>.
                         Recuerde que tiene <strong>5 días</strong> para compartir el video de la campaña. Si este aún está en producción, puede compartir una imagen de referencia.
                     </p>
 
                     <p style="font-size:14px;">
                         Posteriormente, el equipo técnico de <strong>Prisma Wall</strong> evaluará si el video cumple con las normativas de exposición al público de todas las edades y usted será notificado por este mismo medio.
+                    </p>
+                    <p style="font-size:14px;">
+                        Muchas gracias por elegirnos.<br/>
+                        Atentamente,<br/>
+                        Andres Lozano<br/>
+                        Gerente Comercial - Prisma Wall<br/>
+                        +573007053297
                     </p>
                 </div>
                 """

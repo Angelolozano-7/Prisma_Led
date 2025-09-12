@@ -164,47 +164,51 @@ export default function PreVisualizacion() {
           <ul className="space-y-1 text-gray-800">
             {pantallas.map((p, i) => (
               <li key={i} className="flex justify-between">
-                <span>
-                  Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''}
-                </span>
-                <span>{formatCOP(p.precio)}</span>
+                <div>Cilindro {p.cilindro} {p.identificador} - {duracion} semana{duracion > 1 && 's'} - cupos {p.segundos/20} </div>
+
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">Subtotal: {formatCOP((p.precio * duracion))}</div>
+                  {resumen.descuento > 0 && (
+                    <div className="text-xs text-red-600">Descuento: {formatCOP(resumen.descuento * p.precio * duracion)} (-{(resumen.descuento * 100).toFixed(1)}%)</div>
+                  )}
+                  <div className="text-sm font-semibold">Total: {formatCOP((p.precio * duracion) - (resumen.descuento * p.precio * duracion))}</div>
+                </div>
               </li>
             ))}
           </ul>
 
           <hr className="my-2" />
 
-          <div className="flex justify-between font-bold text-black items-center">
-            <span>Subtotal:</span>
-            <span>
-              {resumen.descuento > 0 ? (
-                <>
-                  <span className="line-through text-gray-400 mr-2">{formatCOP(resumen.baseTotal)}</span>
-                  <span>{formatCOP(resumen.totalConDescuento)}</span>
-                </>
-              ) : (
-                <span>{formatCOP(resumen.totalConDescuento)}</span>
-              )}
-            </span>
-          </div>
+          <div className="text-right space-y-1 mt-4 text-sm">
+               <div className="flex justify-between text-sm font-semibold text-right pt-2 border-t mt-2">
 
-          {resumen.descuento > 0 && (
-            <div className="text-right text-xs text-red-600 font-medium">
-              <p>Descuento aplicado: -{(resumen.descuento * 100).toFixed(1)}%</p>
-              <p>Ahorro: {formatCOP(resumen.ahorro)}</p>
+                Subtotal base: <span>{formatCOP(resumen.baseTotal)}</span>
+
+              </div>
+
+            {resumen.descuento > 0 && (
+              <div className=" text-right text-xs text-red-600 font-medium">
+                <p>Descuento aplicado:  {formatCOP(resumen.ahorro)} (-{(resumen.descuento * 100).toFixed(1)}%)</p>
+              </div>
+            )}
+            {resumen.descuento > 0 && (
+              <div className=" flex justify-between text-sm font-bold text-right pt-2 border-t mt-2">
+                Subtotal con descuento: <span className="text-violet-700">{formatCOP(resumen.totalConDescuento)}</span>
+              </div>
+            )}
+            
+
+            <div className="flex justify-between font-bold mt-2">
+              <span>IVA</span>
+              <span>{formatCOP(resumen.iva)}</span>
             </div>
-          )}
 
-
-          <div className="flex justify-between font-bold">
-            <span>IVA</span>
-            <span>{formatCOP(resumen.iva)}</span>
+            <div className="flex justify-between font-bold text-lg text-black mt-1">
+              <span>Total</span>
+              <span>{formatCOP(resumen.total)}</span>
+            </div>
           </div>
-
-          <div className="flex justify-between font-bold text-lg text-black">
-            <span>Total</span>
-            <span>{formatCOP(resumen.total)}</span>
-          </div>
+          
         </div>
       </div>
 

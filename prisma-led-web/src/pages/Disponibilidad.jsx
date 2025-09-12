@@ -401,21 +401,21 @@ export default function Disponibilidad() {
             )}
           </div>
           <div className="text-sm font-semibold text-right pt-2 border-t mt-2">
-            {seleccionadas.map((id) => {
-              const result = calcularPrecio(id);
-              const descuento = result ? result.descuento : 0;
-              return (
-                descuento > 0 && (
-                  <div key={id} className="text-xs text-red-600 text-right">
-                    Descuento aplicado: -{(descuento * 100).toFixed(1)}%
-                  </div>
-                )
-              );
-            })}
-            Subtotal: <span className="text-violet-700">${subtotal.toLocaleString('es-CO')}</span>
+
+            Subtotal base: <span className="text-violet-700">${(subtotal+ahorroTotal).toLocaleString('es-CO')}</span>
+
+            {ahorroTotal > 0 && <div className="text-xs text-red-600 text-right">
+            Descuento aplicado: ${ahorroTotal.toLocaleString('es-CO')} ({((ahorroTotal/subtotal) * 100).toFixed(1)}%)
+
+            </div>}
+
+            
             {ahorroTotal > 0 && (
-              <div className="text-xs text-red-500 mt-1">
-                Ahorro total: ${ahorroTotal.toLocaleString('es-CO')}
+              <div className="text-sm font-semibold text-right pt-2 border-t mt-2">
+              Subtotal con descuento:
+              <span className="text-violet-700">
+                 ${subtotal.toLocaleString('es-CO')}
+              </span>
               </div>
             )}
           </div>

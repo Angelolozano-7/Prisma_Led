@@ -21,6 +21,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useResumenReserva } from '../hooks/useResumenReserva';
+import { useAppData } from '../hooks/useAppData';
 import api from '../services/api';
 
 export default function PreOrdenDoc() {
@@ -38,6 +40,15 @@ export default function PreOrdenDoc() {
     pantallas = []
   } = location.state || {};
 
+  const { tarifas: tarifasContext } = useAppData();
+
+  // Mapea tarifas por duración en segundos
+  const tarifas = tarifasContext.reduce((acc, t) => {
+    acc[t.duracion_seg] = t.precio_semana;
+    return acc;
+  }, {});
+
+  const resumen = useResumenReserva(pantallas, duracion, tarifas, fecha_inicio);
   const subtotal = pantallas.reduce((acc, p) => acc + (p.precio || 0), 0);
   const iva = Math.round(subtotal * 0.19);
   const total = subtotal + iva;
@@ -110,17 +121,23 @@ export default function PreOrdenDoc() {
             {pantallas.map((p, i) => (
               <div key={i}>
                 <p>
-                  Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''}  
+                  Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''} - cupos {p.segundos/20}
                 </p>
                 <p className="text-xs text-gray-600 ml-2">
-                  Base: ${p.base?.toLocaleString('es-CO')} | Descuento: {(p.descuento * 100).toFixed(1)}% | Total: ${p.precio?.toLocaleString('es-CO')}
+                  Base: ${(p.base * duracion)?.toLocaleString('es-CO')}| {p.descuento>0 && (<span className="text-red-600 font-medium"> Descuento: ${(Math.round(p.precio * p.descuento))?.toLocaleString('es-CO')} (-{(p.descuento * 100).toFixed(1)}%)</span>)} | Total: ${p.precio?.toLocaleString('es-CO')}
                 </p>
               </div>
             ))}
           </div>
 
           <div className="border-t pt-2">
-            <p><strong>Subtotal:</strong> ${subtotal.toLocaleString('es-CO')}</p>
+            <p>Subtotal base: ${resumen.baseTotal.toLocaleString('es-CO')}</p>
+            {resumen.descuento > 0 && (
+              <p className="text-red-600 font-medium"><strong>Descuento:</strong> ${resumen.ahorro.toLocaleString('es-CO')} (-{(resumen.descuento * 100).toFixed(1)}%)</p>
+            )}
+            {resumen.descuento > 0 && (
+              <p><strong>Subtotal con descuento:</strong> ${resumen.totalConDescuento.toLocaleString('es-CO')}</p>
+            )}
             <p><strong>IVA:</strong> ${iva.toLocaleString('es-CO')}</p>
             <p className="text-lg font-bold"><strong>Total:</strong> ${total.toLocaleString('es-CO')}</p>
           </div>
