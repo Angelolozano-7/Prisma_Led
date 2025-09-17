@@ -73,7 +73,7 @@ export default function EditarReserva() {
 
     try {
       const res = await api.get(`/prereservas/detalle/${selectedReserva.id_prereserva}`);
-      const { id_reserva, fecha_creacion, fecha_inicio, duracion, categoria, pantallas } = res.data;
+      const { id_reserva, fecha_creacion, fecha_inicio, duracion, categoria, pantallas, uxid } = res.data;
 
       navigate('/cliente/pre-visualizacion', {
         state: {
@@ -84,6 +84,7 @@ export default function EditarReserva() {
           categoria,
           pantallas,
           disponibilidad: {},
+          uxid,
         }
       });
 
@@ -130,7 +131,7 @@ export default function EditarReserva() {
                     setDropdownOpen(false);
                   }}
                 >
-                  {r.id_prereserva}
+                  PW-{r.uxid}
                 </li>
               ))}
             </ul>

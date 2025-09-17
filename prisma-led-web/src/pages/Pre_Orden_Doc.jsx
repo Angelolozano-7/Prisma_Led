@@ -33,6 +33,7 @@ export default function PreOrdenDoc() {
 
   const {
     id_prereserva,
+    uxid,
     duracion,
     fecha_inicio,
     fecha_fin,
@@ -79,7 +80,8 @@ export default function PreOrdenDoc() {
           pantallas,
           subtotal,
           iva,
-          total
+          total,
+          uxid
         });
 
         console.log('Correo enviado con éxito');
@@ -101,9 +103,9 @@ export default function PreOrdenDoc() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
-      <div className="bg-white border shadow-lg rounded-lg w-full max-w-md">
+      <div className="bg-white border  shadow-lg rounded-lg w-full max-w-md">
         <div className="bg-violet-400 text-white text-center py-3 rounded-t font-semibold text-lg">
-          Reserva # {id_prereserva?.toUpperCase()}
+          Reserva PW-{uxid}
         </div>
 
         <div className="p-4 space-y-4 text-sm text-gray-800">
@@ -119,7 +121,7 @@ export default function PreOrdenDoc() {
             <p><strong>Fecha:</strong> {fecha_inicio} - {fecha_fin}</p>
             <p><strong>Categoría:</strong> {categoria}</p>
             {pantallas.map((p, i) => (
-              <div key={i}>
+              <div className='py-2' key={i}>
                 <p>
                   Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''} - cupos {p.segundos/20}
                 </p>

@@ -31,6 +31,7 @@ from app import mail
 import traceback
 from app.services.retry_utils import retry_on_rate_limit
 from app.services.validadores import validar_detalle_prereserva
+from app.services.uxid import generate_next_uxid
 from app.extensions import pre_reserva_lock
 from app.extensions import detalle_pre_reserva_lock
 
@@ -110,13 +111,13 @@ def obtener_detalle_reserva(id_reserva):
 
             segundos = int(tarifa.get("duracion_seg", 0))
             precio = int(tarifa.get("precio_semana", 0)) * 1
-
+            
             pantallas_resultado.append({
                 "id": id_pantalla,
                 "cilindro": pantalla.get("cilindro"),
                 "identificador": pantalla.get("identificador"),
                 "segundos": segundos,
-                "precio": precio,
+                "precio": precio
             })
 
     return jsonify({
@@ -127,7 +128,8 @@ def obtener_detalle_reserva(id_reserva):
             (pd.to_datetime(reserva["fecha_fin"]) - pd.to_datetime(reserva["fecha_inicio"])).days // 7
         ),
         "categoria": detalles[0]["categoria"] if detalles else "",
-        "pantallas": pantallas_resultado
+        "pantallas": pantallas_resultado,
+        "uxid": reserva.get("uxid", None)
     }), 200
 
 @prereservas_bp.route('/enviar-correo', methods=['POST'])
@@ -161,12 +163,13 @@ def enviar_correo_prereserva():
             fecha_inicio = data.get('fecha_inicio')
             fecha_fin = data.get('fecha_fin')
             categoria = data.get('categoria')
+            uxid = data.get('uxid')
             pantallas = data.get('pantallas')
             subtotal = data.get('subtotal')
             iva = data.get('iva')
             total = data.get('total')
             duracion = data.get('duracion')
-            print(f"Enviando correo para la prereserva {id_prereserva} a {correo}" )
+            print(f"Enviando correo para la reserva PW-{uxid} a {correo}" )
             if not correo or not pantallas:
                 return jsonify({"error": "Datos incompletos"}), 400
 
@@ -209,7 +212,7 @@ def enviar_correo_prereserva():
 
                     <p>Le agradecemos por confiar en nosotros para que su marca llegue al corazón de Cali, el <strong>Bulevar del Río</strong>.</p>
 
-                    <p>A continuación encontrará los detalles de su <strong style="color:#3B82F6;">reserva #{id_prereserva}</strong>:</p>
+                    <p>A continuación encontrará los detalles de su <strong style="color:#3B82F6;">reserva PW-{uxid}</strong>:</p>
                     
                     <hr style="border:none; border-top:1px solid #ddd; margin:20px 0;" />
 
@@ -260,7 +263,7 @@ def enviar_correo_prereserva():
 
             # Envío del correo
             msg = Message(
-                subject=f" Confirmación de reserva #{id_prereserva} - Prisma Wall",
+                subject=f" Confirmación de reserva PW-{uxid} - Prisma Wall",
                 recipients=[correo],
                 html=cuerpo_html
             )
@@ -469,6 +472,7 @@ def crear_prereserva_completa():
                 return jsonify({"error": "Faltan datos requeridos"}), 400
 
             id_prereserva = uuid.uuid4().hex[:8]
+            uxid = generate_next_uxid("prereservas")
             fecha_creacion = datetime.now().strftime("%Y-%m-%d")
 
             sheet = connect_sheet()
@@ -477,14 +481,17 @@ def crear_prereserva_completa():
 
             # 2. Escribir detalle primero
             nuevas_filas = []
+            nextid= generate_next_uxid("detalle_prereserva") 
             for p in pantallas:
                 fila = [
                     uuid.uuid4().hex[:8],
                     id_prereserva,
                     p["id_pantalla"],
                     categoria,
-                    p["cod_tarifas"]
+                    p["cod_tarifas"],
+                    nextid
                 ]
+                nextid += 1
                 nuevas_filas.append(fila)
             ws_detalle.append_rows(nuevas_filas)
 
@@ -496,12 +503,14 @@ def crear_prereserva_completa():
                 fecha_fin,
                 "pendiente",
                 fecha_creacion,
-                "no"  # correo_enviado
+                "no",  # correo_enviado
+                uxid
             ])
 
             return jsonify({
                 "msg": "Prereserva creada con éxito",
-                "id_prereserva": id_prereserva
+                "id_prereserva": id_prereserva,
+                "uxid": uxid
             }), 201
 
         except Exception as e:
@@ -543,6 +552,7 @@ def actualizar_prereserva_completa(id_prereserva):
             fecha_inicio = data.get("fecha_inicio")
             fecha_fin = data.get("fecha_fin")
             categoria = data.get("categoria")
+            uxid = data.get("uxid")
             pantallas = data.get("pantallas", [])
 
             if not (fecha_inicio and fecha_fin and categoria and pantallas):
@@ -577,9 +587,10 @@ def actualizar_prereserva_completa(id_prereserva):
                 fecha_fin,
                 "pendiente",
                 fila_actual.get("fecha_creacion", datetime.now().strftime("%Y-%m-%d")),
-                "no"
+                "no",
+                uxid
             ]
-            ws_prereservas.update(f"A{idx+2}:G{idx+2}", [fila_nueva])
+            ws_prereservas.update(f"A{idx+2}:H{idx+2}", [fila_nueva])
 
             # 2. Eliminar filas anteriores de detalle
             detalles = ws_detalle.get_all_records()
@@ -589,19 +600,23 @@ def actualizar_prereserva_completa(id_prereserva):
 
             # 3. Insertar nuevas filas
             nuevas_filas = []
+            nextid= generate_next_uxid("detalle_prereserva")
             for p in pantallas:
                 nuevas_filas.append([
                     uuid.uuid4().hex[:8],
                     id_prereserva,
                     p["id_pantalla"],
                     categoria,
-                    p["cod_tarifas"]
+                    p["cod_tarifas"],
+                    nextid
                 ])
+                nextid += 1
             ws_detalle.append_rows(nuevas_filas)
 
             return jsonify({
                 "msg": "Prereserva actualizada con éxito",
-                "id_prereserva": id_prereserva
+                "id_prereserva": id_prereserva,
+                "uxid": uxid
             }), 200
 
         except Exception as e:

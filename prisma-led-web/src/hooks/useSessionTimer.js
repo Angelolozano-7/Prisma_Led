@@ -8,7 +8,7 @@ export function useSessionTimer() {
 
   const startTimer = () => {
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(showSessionWarning, 10 * 60 * 1000); // 10 minutos
+    timerRef.current = setTimeout(showSessionWarning, 5 * 60 * 1000); // 5 minutos
   };
 
   const showSessionWarning = async () => {

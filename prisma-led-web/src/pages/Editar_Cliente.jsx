@@ -173,9 +173,9 @@ export default function Editar_Cliente() {
       });
       setTimeout(() => navigate('/cliente'), 2000);
     } catch (error) {
-      const msg = error.response?.data?.msg || 'Error al registrar';
+      const msg = error.response?.data?.msg || 'Error al actualizar';
       await Swal.fire({
-        title: 'Error al registrar',
+        title: 'Error al actualizar',
         text: msg,
         icon: 'error',
         confirmButtonText: 'Cerrar'

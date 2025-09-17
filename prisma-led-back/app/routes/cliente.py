@@ -177,5 +177,6 @@ def obtener_cliente():
         "direccion": cliente.get("direccion", ""),
         "telefono": cliente.get("telefono_contacto", ""),
         "nombre_contacto": cliente.get("nombre_contacto", ""),
-        "usuario": usuario.get("correo", "")
+        "usuario": usuario.get("correo", ""),
+        "id_usuario": usuario.get("id_usuario", "")
     }), 200

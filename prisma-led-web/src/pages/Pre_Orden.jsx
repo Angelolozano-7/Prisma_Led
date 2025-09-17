@@ -38,6 +38,7 @@ export default function PreOrden() {
     categoria,
     disponibilidad,
     pantallas = [],
+    uxid,
   } = location.state || prereserva?.edicion || {};
 
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
@@ -86,7 +87,7 @@ export default function PreOrden() {
   const handleConfirmar = async () => {
     try {
       let id_prereserva_final = prereserva?.original?.id_reserva;
-
+      let uxid = prereserva?.edicion?.uxid || null;
       if (prereserva?.original?.id_reserva) {
         // Actualizar prereserva existente
         const res = await api.put(`/prereservas/actualizar-completo/${prereserva.original.id_reserva}`, {
@@ -94,6 +95,7 @@ export default function PreOrden() {
           fecha_fin: calcularFechaFin(),
           categoria,
           duracion,
+          uxid,
           pantallas: pantallas.map(p => ({
             id_pantalla: p.id_pantalla,
             cod_tarifas: p.cod_tarifas,
@@ -101,8 +103,9 @@ export default function PreOrden() {
             cilindro: p.cilindro,
             identificador: p.identificador,
           }))
+          
         });
-
+        uxid = res.data.uxid;
         id_prereserva_final = res.data.id_prereserva;
 
 
@@ -130,7 +133,7 @@ export default function PreOrden() {
         });
 
         id_prereserva_final = res.data.id_prereserva;
-
+        uxid = res.data.uxid;
         await Swal.fire({
           title: '¡Reserva creada!',
           text: 'Tu reserva fue registrada exitosamente.',
@@ -143,6 +146,7 @@ export default function PreOrden() {
       navigate('/cliente/pre-orden-doc', {
         state: {
           id_prereserva: id_prereserva_final,
+          uxid,
           duracion,
           fecha_inicio,
           fecha_fin: calcularFechaFin(),
@@ -183,11 +187,11 @@ export default function PreOrden() {
               <li key={i} className="flex justify-between">
                 <span>Cilindro {p.cilindro} {p.identificador} - {duracion} semana{duracion > 1 && 's'} - cupos {p.segundos/20}</span>
                 <div className="text-right">
-                  <div className="text-xs text-gray-500">Subtotal: {formatCOP((p.base * duracion))}</div>
+                  <div className="text-xs text-gray-500 px-2">Subtotal: {formatCOP((p.base * duracion))}</div>
                   {p.descuento > 0 && (
-                    <div className="text-xs text-red-600">Descuento: {formatCOP(p.descuento * p.precio)} (-{(p.descuento * 100).toFixed(1)}%)</div>
+                    <div className="text-xs text-red-600 px-2">Descuento: {formatCOP(p.descuento * p.precio)} (-{(p.descuento * 100).toFixed(1)}%)</div>
                   )}
-                  <div className="text-sm font-semibold">Total: {formatCOP(p.precio)}</div>
+                  <div className="text-sm font-semibold px-2">Total: {formatCOP(p.precio)}</div>
                 </div>
               </li>
             ))}

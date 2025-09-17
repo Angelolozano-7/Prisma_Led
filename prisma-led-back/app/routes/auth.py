@@ -30,6 +30,7 @@ from app.services.sheets_client import (
 )
 from datetime import datetime
 from app.services.id_user_generator import generate_unique_user_id
+from app.services.uxid import generate_next_uxid
 from app.extensions import mail
 from app.extensions import registro_lock
 from app.extensions import recovery_lock
@@ -37,6 +38,7 @@ import random
 import traceback
 import string
 from app.extensions import limiter
+
 import uuid
 
 auth_bp = Blueprint('auth_bp', __name__)
@@ -128,6 +130,7 @@ def register():
             return jsonify({"msg": "El nit ya está registrado"}), 409
 
         id_usuario = generate_unique_user_id()
+        uxid = generate_next_uxid("usuarios")
         fecha_creacion = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         password_hash = generate_password_hash(password)
 
@@ -139,7 +142,8 @@ def register():
             rol,
             password_hash,
             fecha_creacion,
-            creado_por
+            creado_por,
+            uxid
         ]
 
         sheet = connect_sheet()
@@ -149,6 +153,7 @@ def register():
         if rol == "cliente":
             sheet_clientes = sheet.worksheet("clientes")
             id_cliente = id_usuario
+            uxid_cliente = generate_next_uxid("clientes")
 
             nueva_fila_cliente = [
                 id_cliente,
@@ -158,7 +163,9 @@ def register():
                 ciudad,
                 direccion,
                 telefono,
-                nombre_contacto
+                nombre_contacto,
+                uxid_cliente
+
             ]
             sheet_clientes.append_row(nueva_fila_cliente)
 

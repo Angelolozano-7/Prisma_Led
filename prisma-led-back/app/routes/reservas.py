@@ -322,7 +322,8 @@ def obtener_reservas_cliente_completo():
             "categoria": detalles_r[0]["categoria"] if detalles_r else "",
             "duracion": (pd.to_datetime(r["fecha_fin"]) - pd.to_datetime(r["fecha_inicio"])).days // 7,
             "pantallas": pantallas_resultado,
-            "subtotal": sum(p["precio"] for p in pantallas_resultado)
+            "subtotal": sum(p["precio"] for p in pantallas_resultado),
+            "uxid": r.get("uxid", None)
         })
 
     return jsonify(resultado), 200

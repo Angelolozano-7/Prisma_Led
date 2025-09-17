@@ -30,6 +30,7 @@ export default function PreVisualizacion() {
   const { setPrereserva } = usePrereserva();
   const {
     id_reserva,
+    uxid,
     fecha_creacion,
     fecha_inicio,
     duracion,
@@ -124,6 +125,7 @@ export default function PreVisualizacion() {
     setPrereserva({
       original: {
         id_reserva,
+        uxid,
         fecha_inicio,
         duracion,
         categoria,
@@ -131,6 +133,7 @@ export default function PreVisualizacion() {
       },
       edicion: {
         id_reserva,
+        uxid,
         fecha_inicio,
         duracion,
         categoria,
@@ -150,7 +153,7 @@ export default function PreVisualizacion() {
 
         <div className="p-4 space-y-2 text-sm">
           <ul className="space-y-1 text-gray-600 text-xs">
-            {id_reserva && <li><strong>ID Reserva:</strong> {id_reserva}</li>}
+            {id_reserva && <li><strong>Reserva:</strong> PW-{uxid}</li>}
             {fecha_creacion && <li><strong>Creación:</strong> {fecha_creacion}</li>}
           </ul>
 
@@ -228,7 +231,7 @@ export default function PreVisualizacion() {
         </button>
 
         <button
-          onClick={() => navigate('/cliente')}
+          onClick={() => navigate('/cliente/editar-reserva')}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800  px-4 py-2 rounded"
         >
           Volver

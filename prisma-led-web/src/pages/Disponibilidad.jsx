@@ -114,17 +114,19 @@ export default function Disponibilidad() {
           excluir_prereserva_id: isEditando ? prereserva?.edicion?.id_prereserva : undefined
         });
         setData(res.data);
-
+        
         // Pantallas iniciales según edición o navegación
         const pantallasIniciales =
           location.state?.seleccionadas?.length > 0
             ? location.state?.seleccionadas
             : (prereserva?.edicion?.pantallas || []);
-
-        const disponibles = Object.keys(res.data);
+        const filteredData = Object.fromEntries(
+          Object.entries(res.data).filter(([_, pantalla]) => pantalla.estado !== 'ocupado')
+        );
+        const disponibles = Object.keys(filteredData);
         const solicitadas = pantallasIniciales.map(p => p.id_pantalla);
 
-        const seleccionFiltrada = solicitadas.filter(id => disponibles.includes(id));
+        const seleccionFiltrada = solicitadas.filter(id => disponibles.includes(id)); 
         const noDisponibles = solicitadas.filter(id => !disponibles.includes(id));
         if (noDisponibles.length > 0) {
           const nombres = noDisponibles.map(id => {
@@ -586,11 +588,13 @@ export default function Disponibilidad() {
                   fecha_inicio: fechaInicio,
                   duracion,
                   categoria,
-                  pantallas: payload
+                  pantallas: payload,
+                  uxid: prereserva.edicion.uxid,
                 }
               });
               navigate('/cliente/pre-orden')
             }else{
+              console.log('Navegando a preorden sin edición:')
               navigate('/cliente/pre-orden', {
                 state: {
                   fecha_inicio: fechaInicio,

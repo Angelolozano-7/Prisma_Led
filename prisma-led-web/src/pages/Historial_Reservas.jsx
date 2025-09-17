@@ -125,7 +125,7 @@ export default function HistorialReservas() {
                   className="border p-3 rounded cursor-pointer hover:bg-gray-50 w-full sm:text-sm text-xs"
                   onClick={() => handleRepetirReserva(reserva)}
                 >
-                  <p><strong>ID:</strong> {reserva.id_reserva}</p>
+                  <p><strong>Reserva:</strong> PW-{reserva.uxid}</p>
                   <p><strong>Periodo:</strong> {reserva.fecha_inicio} - {reserva.fecha_fin}</p>
                   <p><strong>Categoría:</strong> {reserva.categoria}</p>
                   <p><strong>Pantallas:</strong> {(reserva.pantallas || []).map(p => `${p.cilindro}${p.identificador}`).join(', ')}</p>
