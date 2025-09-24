@@ -286,10 +286,104 @@ export default function Disponibilidad() {
   const handleDuracionChange = (pantallaId, segundos) => {
     setDuraciones((prev) => ({ ...prev, [pantallaId]: segundos }));
   };
+  ///////////////////////////////////////////////////////////////////////////////////
+ // Utilidades mínimas (sin ms)
+const toDate = (d) => new Date(d);
+const addDays = (date, days) => {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+};
+const addWeeks = (date, w) => addDays(date, 7 * w);
+const isDecember = (date) => toDate(date).getMonth() === 11; // 11 = diciembre (0-based)
+
+// Cuenta cuántas de las "duracionSemanas" caen en diciembre
+const countDecemberWeeks = (fechaInicio, duracionSemanas) => {
+  const start = toDate(fechaInicio);
+  let dec = 0;
+  for (let k = 0; k < duracionSemanas; k++) {
+    const weekStart = addWeeks(start, k);
+    const weekEnd = addDays(weekStart, 6);
+    // Si el inicio O el fin de la semana está en diciembre, consideramos esa semana "diciembre".
+    // (Como son semanas enteras, este criterio es simple y consistente)
+    if ( isDecember(weekEnd) &&  isDecember(weekStart)) dec++;
+  }
+  return dec;
+};
+
+// cupos por segundos
+const cuposFromSegundos = (segundos) => {
+  if (!segundos) return 0;
+  return Math.max(1, Math.round(segundos / 20)); // 20s->1, 40s->2, 60s->3
+};
+
+// -------------------
+// ENTRADAS supuestas:
+// duracionSemanas (Number)  // si trabajas por meses: duracionSemanas = meses * 4
+// fechaInicio    (Date|ISO)
+// duraciones     ({ [pantallaId]: 20|40|60 })
+// tarifas        ({ 20: $, 40: $, 60: $ })   // precio semanal FUERA de diciembre
+// seleccionadas  (Array<pantallaId>)
+// -------------------
+
+// $2'000.000 por CUPo y por semana en diciembre
+const PRECIO_DIC_POR_CUPO = 2_000_000;
+
+// lógica por pantalla (sencilla)
+const calcularPrecio = (pantallaId) => {
+  const segundos = duraciones[pantallaId];
+  const baseNormalSemana = segundos && tarifas[segundos];
+  if (!segundos || !baseNormalSemana || !duracion || !fechaInicio) {
+    return 0;
+  }
+
+  const semanasDic = countDecemberWeeks(fechaInicio, duracion);
+  const semanasFueraDic = Math.max(0, duracion - semanasDic);
+
+  const cupos = cuposFromSegundos(segundos);
+  const baseDicSemana = PRECIO_DIC_POR_CUPO * cupos;
+
+  const totalFueraDic = baseNormalSemana * semanasFueraDic;
+  const totalDic      = baseDicSemana   * semanasDic;
+
+  // Descuento por DURACIÓN TOTAL (pero solo se aplica a la porción FUERA de dic)
+  let rate = 0;
+  if (duracion > 26) rate = 0.10;
+  else if (duracion > 13) rate = 0.035;
+
+  const total = totalFueraDic * (1 - rate) + totalDic;
+
+  return {
+    total,
+    descuento: rate,
+    base: totalFueraDic + totalDic,
+    semanasDic,
+    semanasFueraDic,
+    baseNormalSemana,
+    baseDicSemana,
+    totalFueraDic,
+    totalDic
+  };
+};
+
+// SUBTOTAL y AHORRO (con las mismas reglas)
+const subtotal = seleccionadas.reduce((acc, id) => acc + (calcularPrecio(id)?.total || 0), 0);
+
+const ahorroTotal = seleccionadas.reduce((acc, id) => {
+  const r = calcularPrecio(id);
+  if (!r) return acc;
+  return acc + (r.totalFueraDic || 0) * (r.descuento || 0); // descuento solo sobre fuera de dic
+}, 0);
+
+
+
+
+
+
 
   /**
    * Calcula el precio total, base y descuento para una pantalla seleccionada.
-   */
+   
   const calcularPrecio = (pantallaId) => {
     const segundos = duraciones[pantallaId];
     if (!segundos || !tarifas[segundos]) return 0;
@@ -306,7 +400,7 @@ export default function Disponibilidad() {
 
   /**
    * Calcula el subtotal de la selección actual.
-   */
+   
   const subtotal = seleccionadas.reduce((acc, id) => {
     const precio = calcularPrecio(id);
     return acc + (precio?.total || 0);
@@ -314,7 +408,7 @@ export default function Disponibilidad() {
 
   /**
    * Calcula el ahorro total por descuentos aplicados.
-   */
+   
   const ahorroTotal = (() => {
     let ahorro = 0;
     seleccionadas.forEach(id => {
@@ -328,6 +422,32 @@ export default function Disponibilidad() {
     });
     return ahorro;
   })();
+*/
+  ////////////////////////////////////////////////////////////////////
+const formatCOP = (n) =>
+  (n ?? 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+const buildPrecioLabel = (id) => {
+  const r = calcularPrecio(id);
+  if (!r) return 'Precio: -';
+
+  const partes = [];
+
+  // Semanas fuera de diciembre (con opción de mostrar el % de descuento)
+  if (r.semanasFueraDic > 0) {
+    partes.push(`${r.semanasFueraDic} sem a ${formatCOP(r.baseNormalSemana)}`);
+  }
+
+  // Semanas de diciembre (precio especial por cupo/semana)
+  if (r.semanasDic > 0) {
+    partes.push(`${r.semanasDic} sem dic a ${formatCOP(r.baseDicSemana)}`);
+  }
+  return `Precio: ${formatCOP(r.base)} (${partes.join(' + ')})`;
+};
+
+
+
+
 
   /**
    * Muestra tooltip informativo para pantallas ocupadas, reservadas o parciales.
@@ -524,15 +644,9 @@ export default function Disponibilidad() {
                         ))}
                       </select>
                       <span className="text-right text-xs mt-1 text-gray-500">
-                        Precio: {(() => {
-                          const precio = calcularPrecio(id);
-                          return precio ? `$${precio.total.toLocaleString('es-CO')}` : '-';
-                        })()} 
-                        ( ${(() => {
-                          const segundos = duraciones[id];
-                          if (!segundos || !tarifas[segundos]) return 0;
-                          return esDiciembre(fechaInicio) ? 2000000 : tarifas[segundos];
-                        })().toLocaleString('es-CO')} x semana )
+
+                          {buildPrecioLabel(id)}
+                        
                       </span>
                     </li>
                   );

@@ -53,6 +53,13 @@ export default function PreOrdenDoc() {
   const subtotal = pantallas.reduce((acc, p) => acc + (p.precio || 0), 0);
   const iva = Math.round(subtotal * 0.19);
   const total = subtotal + iva;
+  const get_tarifa = (segundos) => tarifas?.[segundos] || 0;
+  const formatCOP = (valor) =>
+    valor.toLocaleString('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    });
 
   useEffect(() => {
     /**
@@ -81,7 +88,9 @@ export default function PreOrdenDoc() {
           subtotal,
           iva,
           total,
-          uxid
+          uxid,
+          resumen,
+
         });
 
         console.log('Correo enviado con éxito');
@@ -126,7 +135,7 @@ export default function PreOrdenDoc() {
                   Pantalla {p.cilindro}{p.identificador} - {duracion} semana{duracion > 1 ? 's' : ''} - cupos {p.segundos/20}
                 </p>
                 <p className="text-xs text-gray-600 ml-2">
-                  Base: ${(p.base * duracion)?.toLocaleString('es-CO')}| {p.descuento>0 && (<span className="text-red-600 font-medium"> Descuento: ${(Math.round(p.precio * p.descuento))?.toLocaleString('es-CO')} (-{(p.descuento * 100).toFixed(1)}%)</span>)} | Total: ${p.precio?.toLocaleString('es-CO')}
+                  Base: ${(p.base)?.toLocaleString('es-CO')}| {p.descuento>0 && (<span className="text-red-600 font-medium"> Descuento: {formatCOP((resumen.semanasFueraDic*get_tarifa(p.segundos)) * p.descuento)} (-{((((resumen.semanasFueraDic*get_tarifa(p.segundos)) * p.descuento)/p.base) * 100).toFixed(1)}%)</span>)} | <span> <strong>Total: ${p.precio?.toLocaleString('es-CO')}</strong></span>
                 </p>
               </div>
             ))}
@@ -135,10 +144,10 @@ export default function PreOrdenDoc() {
           <div className="border-t pt-2">
             <p>Subtotal base: ${resumen.baseTotal.toLocaleString('es-CO')}</p>
             {resumen.descuento > 0 && (
-              <p className="text-red-600 font-medium"><strong>Descuento:</strong> ${resumen.ahorro.toLocaleString('es-CO')} (-{(resumen.descuento * 100).toFixed(1)}%)</p>
+              <p className="text-red-600 font-medium"><strong>Descuento:</strong> ${resumen.ahorro.toLocaleString('es-CO')} (-{( (resumen.ahorro/resumen.baseTotal) * 100).toFixed(1)}%)</p>
             )}
             {resumen.descuento > 0 && (
-              <p><strong>Subtotal con descuento:</strong> ${resumen.totalConDescuento.toLocaleString('es-CO')}</p>
+              <p><strong>Subtotal con descuento: ${resumen.totalConDescuento.toLocaleString('es-CO')} </strong></p>
             )}
             <p><strong>IVA:</strong> ${iva.toLocaleString('es-CO')}</p>
             <p className="text-lg font-bold"><strong>Total:</strong> ${total.toLocaleString('es-CO')}</p>

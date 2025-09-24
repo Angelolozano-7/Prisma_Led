@@ -51,6 +51,10 @@ def generar_id_appsheet():
     """
     return uuid.uuid4().hex[:8]
 
+def obtener_tarifa(segundos, tarifas):
+    return tarifas.get(segundos, 0)
+
+
 @prereservas_bp.route('/cliente', methods=['GET', 'OPTIONS'])
 @jwt_required()
 def obtener_reservas_del_cliente():
@@ -169,6 +173,15 @@ def enviar_correo_prereserva():
             iva = data.get('iva')
             total = data.get('total')
             duracion = data.get('duracion')
+            resumen = data.get('resumen')
+            tarifas = get_tarifas()
+            tarifas = {t['duracion_seg']: t['precio_semana'] for t in tarifas}
+            precio_dic = 2000000
+            semanasFueraDic = resumen.get('semanasFueraDic', 0)
+            semanasDic = resumen.get('semanasDic', 0)
+            semanas = duracion
+            
+
             print(f"Enviando correo para la reserva PW-{uxid} a {correo}" )
             if not correo or not pantallas:
                 return jsonify({"error": "Datos incompletos"}), 400
@@ -177,26 +190,31 @@ def enviar_correo_prereserva():
             pantalla_html = []
             ahorroTotal = 0
             for p in pantallas:
-                semanas = duracion
                 base = int(p['base'])
                 precio = int(p['precio'])
-                subtotal_pantalla = base * semanas
+                segundos = p.get('segundos', 0)
+                cupos = segundos// 20  # Cada cupo es de 20 segundos
+                #tengo los segundos de cada pantalla y tengo el diccionario de tarifas, ahora vamos a obtener la tarifa
+                tarifa = obtener_tarifa(segundos, tarifas)
+                subtotal_pantalla = (semanasFueraDic * tarifa) + (semanasDic * precio_dic)
                 descuento = p.get('descuento', 0)
-                ahorro = subtotal_pantalla - precio
+                ahorro = (semanasFueraDic * tarifa) * descuento
+                pdescuento = ahorro/subtotal_pantalla
                 ahorroTotal += ahorro
-                cupos = p.get('segundos', 0) // 20  # Cada cupo es de 20 segundos
+                
 
                 linea = f"""
                 <li style="margin-bottom: 12px;">
                     <strong>Pantalla {p['cilindro']}{p['identificador']}</strong> - {semanas} semana{'s' if semanas > 1 else ''} - cupos {cupos}<br/>
-                    Valor por semana: ${base:,.0f}<br/>
-                    <strong>Subtotal ({semanas} semana{'s' if semanas > 1 else ''}) sin descuento:</strong> ${subtotal_pantalla:,.0f}<br/>
+                    Valor por semana normal: ${tarifa:,.0f}<br/>
+                    Valor por semana de diciembre: ${precio_dic:,.0f}<br/>
+                    <strong>Subtotal sin descuento:</strong> ${subtotal_pantalla:,.0f}<br/>
                 """
 
                 if descuento > 0:
                     linea += f"""
                     <div style='color:#dc2626; font-size:13px;'>
-                        Descuento aplicado:${ahorro:,.0f} (-{descuento * 100:.1f}%)<br/>
+                        Descuento aplicado:${ahorro:,.0f} (-{pdescuento * 100:.0f}%)<br/>
                     </div>
                     <strong>Total con descuento:</strong> ${precio:,.0f}<br/>
                     """

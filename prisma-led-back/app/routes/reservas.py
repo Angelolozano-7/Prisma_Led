@@ -165,7 +165,6 @@ def disponibilidad():
     detalle_prereserva_dict = {}
     for row in detalle_prereserva_raw:
         detalle_prereserva_dict.setdefault(row["id_prereserva"], []).append(row)
-
     ocupados_reserva = segundos_ocupados_en_intervalo(detalle_reserva_dict, reservas, fecha_inicio, fecha_fin, codigos_tarifa)
     ocupados_prereserva = segundos_ocupados_en_intervalo(detalle_prereserva_dict, prereservas, fecha_inicio, fecha_fin, codigos_tarifa)
 

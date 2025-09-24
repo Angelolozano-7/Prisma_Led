@@ -146,7 +146,7 @@ export default function HistorialReservas() {
 
 
                       <p className="text-sm text-red-600 font-medium">
-                        Descuento aplicado: -{(resumen.descuento * 100).toFixed(1)}% {' '}
+                        Descuento aplicado: -{((resumen.ahorro/resumen.baseTotal) * 100).toFixed(1)}% {' '}
                         (Ahorro: {formatCOP(resumen.ahorro)})
                       </p>
                     </>

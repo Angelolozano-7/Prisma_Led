@@ -30,6 +30,7 @@ import Swal from 'sweetalert2';
 export default function PreOrden() {
   const location = useLocation();
   const navigate = useNavigate();
+  const precio_dic = 2000000;
   const { prereserva, setPrereserva } = usePrereserva();
 
   const {
@@ -52,7 +53,7 @@ export default function PreOrden() {
 
   // Calcula el resumen de precios y descuentos
   const resumen = useResumenReserva(pantallas, duracion, tarifas, fecha_inicio);
-
+  const get_tarifa = (segundos) => tarifas?.[segundos] || 0;
   // Formatea valores en COP
   const formatCOP = (valor) =>
     valor.toLocaleString('es-CO', {
@@ -187,11 +188,11 @@ export default function PreOrden() {
               <li key={i} className="flex justify-between">
                 <span>Cilindro {p.cilindro} {p.identificador} - {duracion} semana{duracion > 1 && 's'} - cupos {p.segundos/20}</span>
                 <div className="text-right">
-                  <div className="text-xs text-gray-500 px-2">Subtotal: {formatCOP((p.base * duracion))}</div>
+                  <div className="text-xs text-gray-500 px-2">Subtotal: {formatCOP((p.base))}</div>
                   {p.descuento > 0 && (
-                    <div className="text-xs text-red-600 px-2">Descuento: {formatCOP(p.descuento * p.precio)} (-{(p.descuento * 100).toFixed(1)}%)</div>
+                    <div className="text-xs text-red-600 px-2">Descuento: {formatCOP((resumen.semanasFueraDic*get_tarifa(p.segundos)) * p.descuento)} (-{((((resumen.semanasFueraDic*get_tarifa(p.segundos)) * p.descuento)/p.base) * 100).toFixed(1)}%)</div>
                   )}
-                  <div className="text-sm font-semibold px-2">Total: {formatCOP(p.precio)}</div>
+                  <div className="text-sm font-semibold px-2">Total: {formatCOP( p.base - ((resumen.semanasFueraDic*get_tarifa(p.segundos)) * p.descuento))} </div>
                 </div>
               </li>
             ))}
@@ -208,7 +209,7 @@ export default function PreOrden() {
 
             {resumen.descuento > 0 && (
               <div className=" text-right text-xs text-red-600 font-medium">
-                <p>Descuento aplicado:  {formatCOP(resumen.ahorro)} (-{(resumen.descuento * 100).toFixed(1)}%)</p>
+                <p>Descuento aplicado:  {formatCOP(resumen.ahorro)} (-{(  (resumen.ahorro/resumen.baseTotal) * 100).toFixed(1)}%)</p>
               </div>
             )}
             {resumen.descuento > 0 && (

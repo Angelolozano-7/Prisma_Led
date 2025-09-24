@@ -50,9 +50,7 @@ def get_tarifas():
     Returns:
         list: Lista de diccionarios con los datos de tarifas.
     """
-    print("Fetching tarifas...")
     tarifas = connect_sheet().worksheet("tarifas").get_all_records()
-    print( "Tarifas fetched:", tarifas)
     return tarifas
 
 @retry_on_rate_limit()

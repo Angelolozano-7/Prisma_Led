@@ -27,6 +27,7 @@ import Swal from 'sweetalert2';
 export default function PreVisualizacion() {
   const location = useLocation();
   const navigate = useNavigate();
+  const precio_dic = 2000000;
   const { setPrereserva } = usePrereserva();
   const {
     id_reserva,
@@ -170,11 +171,11 @@ export default function PreVisualizacion() {
                 <div>Cilindro {p.cilindro} {p.identificador} - {duracion} semana{duracion > 1 && 's'} - cupos {p.segundos/20} </div>
 
                 <div className="text-right">
-                  <div className="text-xs text-gray-500">Subtotal: {formatCOP((p.precio * duracion))}</div>
+                  <div className="text-xs text-gray-500">Subtotal: {formatCOP(((p.precio* resumen.semanasFueraDic) + (precio_dic* resumen.semanasDic) ))}</div>
                   {resumen.descuento > 0 && (
-                    <div className="text-xs text-red-600">Descuento: {formatCOP(resumen.descuento * p.precio * duracion)} (-{(resumen.descuento * 100).toFixed(1)}%)</div>
+                    <div className="text-xs text-red-600">Descuento: {formatCOP(resumen.descuento *(p.precio* resumen.semanasFueraDic))} (-{  ((resumen.descuento *(p.precio* resumen.semanasFueraDic) /( (p.precio* resumen.semanasFueraDic) + (precio_dic* resumen.semanasDic) ) )   * 100).toFixed(1)}%)</div>
                   )}
-                  <div className="text-sm font-semibold">Total: {formatCOP((p.precio * duracion) - (resumen.descuento * p.precio * duracion))}</div>
+                  <div className="text-sm font-semibold">Total: {formatCOP( (((p.precio* resumen.semanasFueraDic) + (precio_dic* resumen.semanasDic) ) - (resumen.descuento *(p.precio* resumen.semanasFueraDic)))) }</div>
                 </div>
               </li>
             ))}
@@ -191,7 +192,7 @@ export default function PreVisualizacion() {
 
             {resumen.descuento > 0 && (
               <div className=" text-right text-xs text-red-600 font-medium">
-                <p>Descuento aplicado:  {formatCOP(resumen.ahorro)} (-{(resumen.descuento * 100).toFixed(1)}%)</p>
+                <p>Descuento aplicado:  {formatCOP(resumen.ahorro)} (-{((resumen.ahorro/resumen.baseTotal)* 100).toFixed(1)}%)</p>
               </div>
             )}
             {resumen.descuento > 0 && (
