@@ -1,2 +1,104 @@
 credentials2.json
 *.json
+
+# =========================
+# FRONTEND - React / Vite
+# =========================
+
+node_modules/
+dist/
+.vite/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variables de entorno frontend
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+# =========================
+# BACKEND - Python / Flask
+# =========================
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Python build
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+
+# =========================
+# SECRETOS / CREDENCIALES
+# =========================
+
+.env
+.env.*
+!.env.example
+
+credentials/
+**/credentials/
+credentials.json
+credentials*.json
+
+*.pem
+*.key
+*.p12
+*.pfx
+
+
+# =========================
+# EDITORES / SISTEMA
+# =========================
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# =========================
+# ARCHIVOS TEMPORALES
+# =========================
+
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+~$*
