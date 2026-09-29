@@ -1,84 +1,144 @@
-# Prisma LED - Sistema de Gestión de Pantallas Publicitarias
+# PrismaLED — módulo web de reservas
 
-Bienvenido a **Prisma LED**, una plataforma integral para la gestión, reserva y administración de pantallas publicitarias en el Bulevar del Río, Cali.
+PrismaLED es el módulo web utilizado por clientes para consultar disponibilidad y reservar pauta en las pantallas publicitarias del Bulevar del Río, Cali.
 
-## Descripción
+## Arquitectura
 
-Prisma LED permite a empresas y clientes:
-- Consultar disponibilidad de pantallas por fecha, duración y categoría.
-- Realizar reservas y prereservas de pauta publicitaria.
-- Gestionar datos de clientes y usuarios.
-- Visualizar el mapa de pantallas agrupadas por cilindro.
-- Calcular precios, descuentos y ahorro en tiempo real.
-- Recibir confirmaciones y notificaciones por correo electrónico.
+- **prisma-led-web/**: frontend React + Vite + Tailwind.
+- **prisma-led-back/**: API Flask conectada a Google Sheets.
 
-El sistema está compuesto por:
-- **Frontend**: Aplicación React con interfaz moderna y responsiva.
-- **Backend**: API Flask que integra Google Sheets como base de datos y gestiona autenticación, lógica de negocio y envío de correos.
-
-## Características principales
-
-- **Reserva y edición de prereservas**: Flujo completo para seleccionar pantallas, definir duración y confirmar la pauta.
-- **Visualización avanzada**: Mapa interactivo de pantallas con estados visuales y tooltips explicativos.
-- **Gestión de clientes**: Registro, edición y recuperación de datos y contraseñas.
-- **Seguridad**: Autenticación JWT, rate limiting y validaciones estrictas.
-- **Integración con Google Sheets**: Almacenamiento eficiente y seguro de datos.
-- **Notificaciones**: Envío de correos automáticos de confirmación y recuperación.
-
-## Estructura del proyecto
-
-```
-prisma-led/
-├── prisma-led-web/        # Frontend React
-│   └── src/pages/         # Páginas principales (Disponibilidad, Reserva, Cliente, etc.)
-├── prisma-led-back/       # Backend Flask
-│   └── app/routes/        # Endpoints principales (auth, cliente, reservas, prereservas)
-│   └── app/services/      # Servicios y utilidades (Google Sheets, validadores, retry)
-│   └── app/tests/         # Scripts de prueba (flujo completo con k6)
+```text
+React / Vite
+    ↓ HTTP + JWT
+Flask API
+    ↓
+Google Sheets
+    ↓
+Flask-Mail / correo
 ```
 
-## Instalación y ejecución
+## Funcionalidad principal
 
-### Backend
+- Registro, login y recuperación de acceso.
+- Consulta de disponibilidad por fecha, duración y categoría.
+- Selección manual o selección mágica de pantallas.
+- Cupos de 20, 40 o 60 segundos.
+- Cálculo de precios, descuentos, temporada especial e IVA.
+- Creación, consulta, edición y eliminación de reservas.
+- Historial de pautas y reutilización de una pauta anterior.
+- Confirmación por correo.
 
-1. Instala dependencias:
-   ```
-   pip install -r requirements.txt
-   ```
-2. Configura variables de entorno y credenciales de Google API.
-3. Ejecuta el servidor:
-   ```
-   flask run
-   ```
+## Nomenclatura funcional e interna
 
-### Frontend
+El backend y Google Sheets conservan nombres históricos para no romper compatibilidad:
 
-1. Instala dependencias:
-   ```
-   npm install
-   ```
-2. Ejecuta la aplicación:
-   ```
-   npm start
-   ```
+| Concepto funcional actual | Nombre interno legacy |
+| --- | --- |
+| Reserva | `prereserva` / `prereservas` |
+| Detalle de reserva | `detalle_prereserva` |
+| Pauta | `reserva` / `reservas` |
+| Detalle de pauta | `detalle_reserva` |
+
+## Requisitos
+
+- Node.js y npm.
+- Python 3.
+- Cuenta de servicio de Google con acceso al spreadsheet.
+- Variables de entorno del backend.
+
+## Ejecutar backend
+
+```powershell
+cd prisma-led-back
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python run.py
+```
+
+Servidor local habitual: `http://127.0.0.1:5000`.
+
+### Variables de entorno
+
+Crear `prisma-led-back/.env` a partir de `prisma-led-back/.env.example`.
+
+Variables utilizadas: `SECRET_KEY`, `JWT_SECRET_KEY`, `SPREADSHEET_ID`, `GOOGLE_CREDENTIALS_PATH`, `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER` y `FRONTEND_URL`.
+
+El archivo `.env` y las credenciales de Google no deben subirse al repositorio.
+
+## Ejecutar frontend
+
+```powershell
+cd prisma-led-web
+npm install
+npm run dev
+```
+
+Vite mostrará la URL local, normalmente `http://localhost:5173`.
+
+Build de producción:
+
+```powershell
+npm run build
+```
+
+## Estructura principal
+
+```text
+Prisma_Led/
+├── prisma-led-back/
+│   ├── app/routes/
+│   ├── app/services/
+│   ├── app/tests/
+│   ├── requirements.txt
+│   └── run.py
+├── prisma-led-web/
+│   ├── src/components/
+│   ├── src/contexts/
+│   ├── src/hooks/
+│   ├── src/layouts/
+│   ├── src/pages/
+│   ├── src/router/
+│   ├── src/services/
+│   └── package.json
+└── README.md
+```
+
+## Reglas de negocio relevantes
+
+- Máximo de 60 segundos por pantalla.
+- Cada cupo equivale a 20 segundos.
+- La disponibilidad combina reservas actuales (`prereservas` legacy) y pautas (`reservas` legacy).
+- Puede existir restricción de categoría a nivel de cilindro durante periodos solapados.
+- La UI admite semanas o meses; actualmente 1 mes = 4 semanas.
+- El cálculo contempla tarifa especial de diciembre, descuentos por duración e IVA.
 
 ## Pruebas
 
-- Usa el script `flujo_completo.js` con [k6](https://k6.io/) para pruebas de carga y flujo end-to-end.
-- Los endpoints principales están documentados y cuentan con validaciones automáticas.
+Los scripts k6 históricos están en `prisma-led-back/app/tests/`. Antes de tratarlos como suite de regresión deben revisarse contra los endpoints y respuestas actuales.
 
-## Contribución
+## Producción
 
-- Revisa la documentación interna de cada módulo para entender la lógica y reglas de negocio.
-- Sigue las buenas prácticas de documentación y validación para mantener la calidad del proyecto.
-- Puedes proponer mejoras, nuevos endpoints o integraciones según las necesidades del negocio.
+`run.py` es el entrypoint de desarrollo. Antes del despliegue se revisarán servidor WSGI, `debug=False`, CORS, secretos, URL pública de la API, correo, logs y monitoreo.
 
-## Futuro desarrollador
+## Flujo Git
 
-- El sistema está diseñado para escalabilidad y fácil mantenimiento.
-- Puedes agregar nuevos tipos de pantallas, reglas de negocio, integraciones externas o módulos de analítica.
-- El manejo de errores y mensajes está centralizado para facilitar la internacionalización y experiencia de usuario.
+Antes de trabajar:
 
----
+```powershell
+git switch cierre-proyecto
+git pull
+git status
+```
 
-**Prisma LED** - Gestión inteligente de pantallas publicitarias en el corazón de Cali.
+Al terminar:
+
+```powershell
+git status
+git add .
+git status
+git commit -m "Descripción del avance"
+git push
+```
+
+La rama `main` recibirá los cambios finales mediante Pull Request tras el cierre, pruebas y despliegue.
