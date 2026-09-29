@@ -1,22 +1,10 @@
 /**
- * Página de registro de clientes para prisma-led-web.
+ * Registro de clientes.
  *
- * Permite crear una cuenta de cliente con validaciones exhaustivas de todos los campos.
- * - Utiliza react-select para la selección de ciudad, permitiendo agregar una nueva ciudad si no existe.
- * - Muestra mensajes de error claros y alertas con SweetAlert2.
- * - Al registrar una nueva ciudad, la agrega al contexto global y la envía al backend.
- * - El formulario está dividido en dos columnas: datos generales y credenciales.
- *
- * Detalles clave:
- * - Validación de NIT, correo, teléfono, nombre y contraseña con expresiones regulares y reglas de longitud.
- * - El botón "Registrarse" envía los datos al backend y guarda el token JWT en localStorage.
- * - El botón "Cancelar" redirige al login sin guardar cambios.
- * - El loader de video se muestra mientras se procesa el registro.
- *
- * Futuro desarrollador:
- * - Puedes agregar más campos o validaciones según la lógica de negocio.
- * - El manejo de ciudades permite escalabilidad y flexibilidad para nuevos registros.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ * Valida datos comerciales y de acceso, consulta el maestro de ciudades y
+ * crea la cuenta mediante /auth/register. El usuario inicia sesión después
+ * desde el login. La creación de ciudades durante registro se revisará por
+ * separado en la fase técnica.
  */
 
 import { useState, useEffect } from 'react';

@@ -1,21 +1,8 @@
 /**
- * Página de inicio de sesión para prisma-led-web.
+ * Inicio de sesión del cliente.
  *
- * Permite al usuario autenticarse con correo y contraseña.
- * - Muestra mensajes de éxito o error usando SweetAlert2.
- * - Guarda el token JWT en localStorage y dispara el evento 'storage' para actualizar el estado global.
- * - Redirige al dashboard de cliente tras el login exitoso.
- * - Incluye enlaces para recuperación de contraseña y registro de nueva cuenta.
- *
- * Detalles clave:
- * - El formulario valida los campos obligatorios y muestra errores claros.
- * - El backend debe retornar el campo 'access_token' en la respuesta.
- * - El componente es reutilizable y desacoplado de la lógica de autenticación.
- *
- * Futuro desarrollador:
- * - Puedes agregar validaciones adicionales o integración con proveedores externos.
- * - El manejo de sesión y token está centralizado para fácil mantenimiento.
- * - El componente usa hooks y navegación react-router para una experiencia fluida.
+ * Envía correo y contraseña a /auth/login, guarda el campo token devuelto por
+ * el backend y redirige al área privada.
  */
 
 import { useState } from 'react';
@@ -33,7 +20,6 @@ export default function Login() {
 
     try {
       const res = await api.post('/auth/login', { correo, password });
-      console.log("Respuesta del login:", res.data);
       localStorage.setItem('token', res.data.token);
       window.dispatchEvent(new Event('storage'));
 

@@ -1,20 +1,6 @@
 /**
- * Página de recuperación de contraseña para prisma-led-web.
- *
- * Permite al usuario solicitar una contraseña temporal enviando su correo electrónico.
- * - Muestra un loader mientras se procesa la solicitud.
- * - Informa al usuario si el correo fue enviado exitosamente o si hubo un error.
- * - Redirige automáticamente al login tras el éxito.
- *
- * Detalles clave:
- * - El campo de correo es obligatorio y validado por el navegador.
- * - SweetAlert2 se usa para mostrar el estado de la operación (loader, éxito, error).
- * - El backend debe retornar el campo 'correo_visible' para mostrar el correo parcialmente oculto.
- *
- * Futuro desarrollador:
- * - Puedes mejorar la validación de correo o agregar verificación visual.
- * - El endpoint /auth/recovery debe manejar la lógica de envío y generación de contraseña temporal.
- * - El componente es reutilizable y desacoplado de la lógica de autenticación.
+ * Recuperación de acceso mediante contraseña temporal enviada por
+ * /auth/recovery. Tras el éxito, redirige al login.
  */
 
 import { useState } from 'react';
