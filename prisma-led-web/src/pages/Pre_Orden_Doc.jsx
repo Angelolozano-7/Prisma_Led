@@ -1,22 +1,10 @@
 /**
- * Página de documento de prereserva para prisma-led-web.
+ * Confirmación final de la reserva.
  *
- * Muestra el resumen final de la prereserva y envía automáticamente la información al correo del cliente.
- * - Obtiene los datos del cliente autenticado y los muestra junto al detalle de la prereserva.
- * - Calcula y muestra el subtotal, IVA y total de la orden.
- * - Envía el correo solo una vez usando una bandera persistente (useRef).
- * - Permite al usuario regresar al dashboard tras la confirmación.
- *
- * Detalles clave:
- * - El correo se envía automáticamente al montar el componente, evitando duplicados.
- * - Los datos del cliente y la prereserva se obtienen del backend y del estado de navegación.
- * - Los valores monetarios se formatean en COP para claridad.
- * - El botón "Aceptar" redirige al usuario al dashboard de cliente.
- *
- * Futuro desarrollador:
- * - Puedes agregar más información en el correo o modificar el formato visual del resumen.
- * - El manejo de envío de correo está desacoplado y centralizado para fácil mantenimiento.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ * Muestra los datos del cliente y de la reserva y solicita al backend el
+ * envío del correo de confirmación. useRef evita un segundo envío dentro de
+ * la misma instancia montada del componente; la protección persistente contra
+ * duplicados se realiza en el backend mediante correo_enviado.
  */
 
 import { useEffect, useState, useRef } from 'react';
@@ -93,7 +81,6 @@ export default function PreOrdenDoc() {
 
         });
 
-        console.log('Correo enviado con éxito');
       } catch (err) {
         console.error('Error al obtener cliente o enviar correo:', err);
       }
