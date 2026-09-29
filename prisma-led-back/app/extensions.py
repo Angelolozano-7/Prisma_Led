@@ -10,7 +10,6 @@ proceso; no sustituyen bloqueo distribuido entre varios workers.
 from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from flask import jsonify
 from threading import Lock
 
 # Instancia global para envío de correos
