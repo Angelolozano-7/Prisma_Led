@@ -1,3 +1,10 @@
+/**
+ * Wrapper opcional de transición entre páginas.
+ *
+ * Muestra VideoLoader durante cambios de ruta salvo en las rutas excluidas.
+ * Se conserva como componente auxiliar mientras se completa la limpieza final.
+ */
+
 import { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import VideoLoader from './VideoLoader';

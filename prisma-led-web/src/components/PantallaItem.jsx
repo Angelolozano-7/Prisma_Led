@@ -1,3 +1,10 @@
+/**
+ * Representación interactiva de una pantalla.
+ *
+ * Traduce el estado de disponibilidad a colores, habilita selección solo para
+ * estados disponible/parcial y muestra mensajes explicativos cuando aplica.
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { Info } from 'lucide-react';
 

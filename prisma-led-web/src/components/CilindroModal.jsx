@@ -1,3 +1,8 @@
+/**
+ * Modal que carga dinámicamente la imagen disponible para un cilindro y
+ * permite cerrarla desde el fondo o el botón de cierre.
+ */
+
 import { useEffect, useState } from 'react';
 
 export default function CilindroModal({ cilindro, onClose }) {

@@ -1,3 +1,8 @@
+/**
+ * Tarjeta visual de un cilindro que agrupa sus pantallas y permite abrir su
+ * imagen de referencia.
+ */
+
 import PantallaItem from './PantallaItem';
 
 export default function CilindroBox({ cilindro, pantallas, seleccionadas, onToggleSeleccion, onMostrarImagen }) {
