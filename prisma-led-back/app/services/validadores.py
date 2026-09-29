@@ -1,21 +1,14 @@
 """
-Módulo de validadores para la lógica de negocio de prisma-led-back.
+Validadores de reglas de negocio para reservas de PrismaLED.
 
-Este módulo centraliza las funciones de validación para:
-- Cruce de fechas entre reservas y prereservas.
-- Construcción de diccionarios de tarifas y pantallas para lógica de ocupación.
-- Validación de detalles de prereserva, asegurando que no se excedan los límites de segundos por pantalla y que no existan conflictos de categoría en cilindros.
+Comprueba cruces de fechas, máximo de 60 segundos por pantalla, restricción
+de la misma categoría dentro de un cilindro para otros clientes y exclusión
+de la propia reserva durante edición para evitar doble contabilización.
 
-Características clave:
-- Permite validar reglas de ocupación y restricción de categoría antes de crear o modificar prereservas.
-- Integra la lógica de negocio principal para la gestión de pantallas y campañas publicitarias.
-- Facilita el mantenimiento y escalabilidad al centralizar las validaciones.
-
-Futuro desarrollador:
-- Puedes agregar validaciones adicionales para nuevas reglas de negocio (por ejemplo, restricciones por horario o tipo de campaña).
-- Si cambias la estructura de las hojas de Google Sheets, ajusta los mapeos y validaciones aquí.
-- El manejo de errores y mensajes está pensado para facilitar la internacionalización y la experiencia de usuario.
+La lógica combina pautas (reservas legacy) y reservas del cliente
+(prereservas legacy).
 """
+
 
 from app.services.sheets_client import (
     get_pantallas,

@@ -1,9 +1,13 @@
 """
-Módulo para la conexión y operaciones con Google Sheets en prisma-led-back.
+Capa de acceso a Google Sheets para PrismaLED.
 
-Proporciona funciones para obtener y modificar datos de hojas como tarifas, pantallas, reservas,
-prereservas, usuarios, clientes, categorías y ciudades.
+Centraliza autenticación, reutilización de la conexión y acceso a hojas.
+
+Nomenclatura legacy: prereservas / detalle_prereserva almacenan reservas del
+cliente; reservas / detalle_reserva corresponden funcionalmente a pautas.
+Los nombres físicos se conservan por compatibilidad.
 """
+
 
 import gspread
 from google.oauth2.service_account import Credentials
@@ -66,7 +70,7 @@ def get_pantallas():
 @retry_on_rate_limit()
 def get_reservas():
     """
-    Obtiene todos los registros de la hoja 'reservas'.
+    Obtiene los registros de la hoja legacy 'reservas', que funcionalmente corresponden a pautas.
 
     Returns:
         list: Lista de diccionarios con los datos de reservas.
@@ -76,7 +80,7 @@ def get_reservas():
 @retry_on_rate_limit()
 def get_prereservas():
     """
-    Obtiene todos los registros de la hoja 'prereservas'.
+    Obtiene los registros de la hoja legacy 'prereservas', que funcionalmente corresponden a reservas.
 
     Returns:
         list: Lista de diccionarios con los datos de prereservas.

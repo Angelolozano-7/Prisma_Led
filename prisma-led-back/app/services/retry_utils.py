@@ -1,20 +1,10 @@
 """
-Módulo de utilidades para reintentos automáticos en prisma-led-back.
+Utilidad de reintentos para operaciones contra Google APIs.
 
-Este módulo provee un decorador para reintentar funciones que interactúan con Google Sheets
-cuando se reciben errores de límite de tasa (HTTP 429), errores internos (HTTP 500) o servicio no disponible (HTTP 503).
-
-Características clave:
-- Implementa reintentos exponenciales con factor aleatorio para evitar colisiones entre múltiples procesos.
-- Permite configurar el número máximo de reintentos y el tiempo base de espera.
-- Si se agotan los reintentos, lanza una excepción clara para manejo en el endpoint.
-- Útil para proteger operaciones críticas contra los límites de Google API y mejorar la robustez del sistema.
-
-Futuro desarrollador:
-- Puedes ajustar los códigos de error o el algoritmo de espera según la lógica de negocio.
-- El decorador puede ser extendido para otros servicios externos que requieran tolerancia a fallos.
-- El manejo de logs y métricas puede ser integrado para monitoreo avanzado de reintentos.
+retry_on_rate_limit reintenta errores HTTP 429, 500 y 503 con backoff
+exponencial y jitter para tolerar límites de cuota y fallos transitorios.
 """
+
 
 import time
 import random

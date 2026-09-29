@@ -1,8 +1,12 @@
 """
-Módulo para el envío de correos electrónicos de confirmación de prereserva en prisma-led-back.
+Utilidad de envío de correo HTML asociada al flujo legacy de prereservas.
 
-Utiliza Flask-Mail para enviar mensajes HTML a los destinatarios especificados.
+La función encapsula Flask-Mail para enviar un mensaje HTML a un destinatario.
+En el flujo web actual, routes/prereservas.py construye y envía el correo de
+confirmación directamente; este módulo se conserva como utilidad independiente
+mientras se completa la limpieza final.
 """
+
 
 from flask_mail import Message
 from app import mail

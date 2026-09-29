@@ -1,8 +1,11 @@
 """
-Módulo para generación de identificadores únicos de usuario y cliente en prisma-led-back.
+Generación de identificadores técnicos para usuarios y clientes.
 
-Utiliza UUID y verifica contra la hoja de cálculo para evitar duplicados.
+Los IDs son UUID hexadecimales truncados a 8 caracteres y se verifican contra
+Google Sheets. No deben confundirse con el UXID, identificador secuencial
+visible utilizado para facilitar la referencia de registros.
 """
+
 
 import uuid
 from app.services.sheets_client import connect_sheet
