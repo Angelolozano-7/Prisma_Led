@@ -1,3 +1,8 @@
+/**
+ * Layout principal del cliente autenticado con acceso al perfil, cierre de
+ * sesión y renderizado de las páginas privadas mediante Outlet.
+ */
+
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 import { User } from 'lucide-react';

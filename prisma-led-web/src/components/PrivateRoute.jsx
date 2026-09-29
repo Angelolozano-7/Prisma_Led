@@ -1,4 +1,10 @@
-// src/components/PrivateRoute.jsx
+/**
+ * Protección de rutas privadas.
+ *
+ * Comprueba la presencia y expiración básica del JWT guardado en localStorage.
+ * Si no existe, está vencido o no puede decodificarse, redirige a /auth/login.
+ */
+
 import { Navigate } from 'react-router-dom';
 
 export default function PrivateRoute({ children }) {

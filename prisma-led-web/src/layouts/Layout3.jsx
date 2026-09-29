@@ -1,3 +1,7 @@
+/**
+ * Layout amplio para formularios de registro y edición de perfil.
+ */
+
 import { Outlet } from 'react-router-dom';
 
 export default function Layout3() {

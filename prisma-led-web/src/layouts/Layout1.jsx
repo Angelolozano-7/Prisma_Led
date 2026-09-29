@@ -1,3 +1,7 @@
+/**
+ * Layout de autenticación para login y recuperación de contraseña.
+ */
+
 import { Link, Outlet } from 'react-router-dom';
 import logo from '../assets/logo_prisma.png';
 

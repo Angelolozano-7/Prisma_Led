@@ -1,4 +1,8 @@
-import loaderVideo from '../assets/loader.mp4'; // ajusta el path si es necesario
+/**
+ * Loader visual reutilizable basado en el recurso loader.mp4.
+ */
+
+import loaderVideo from '../assets/loader.mp4';
 
 export default function VideoLoader() {
   return (
