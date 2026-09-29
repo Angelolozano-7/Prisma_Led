@@ -171,7 +171,6 @@ def enviar_correo_prereserva():
             semanas = duracion
             
 
-            print(f"Enviando correo para la reserva PW-{uxid} a {correo}" )
             if not correo or not pantallas:
                 return jsonify({"error": "Datos incompletos"}), 400
 
