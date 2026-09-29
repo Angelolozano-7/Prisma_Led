@@ -18,7 +18,6 @@ import Swal from 'sweetalert2';
 export default function PreOrden() {
   const location = useLocation();
   const navigate = useNavigate();
-  const precio_dic = 2000000;
   const { prereserva, setPrereserva } = usePrereserva();
 
   const {
