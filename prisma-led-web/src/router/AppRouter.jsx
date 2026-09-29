@@ -1,22 +1,11 @@
 /**
- * AppRouter: Componente principal de enrutamiento para prisma-led-web.
+ * Enrutador principal de PrismaLED Web.
  *
- * Define la estructura de rutas públicas y protegidas usando React Router v6.
- * - Aplica los contextos globales de datos y prereserva.
- * - Organiza las rutas por layouts y roles (autenticación, cliente, perfil).
- * - Protege rutas sensibles con PrivateRoute, que verifica autenticación JWT.
- * - Incluye una ruta catch-all para redirigir en caso de error o sesión expirada.
- *
- * Estructura recomendada:
- * - Rutas públicas: Home, Login, Recovery, Registro.
- * - Rutas protegidas: Cliente (dashboard, historial, reserva, edición), Perfil.
- * - Layouts: Separan la experiencia visual y lógica por tipo de usuario.
- *
- * Futuro desarrollador:
- * - Agrega nuevas rutas dentro del <Routes> según el layout y el contexto.
- * - Usa PrivateRoute para proteger cualquier ruta que requiera sesión activa.
- * - Los contextos envuelven toda la app para acceso global a datos y estado.
+ * Define rutas públicas y protegidas, aplica los contextos globales y usa
+ * PrivateRoute para impedir acceso al área de cliente sin una sesión JWT.
+ * El proyecto utiliza react-router-dom 7.x con la API declarativa de Routes.
  */
+
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
