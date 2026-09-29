@@ -1,8 +1,11 @@
 """
-Módulo de extensiones globales para la aplicación Flask de prisma-led-back.
+Extensiones compartidas del backend de PrismaLED.
 
-Define instancias reutilizables de Mail, Limiter y varios Locks para sincronización de procesos críticos.
+Define Flask-Mail, Flask-Limiter y locks para serializar operaciones críticas.
+Los locks de threading protegen únicamente concurrencia dentro del mismo
+proceso; no sustituyen bloqueo distribuido entre varios workers.
 """
+
 
 from flask_mail import Mail
 from flask_limiter import Limiter

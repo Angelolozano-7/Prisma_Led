@@ -1,9 +1,11 @@
 """
-Módulo principal de inicialización para la aplicación Flask de prisma-led-back.
+Application factory del backend de PrismaLED.
 
-Configura la aplicación, registra los blueprints de rutas, inicializa extensiones
-(CORS, JWT, Mail, Limiter) y define el manejador de errores para límites de peticiones.
+Centraliza la creación y configuración de Flask: carga Config, inicializa
+Flask-Mail, CORS, JWT y Flask-Limiter, registra los blueprints de la API y
+define la respuesta estándar para errores HTTP 429.
 """
+
 
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -23,7 +25,7 @@ from app.extensions import limiter
 
 def create_app():
     """
-    Crea e inicializa la aplicación Flask, registra blueprints y extensiones.
+    Crea y configura una instancia de la aplicación Flask de PrismaLED.
 
     Returns:
         Flask: Instancia de la aplicación Flask configurada.

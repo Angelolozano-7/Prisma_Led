@@ -1,9 +1,10 @@
 """
-Módulo de configuración para la aplicación Flask de prisma-led-back.
+Configuración central del backend de PrismaLED.
 
-Carga variables de entorno y define la clase Config con los parámetros globales
-para seguridad, acceso a Google Sheets, JWT y correo electrónico.
+Carga variables de entorno para seguridad, Google Sheets, JWT y correo.
+JWT_ACCESS_TOKEN_EXPIRES establece actualmente una vigencia de 15 minutos.
 """
+
 
 import os
 from dotenv import load_dotenv

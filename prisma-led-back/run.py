@@ -1,8 +1,11 @@
 """
-Archivo principal para ejecutar la aplicación Flask de prisma-led-back.
+Punto de entrada local del backend de PrismaLED.
 
-Este archivo importa la función create_app, instancia la aplicación y la ejecuta en modo debug.
+Crea la aplicación Flask mediante app.create_app() y arranca el servidor
+de desarrollo de Flask. En producción debe utilizarse un servidor WSGI y
+el modo debug debe permanecer deshabilitado.
 """
+
 
 from app import create_app
 

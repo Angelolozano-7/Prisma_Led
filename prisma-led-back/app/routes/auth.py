@@ -1,23 +1,11 @@
 """
-Rutas de autenticación para prisma-led-back.
+Endpoints de autenticación y alta de clientes.
 
-Este módulo define los endpoints relacionados con la autenticación y gestión de usuarios:
-- Login: Verifica credenciales y retorna un JWT.
-- Registro: Permite crear nuevos usuarios y clientes, validando duplicados.
-- Recuperación: Envía una contraseña temporal al correo del usuario.
-
-Características clave:
-- Seguridad: Uso de JWT para autenticación y werkzeug para hash de contraseñas.
-- Integración: Los datos se almacenan en Google Sheets mediante los servicios definidos.
-- Concurrencia: Locks para evitar condiciones de carrera en registro y recuperación.
-- Email: Envío de correos de recuperación usando Flask-Mail.
-- Rate limiting: Protección contra abuso con Flask-Limiter.
-
-Futuro desarrollador:
-- Puedes agregar endpoints para cambio de contraseña, verificación de correo, o integración con OAuth.
-- Si cambias el almacenamiento de usuarios, ajusta los servicios y validaciones aquí.
-- El manejo de errores y mensajes está centralizado para facilitar la internacionalización.
+Incluye login, registro, recuperación de acceso y renovación de JWT. Utiliza
+hashes de Werkzeug, Flask-JWT-Extended, Flask-Mail, rate limiting y locks
+para operaciones sensibles.
 """
+
 
 from flask import Blueprint, request, jsonify, current_app
 from flask_mail import Message
