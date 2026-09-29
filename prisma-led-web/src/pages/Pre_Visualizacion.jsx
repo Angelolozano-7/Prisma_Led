@@ -1,19 +1,9 @@
 /**
- * Página de previsualización de prereserva para prisma-led-web.
+ * Previsualización y gestión de una reserva existente.
  *
- * Muestra el resumen detallado de la prereserva, incluyendo pantallas seleccionadas, fechas, categoría, precios y descuentos.
- * Permite al usuario eliminar la prereserva, editarla (reenviando los datos al contexto y navegando a disponibilidad), o volver al dashboard.
- *
- * Detalles clave:
- * - Elimina la prereserva con confirmación y feedback visual usando SweetAlert2.
- * - Edita la prereserva guardando los datos en contexto y navegando a la página de disponibilidad para modificar.
- * - Calcula el subtotal, descuentos, IVA y total usando el hook useResumenReserva y formatea los valores en COP.
- * - Muestra los datos principales (ID, fechas, pantallas, precios) en un card visualmente atractivo.
- *
- * Futuro desarrollador:
- * - Puedes agregar más acciones (reenviar correo, duplicar reserva, etc.) en los botones inferiores.
- * - El manejo de edición y eliminación está desacoplado y centralizado para fácil mantenimiento.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ * Presenta el detalle y el resumen económico, permite eliminarla o iniciar
+ * su edición. Las llamadas siguen utilizando /prereservas por compatibilidad
+ * con la nomenclatura interna legacy del backend.
  */
 
 import { useLocation, useNavigate } from 'react-router-dom';
