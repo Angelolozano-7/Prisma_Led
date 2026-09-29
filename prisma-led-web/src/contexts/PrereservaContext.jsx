@@ -1,3 +1,10 @@
+/**
+ * Contexto temporal del flujo de edición de reservas.
+ *
+ * Conserva entre rutas la reserva en edición. El nombre PrereservaContext se
+ * mantiene por compatibilidad con la nomenclatura legacy del backend.
+ */
+
 import { createContext, useState, useContext } from "react";
 
 const PrereservaContext = createContext();
