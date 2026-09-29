@@ -1,7 +1,9 @@
 /**
- * Página de reserva para prisma-led-web.
- * Ahora permite elegir periodo por Semanas o Meses (enteros),
- * pero siempre envía la duración unificada en semanas al backend.
+ * Inicio del flujo de reserva.
+ *
+ * Permite elegir fecha, categoría y duración en semanas o meses. Para
+ * mantener una única unidad en el sistema, los meses se convierten a semanas
+ * con la regla vigente de 1 mes = 4 semanas antes de consultar disponibilidad.
  */
 
 import { useState } from 'react';
