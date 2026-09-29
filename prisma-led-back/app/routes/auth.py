@@ -23,11 +23,8 @@ from app.extensions import mail
 from app.extensions import registro_lock
 from app.extensions import recovery_lock
 import random
-import traceback
 import string
 from app.extensions import limiter
-
-import uuid
 
 auth_bp = Blueprint('auth_bp', __name__)
 
