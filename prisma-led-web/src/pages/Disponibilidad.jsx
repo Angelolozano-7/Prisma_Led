@@ -178,7 +178,6 @@ export default function Disponibilidad() {
     return porCilindro;
   }, [dataVisual]);
 
-  /////----------------------------------------------------------------
   // Selección mágica balanceada por cilindro (round-robin)
 // - Si `reemplazar` es true, limpia selección antes de aplicar.
   // - Reparte 1 por cilindro en rondas hasta completar N o agotar candidatos.
@@ -269,8 +268,7 @@ export default function Disponibilidad() {
   const handleDuracionChange = (pantallaId, segundos) => {
     setDuraciones((prev) => ({ ...prev, [pantallaId]: segundos }));
   };
-  ///////////////////////////////////////////////////////////////////////////////////
- // Utilidades mínimas (sin ms)
+  // Utilidades de fecha para el cálculo comercial.
 const toDate = (d) => new Date(d);
 const addDays = (date, days) => {
   const d = new Date(date);
@@ -287,9 +285,8 @@ const countDecemberWeeks = (fechaInicio, duracionSemanas) => {
   for (let k = 0; k < duracionSemanas; k++) {
     const weekStart = addWeeks(start, k);
     const weekEnd = addDays(weekStart, 6);
-    // Si el inicio O el fin de la semana está en diciembre, consideramos esa semana "diciembre".
-    // (Como son semanas enteras, este criterio es simple y consistente)
-    if ( isDecember(weekEnd) &&  isDecember(weekStart)) dec++;
+    // Criterio vigente: tanto el inicio como el final deben caer en diciembre.
+    if (isDecember(weekEnd) && isDecember(weekStart)) dec++;
   }
   return dec;
 };
@@ -299,15 +296,6 @@ const cuposFromSegundos = (segundos) => {
   if (!segundos) return 0;
   return Math.max(1, Math.round(segundos / 20)); // 20s->1, 40s->2, 60s->3
 };
-
-// -------------------
-// ENTRADAS supuestas:
-// duracionSemanas (Number)  // si trabajas por meses: duracionSemanas = meses * 4
-// fechaInicio    (Date|ISO)
-// duraciones     ({ [pantallaId]: 20|40|60 })
-// tarifas        ({ 20: $, 40: $, 60: $ })   // precio semanal FUERA de diciembre
-// seleccionadas  (Array<pantallaId>)
-// -------------------
 
 // $2'000.000 por CUPo y por semana en diciembre
 const PRECIO_DIC_POR_CUPO = 2_000_000;
@@ -356,7 +344,9 @@ const ahorroTotal = seleccionadas.reduce((acc, id) => {
   const r = calcularPrecio(id);
   if (!r) return acc;
   return acc + (r.totalFueraDic || 0) * (r.descuento || 0); // descuento solo sobre fuera de dic
-}, 0);const formatCOP = (n) =>
+}, 0);
+
+const formatCOP = (n) =>
   (n ?? 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
 const buildPrecioLabel = (id) => {
