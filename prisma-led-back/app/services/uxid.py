@@ -1,4 +1,11 @@
-# uxid.py
+"""
+Generación de UXID secuenciales para PrismaLED.
+
+El UXID es un identificador visible y fácil de comunicar al usuario. Se
+calcula por tabla como max(uxid)+1 y se protege con un lock intra-proceso.
+No sustituye las claves técnicas UUID de cada registro.
+"""
+
 import threading
 from app.services.sheets_client import connect_sheet
 
@@ -31,7 +38,7 @@ def _to_ints(values):
         if v is None:
             continue
         s = str(v).strip()
-        if s.isdigit():        # <-- solo números puros (sin '#', sin 'UX-')
+        if s.isdigit():
             nums.append(int(s))
     return nums
 
@@ -44,6 +51,6 @@ def generate_next_uxid(table_name: str, column_name: str = "uxid") -> int:
     with _get_lock(table_name):
         ws = connect_sheet().worksheet(table_name)
         col_idx = _ensure_column_and_get_index(ws, column_name)
-        existing_vals = ws.col_values(col_idx)[1:]  # sin header
+        existing_vals = ws.col_values(col_idx)[1:]
         nums = _to_ints(existing_vals)
         return (max(nums) + 1) if nums else 1
