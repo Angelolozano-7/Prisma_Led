@@ -1,28 +1,13 @@
 /**
- * Página principal de selección de pantallas y consulta de disponibilidad en prisma-led-web.
+ * Selección de pantallas y disponibilidad.
  *
- * Este componente es el núcleo del flujo de reserva, permitiendo al usuario:
- * - Consultar la disponibilidad de pantallas para una fecha, duración y categoría específicas.
- * - Visualizar el mapa de pantallas agrupadas por cilindro, con estados visuales y tooltips explicativos.
- * - Seleccionar pantallas y definir la duración de pauta en segundos para cada una.
- * - Ver en tiempo real el resumen de la selección, precios, descuentos y ahorro total.
- * - Confirmar la selección para avanzar en el proceso de reserva, o cancelar para reiniciar el flujo.
+ * Es el núcleo del flujo de reserva: consulta estados por pantalla, agrupa
+ * pantallas por cilindro, permite selección manual o selección mágica,
+ * asigna cupos de 20/40/60 segundos y calcula el importe estimado antes de
+ * avanzar al resumen.
  *
- * Detalles clave:
- * - La consulta al backend se realiza al montar el componente y cada vez que el usuario modifica los filtros.
- * - El estado de cada pantalla (disponible, ocupado, reservado, parcial, restringido) se muestra con colores y tooltips.
- * - El componente soporta edición de prereserva, permitiendo modificar una selección previa sin perder datos.
- * - El cálculo de precios y descuentos se adapta a la duración y a condiciones especiales (por ejemplo, tarifas de diciembre).
- * - El resumen muestra fechas, categoría, pantallas seleccionadas, precios por pantalla, subtotal y ahorro.
- * - El botón "Confirmar selección" solo está habilitado si todas las pantallas seleccionadas tienen duración asignada.
- * - El botón "Cancelar selección" permite volver al inicio del flujo de reserva.
- *
- * Futuro desarrollador:
- * - Puedes agregar más filtros (ubicación, tipo de pantalla, etc.) en el componente BusquedaInline.
- * - El manejo de estados y tooltips está desacoplado y puede ser extendido para nuevos estados de pantalla.
- * - El cálculo de precios y descuentos puede ser ajustado según nuevas reglas de negocio.
- * - El componente usa hooks, contexto y memoización para mantener la lógica eficiente y desacoplada.
- * - La estructura visual y lógica está pensada para escalabilidad y fácil mantenimiento.
+ * Estados del backend: disponible, parcial, reservado, ocupado y restringido.
+ * En edición utiliza PrereservaContext para conservar la entidad legacy.
  */
 
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -35,8 +20,6 @@ import api from '../services/api';
 import VideoLoader from '../components/VideoLoader';
 import { usePrereserva } from '../contexts/PrereservaContext';
 import Swal from 'sweetalert2';
-
-const esDiciembre = (fecha) => new Date(fecha).getMonth() === 11;
 
 export default function Disponibilidad() {
   const location = useLocation();
@@ -373,58 +356,7 @@ const ahorroTotal = seleccionadas.reduce((acc, id) => {
   const r = calcularPrecio(id);
   if (!r) return acc;
   return acc + (r.totalFueraDic || 0) * (r.descuento || 0); // descuento solo sobre fuera de dic
-}, 0);
-
-
-
-
-
-
-
-  /**
-   * Calcula el precio total, base y descuento para una pantalla seleccionada.
-   
-  const calcularPrecio = (pantallaId) => {
-    const segundos = duraciones[pantallaId];
-    if (!segundos || !tarifas[segundos]) return 0;
-    const base = esDiciembre(fechaInicio) ? 2000000 : tarifas[segundos];
-    let total = base * duracion;
-    let descuento = 0;
-    if (!esDiciembre(fechaInicio)) {
-      if (duracion > 26) descuento = 0.1;
-      else if (duracion > 13) descuento = 0.034;
-    }
-    total *= 1 - descuento;
-    return { total, base, descuento };
-  };
-
-  /**
-   * Calcula el subtotal de la selección actual.
-   
-  const subtotal = seleccionadas.reduce((acc, id) => {
-    const precio = calcularPrecio(id);
-    return acc + (precio?.total || 0);
-  }, 0);
-
-  /**
-   * Calcula el ahorro total por descuentos aplicados.
-   
-  const ahorroTotal = (() => {
-    let ahorro = 0;
-    seleccionadas.forEach(id => {
-      const segundos = duraciones[id];
-      if (!segundos || !tarifas[segundos]) return
-      const base = esDiciembre(fechaInicio) ? 2000000 : tarifas[segundos];
-      const totalSinDescuento = base * duracion;
-      const precio = calcularPrecio(id);
-      const totalConDescuento = precio ? precio.total : 0;
-      ahorro += totalSinDescuento - totalConDescuento;
-    });
-    return ahorro;
-  })();
-*/
-  ////////////////////////////////////////////////////////////////////
-const formatCOP = (n) =>
+}, 0);const formatCOP = (n) =>
   (n ?? 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
 const buildPrecioLabel = (id) => {
@@ -708,7 +640,6 @@ const buildPrecioLabel = (id) => {
               });
               navigate('/cliente/pre-orden')
             }else{
-              console.log('Navegando a preorden sin edición:')
               navigate('/cliente/pre-orden', {
                 state: {
                   fecha_inicio: fechaInicio,
