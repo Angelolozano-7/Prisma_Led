@@ -1,21 +1,9 @@
 /**
- * Página para editar prereservas en prisma-led-web.
+ * Selección de una reserva existente para edición.
  *
- * Permite al usuario seleccionar una prereserva existente y navegar a la previsualización para editarla.
- * - Muestra un dropdown con las prereservas disponibles del usuario autenticado.
- * - Al seleccionar y buscar, carga el detalle de la prereserva y navega a la página de previsualización.
- * - Incluye manejo de errores y loader mientras se cargan los datos.
- *
- * Detalles clave:
- * - El dropdown se cierra automáticamente al hacer clic fuera.
- * - El botón "Buscar" está deshabilitado hasta que se seleccione una prereserva.
- * - El botón "Cancelar" regresa al dashboard del cliente.
- * - Los mensajes de error se muestran de forma clara y se ocultan automáticamente.
- *
- * Futuro desarrollador:
- * - Puedes agregar filtros, búsqueda por número o fecha, o mostrar más detalles en el dropdown.
- * - El manejo de navegación y carga de detalles está desacoplado y centralizado.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ * Obtiene las reservas del cliente desde el endpoint legacy
+ * /prereservas/cliente, carga su detalle y envía la información a la
+ * previsualización. Para el usuario esta entidad se presenta como reserva.
  */
 
 import { useEffect, useState, useRef } from 'react';
