@@ -1,21 +1,9 @@
 /**
- * Página para editar datos del cliente en prisma-led-web.
+ * Edición del perfil del cliente.
  *
- * Permite al usuario modificar sus datos personales y de empresa, incluyendo ciudad y contraseña.
- * - Usa react-select para la selección de ciudad, permitiendo agregar una nueva ciudad si no existe.
- * - Valida todos los campos antes de enviar y muestra mensajes de error claros con SweetAlert2.
- * - Actualiza el contexto global tras la modificación y redirige al dashboard del cliente.
- *
- * Detalles clave:
- * - El campo "Usuario" es solo lectura y corresponde al correo registrado.
- * - El campo "Nueva contraseña" es opcional y solo se envía si el usuario lo modifica.
- * - El botón "Regresar sin cambios" permite volver al dashboard sin guardar.
- * - El formulario está dividido en dos columnas para mejor experiencia visual.
- *
- * Futuro desarrollador:
- * - Puedes agregar más campos o validaciones según la lógica de negocio.
- * - El manejo de ciudades permite escalabilidad y flexibilidad para nuevos registros.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ * Permite actualizar datos de empresa y contacto y, opcionalmente, la
+ * contraseña. Tras guardar, vuelve a consultar /cliente para sincronizar el
+ * contexto global.
  */
 
 import { useEffect, useState } from 'react';
@@ -148,7 +136,6 @@ export default function Editar_Cliente() {
     if (form.password.trim()) {
       payload.password = form.password;
     }
-    //console.log("Payload a enviar:", payload);
     try {
       if (otraCiudad && form.ciudad.trim()) {
         try {
