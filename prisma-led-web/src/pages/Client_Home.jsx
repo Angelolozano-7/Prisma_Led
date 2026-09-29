@@ -1,20 +1,8 @@
 /**
- * Página principal del cliente (dashboard) en prisma-led-web.
+ * Dashboard inicial del cliente.
  *
- * Permite al usuario acceder rápidamente a las funciones clave:
- * - Realizar una nueva reserva.
- * - Ver el historial de reservas realizadas.
- * - Editar una prereserva existente.
- *
- * Detalles clave:
- * - Muestra un loader de bienvenida durante 5 segundos al ingresar, simulando carga inicial.
- * - Los accesos están presentados como botones grandes y visualmente destacados para fácil navegación.
- * - El diseño es responsivo y centrado verticalmente para una experiencia amigable.
- *
- * Futuro desarrollador:
- * - Puedes agregar más accesos directos, notificaciones o widgets según la lógica de negocio.
- * - El loader puede ser reemplazado por una animación personalizada o datos en tiempo real.
- * - El componente es simple y sirve como punto de entrada para todas las acciones del cliente.
+ * Da acceso a crear una nueva reserva, consultar el historial de pautas y
+ * editar una reserva existente.
  */
 
 import { useEffect, useState } from 'react';
