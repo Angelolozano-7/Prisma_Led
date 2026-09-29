@@ -1,8 +1,11 @@
 """
-Rutas relacionadas con la gestión de ciudades en prisma-led-back.
+Endpoints de ciudades de PrismaLED.
 
-Incluye endpoints para listar y registrar ciudades, con validaciones de nombre y control de concurrencia.
+GET /api/ciudades es público para soportar el registro de clientes.
+POST /api/ciudades requiere JWT y aplica validaciones, rate limiting y lock
+de concurrencia intra-proceso.
 """
+
 
 from flask import Blueprint, jsonify, request
 from app.services.sheets_client import get_ciudades, add_ciudad

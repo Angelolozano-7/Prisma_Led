@@ -1,25 +1,14 @@
 """
-Rutas relacionadas con la gestión de prereservas en prisma-led-back.
+Endpoints del flujo de reservas del cliente.
 
-Este módulo expone endpoints para:
-- Crear, consultar, actualizar y eliminar prereservas y sus detalles.
-- Enviar correos de confirmación de prereserva.
-- Validar reglas de negocio y asegurar la integridad de los datos.
+Nomenclatura legacy: la reserva funcional actual se almacena internamente
+en prereservas y detalle_prereserva. Estos nombres se conservan para no
+romper compatibilidad con backend y Google Sheets.
 
-Características clave:
-- Integración con Google Sheets para almacenamiento de prereservas y detalles.
-- Uso de locks para concurrencia segura en operaciones críticas.
-- Validaciones estrictas de datos y reglas de negocio antes de modificar registros.
-- Envío de correos HTML personalizados con Flask-Mail.
-- Rate limiting y retry para proteger los endpoints y manejar límites de Google Sheets.
-- Estructura modular y profesional para fácil mantenimiento y escalabilidad.
-
-Futuro desarrollador:
-- Puedes agregar endpoints para duplicar prereservas, consultar historial, o exportar datos.
-- Si cambias la estructura de las hojas de Google Sheets, ajusta los mapeos y validaciones aquí.
-- El manejo de errores y mensajes está centralizado para facilitar la internacionalización y mantenimiento.
-- El envío de correos puede ser extendido para notificaciones adicionales o integración con otros servicios.
+El módulo consulta, crea, edita y elimina reservas, gestiona su detalle,
+genera UXID y envía el correo de confirmación.
 """
+
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity

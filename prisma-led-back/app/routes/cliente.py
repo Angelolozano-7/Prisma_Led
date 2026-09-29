@@ -1,22 +1,11 @@
 """
-Rutas relacionadas con la gestión y consulta de clientes en prisma-led-back.
+Endpoints del perfil del cliente autenticado.
 
-Este módulo expone endpoints para:
-- Actualizar los datos del cliente autenticado.
-- Obtener los datos del cliente autenticado.
-
-Características clave:
-- Validaciones estrictas de formato para correo y NIT.
-- Verificación de duplicados para evitar conflictos en la base de datos.
-- Actualización eficiente en Google Sheets, tanto en la hoja de usuarios como de clientes.
-- Uso de JWT para autenticación y protección de endpoints.
-- Rate limiting para evitar abuso de los endpoints.
-
-Futuro desarrollador:
-- Puedes agregar endpoints para eliminar clientes, cambiar contraseña, o consultar historial.
-- Si cambias la estructura de las hojas de Google Sheets, ajusta los mapeos de campos aquí.
-- El manejo de errores y mensajes está centralizado para facilitar la internacionalización y mantenimiento.
+Consultan y actualizan información repartida entre las hojas usuarios y
+clientes de Google Sheets. La actualización valida correo y NIT, comprueba
+duplicados y permite cambiar la contraseña.
 """
+
 
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash

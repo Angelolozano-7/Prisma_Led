@@ -1,8 +1,10 @@
 """
-Rutas relacionadas con la consulta de categorías en prisma-led-back.
+Endpoints de categorías de PrismaLED.
 
-Incluye el endpoint protegido para obtener todas las categorías desde Google Sheets.
+Permite consultar categorías y registrar nuevas categorías en la hoja
+categorias de Google Sheets. Ambos endpoints requieren JWT.
 """
+
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -30,6 +32,9 @@ def obtener_categorias():
 @categorias_bp.route('/categorias', methods=['POST'])
 @jwt_required()
 def agregar_categoria():
+    """
+    Registra una nueva categoría en Google Sheets a partir del campo nombre.
+    """
     try:
         data = request.get_json()
         nombre = data.get("nombre", "").strip()

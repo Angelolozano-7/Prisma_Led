@@ -1,24 +1,12 @@
 """
-Rutas relacionadas con reservas y disponibilidad en prisma-led-back.
+Disponibilidad de pantallas y consulta de pautas.
 
-Este módulo expone endpoints para:
-- Consultar la disponibilidad de pantallas para reservas y prereservas.
-- Obtener tarifas y detalles de pantallas.
-- Consultar reservas del cliente autenticado, incluyendo detalles completos.
-
-Características clave:
-- Lógica avanzada para calcular ocupación de pantallas por segundos y detectar conflictos de fechas y categorías.
-- Integración con Google Sheets para obtener y actualizar datos de pantallas, tarifas, reservas y prereservas.
-- Rate limiting para proteger los endpoints contra abuso.
-- Uso de JWT para autenticación y protección de rutas.
-- Funciones auxiliares para calcular ocupación, conflictos y lógica de negocio de disponibilidad.
-
-Futuro desarrollador:
-- Puedes agregar endpoints para crear, modificar o eliminar reservas desde aquí.
-- Si cambias la estructura de las hojas de Google Sheets, ajusta los mapeos y validaciones en las funciones auxiliares.
-- El manejo de estados de pantalla (disponible, parcial, reservado, ocupado, restringido) puede ser extendido para nuevas reglas de negocio.
-- El cálculo de ocupación y conflictos está desacoplado y puede ser reutilizado en otros módulos.
+Nomenclatura legacy: prereservas representa reservas actuales del cliente,
+mientras reservas representa pautas operativas. El módulo combina ambas para
+calcular ocupación de hasta 60 segundos por pantalla, cruces de fechas y
+restricción de categoría por cilindro.
 """
+
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
