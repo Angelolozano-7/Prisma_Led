@@ -1,3 +1,10 @@
+/**
+ * Contexto global de datos maestros y del cliente.
+ *
+ * Carga tarifas, pantallas, categorías, cliente y ciudades cuando existe una
+ * sesión válida, y mantiene estos datos disponibles para toda la aplicación.
+ */
+
 import { createContext, useEffect, useState } from 'react';
 import api from '../services/api';
 import { getUserFromToken } from '../services/decodeToken';
@@ -16,7 +23,6 @@ export const AppDataProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token')); // token reactivo
 
-  // Escuchar cambios en localStorage (todas las pestañas)
   useEffect(() => {
     const handleStorage = () => {
       const newToken = localStorage.getItem('token');
@@ -29,7 +35,6 @@ export const AppDataProvider = ({ children }) => {
     };
   }, []);
 
-  // También sincronizar el token al montar
   const syncToken = () => {
     setToken(localStorage.getItem('token'));
   };
@@ -38,13 +43,12 @@ export const AppDataProvider = ({ children }) => {
     syncToken();
   }, []);
 
-  // Cargar datos cuando cambia el token
   useEffect(() => {
     const cargarDatos = async () => {
       const user = getUserFromToken();
       if (!user?.id) {
         setLoading(false);
-        return; // No cargar si no hay usuario
+        return;
       }
 
       try {
@@ -55,7 +59,6 @@ export const AppDataProvider = ({ children }) => {
           api.get('/cliente'),
           api.get('/ciudades'),
         ]);
-        console.log('Datos cargados:');
         setDatos({
           tarifas: tarifasRes.data || [],
           pantallas: pantallasRes.data || [],
