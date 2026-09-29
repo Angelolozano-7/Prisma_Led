@@ -1,21 +1,9 @@
 /**
- * Página de historial de reservas para prisma-led-web.
+ * Historial de pautas del cliente.
  *
- * Muestra todas las reservas realizadas por el cliente autenticado.
- * - Permite repetir una reserva con los mismos parámetros, navegando a la selección de disponibilidad.
- * - Muestra el resumen de cada reserva, incluyendo fechas, pantallas, categoría y precios/descuentos.
- * - Utiliza el hook useResumenReserva para calcular el subtotal, descuentos y ahorro.
- *
- * Detalles clave:
- * - El historial se obtiene del backend y se muestra en tarjetas individuales.
- * - El botón "Volver" regresa al dashboard del cliente.
- * - Si no hay reservas, muestra un mensaje informativo.
- * - El loader se muestra mientras se cargan los datos.
- *
- * Futuro desarrollador:
- * - Puedes agregar filtros por fecha, categoría o estado de reserva.
- * - El manejo de repetición de reserva está desacoplado y permite modificar la lógica fácilmente.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ * Consulta /reservas/cliente/completo (nomenclatura legacy de pauta), muestra
+ * fechas, categoría, pantallas y resumen económico, y permite reutilizar una
+ * pauta anterior como punto de partida de una nueva reserva.
  */
 
 import { useEffect, useState } from 'react';
