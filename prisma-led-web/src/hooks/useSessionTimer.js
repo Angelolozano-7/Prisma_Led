@@ -1,4 +1,14 @@
-// src/hooks/useSessionTimer.js
+/**
+ * Control de inactividad de la sesión.
+ *
+ * Reinicia un temporizador con la actividad del usuario. Tras 5 minutos de
+ * inactividad solicita confirmación y, si el usuario continúa, llama a
+ * /auth/refresh-token para reemplazar el JWT de localStorage.
+ *
+ * Su integración con rutas públicas y las redirecciones se revisará en la
+ * fase técnica de cierre.
+ */
+
 import { useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
 import api from '../services/api';

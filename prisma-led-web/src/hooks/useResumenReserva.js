@@ -1,12 +1,27 @@
-// src/hooks/useResumenReserva.js
+/**
+ * Cálculo central del resumen económico de una reserva.
+ *
+ * Reglas implementadas actualmente:
+ * - La duración se maneja en semanas; la UI convierte 1 mes en 4 semanas.
+ * - Cada cupo equivale a 20 segundos.
+ * - Diciembre usa COP 2.000.000 por cupo y semana.
+ * - Una semana cuenta como diciembre únicamente cuando tanto su inicio como
+ *   su final caen en diciembre.
+ * - Más de 13 semanas aplica 3,5 % de descuento.
+ * - Más de 26 semanas aplica 10 % de descuento.
+ * - El descuento solo se aplica a la parte fuera de diciembre.
+ * - El IVA es 19 % sobre el subtotal después de descuentos.
+ *
+ * Pese al prefijo use, esta función es un cálculo puro y no usa hooks de React.
+ */
 
 const toDate = (d) => new Date(d);
 const addDays = (date, days) => { const d = new Date(date); d.setDate(d.getDate() + days); return d; };
 const addWeeks = (date, w) => addDays(date, 7 * w);
 const isDecember = (date) => toDate(date).getMonth() === 11;
 
-// Cuenta semanas "de diciembre" recorriendo semana a semana.
-// Criterio: si la semana inicia O termina en diciembre, esa semana se considera diciembre.
+// Cuenta semanas de diciembre recorriendo semana a semana.
+// Criterio vigente: inicio y final de la semana deben caer en diciembre.
 const countDecemberWeeks = (fechaInicio, duracionSemanas) => {
   if (!fechaInicio || !duracionSemanas) return 0;
   const start = toDate(fechaInicio);

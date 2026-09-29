@@ -1,3 +1,10 @@
+/**
+ * Filtros inline de fecha, periodo y categoría.
+ *
+ * La UI permite trabajar en semanas o meses y normaliza la duración a semanas
+ * antes de comunicarla al flujo principal. Regla vigente: 1 mes = 4 semanas.
+ */
+
 import { useState } from 'react';
 import { useAppData } from '../hooks/useAppData';
 
