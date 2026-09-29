@@ -1,21 +1,9 @@
 /**
- * Página de pre-orden para prisma-led-web.
+ * Resumen previo a confirmar una reserva.
  *
- * Muestra el resumen de la prereserva antes de confirmar, permitiendo modificar, confirmar o cancelar la orden.
- * - Actualiza o crea la prereserva según si existe una edición previa.
- * - Calcula y muestra el desglose de precios, descuentos, IVA y total usando useResumenReserva.
- * - Permite modificar la selección de pantallas, cancelar la prereserva con confirmación, o confirmar y avanzar.
- *
- * Detalles clave:
- * - El botón "Modificar" permite regresar a la selección de pantallas con los datos actuales.
- * - El botón "Confirmar" guarda la prereserva (crea o actualiza) y navega a la página de documento.
- * - El botón "Cancelar" muestra un modal de confirmación y permite limpiar el contexto y volver al dashboard.
- * - Los precios se formatean en COP y se muestran los descuentos aplicados.
- *
- * Futuro desarrollador:
- * - Puedes agregar validaciones adicionales antes de confirmar la prereserva.
- * - El manejo de edición y creación está desacoplado y centralizado para fácil mantenimiento.
- * - El componente usa hooks y contexto para mantener la lógica desacoplada y reutilizable.
+ * Presenta fechas, categoría, pantallas y cálculo económico. Al confirmar,
+ * crea o actualiza el registro mediante los endpoints legacy de
+ * /prereservas y después navega al documento final de confirmación.
  */
 
 import { useLocation, useNavigate } from 'react-router-dom';
