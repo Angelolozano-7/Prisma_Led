@@ -1,20 +1,11 @@
 /**
- * Servicio centralizado de API para prisma-led-web.
+ * Cliente HTTP centralizado de PrismaLED Web.
  *
- * Proporciona una instancia de Axios configurada para interactuar con el backend.
- * - Añade automáticamente el token JWT en cada petición si existe en localStorage.
- * - Implementa manejo de errores global:
- *   - Redirige al login si la sesión expira (401).
- *   - Reintenta automáticamente peticiones en caso de límite de peticiones (429) con backoff exponencial.
- *   - Muestra alertas amigables al usuario usando SweetAlert2.
- *
- * Uso recomendado: importar `api` en tus servicios y componentes para todas las llamadas HTTP.
- * Ejemplo:
- *   import api from './api';
- *   const res = await api.get('/pantallas');
- *
- * @module api
+ * Configura Axios, adjunta el JWT almacenado en localStorage y concentra el
+ * manejo de respuestas 401 y 429. La URL base actual apunta a localhost para
+ * desarrollo; la URL pública se definirá en la fase de despliegue.
  */
+
 
 import axios from 'axios';
 import Swal from 'sweetalert2';
