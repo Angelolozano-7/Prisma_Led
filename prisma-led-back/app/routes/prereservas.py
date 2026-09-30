@@ -184,7 +184,7 @@ def enviar_correo_prereserva():
                 cupos = segundos// 20  # Cada cupo es de 20 segundos
                 #tengo los segundos de cada pantalla y tengo el diccionario de tarifas, ahora vamos a obtener la tarifa
                 tarifa = obtener_tarifa(segundos, tarifas)
-                subtotal_pantalla = (semanasFueraDic * tarifa) + (semanasDic * precio_dic)
+                subtotal_pantalla = (semanasFueraDic * tarifa) + (semanasDic * precio_dic * cupos)
                 descuento = p.get('descuento', 0)
                 ahorro = (semanasFueraDic * tarifa) * descuento
                 pdescuento = ahorro/subtotal_pantalla
@@ -195,7 +195,7 @@ def enviar_correo_prereserva():
                 <li style="margin-bottom: 12px;">
                     <strong>Pantalla {p['cilindro']}{p['identificador']}</strong> - {semanas} semana{'s' if semanas > 1 else ''} - cupos {cupos}<br/>
                     Valor por semana normal: ${tarifa:,.0f}<br/>
-                    Valor por semana de diciembre: ${precio_dic:,.0f}<br/>
+                    Valor por semana de diciembre: ${precio_dic * cupos:,.0f}<br/>
                     <strong>Subtotal sin descuento:</strong> ${subtotal_pantalla:,.0f}<br/>
                 """
 
