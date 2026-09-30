@@ -161,11 +161,11 @@ export default function PreVisualizacion() {
                 <div>Cilindro {p.cilindro} {p.identificador} - {duracion} semana{duracion > 1 && 's'} - cupos {p.segundos/20} </div>
 
                 <div className="text-right">
-                  <div className="text-xs text-gray-500">Subtotal: {formatCOP(((p.precio* resumen.semanasFueraDic) + (precio_dic* resumen.semanasDic) ))}</div>
+                  <div className="text-xs text-gray-500">Subtotal: {formatCOP(((p.precio* resumen.semanasFueraDic) + (precio_dic * (p.segundos / 20) * resumen.semanasDic) ))}</div>
                   {resumen.descuento > 0 && (
-                    <div className="text-xs text-red-600">Descuento: {formatCOP(resumen.descuento *(p.precio* resumen.semanasFueraDic))} (-{  ((resumen.descuento *(p.precio* resumen.semanasFueraDic) /( (p.precio* resumen.semanasFueraDic) + (precio_dic* resumen.semanasDic) ) )   * 100).toFixed(1)}%)</div>
+                    <div className="text-xs text-red-600">Descuento: {formatCOP(resumen.descuento *(p.precio* resumen.semanasFueraDic))} (-{  ((resumen.descuento *(p.precio* resumen.semanasFueraDic) /( (p.precio* resumen.semanasFueraDic) + (precio_dic * (p.segundos / 20) * resumen.semanasDic) ) )   * 100).toFixed(1)}%)</div>
                   )}
-                  <div className="text-sm font-semibold">Total: {formatCOP( (((p.precio* resumen.semanasFueraDic) + (precio_dic* resumen.semanasDic) ) - (resumen.descuento *(p.precio* resumen.semanasFueraDic)))) }</div>
+                  <div className="text-sm font-semibold">Total: {formatCOP( (((p.precio* resumen.semanasFueraDic) + (precio_dic * (p.segundos / 20) * resumen.semanasDic) ) - (resumen.descuento *(p.precio* resumen.semanasFueraDic)))) }</div>
                 </div>
               </li>
             ))}
