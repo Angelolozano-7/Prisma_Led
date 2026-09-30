@@ -5,8 +5,7 @@
  * - La duración se maneja en semanas; la UI convierte 1 mes en 4 semanas.
  * - Cada cupo equivale a 20 segundos.
  * - Diciembre usa COP 2.000.000 por cupo y semana.
- * - Una semana cuenta como diciembre únicamente cuando tanto su inicio como
- *   su final caen en diciembre.
+ * - Una semana cuenta como diciembre si toca diciembre aunque sea parcialmente.
  * - Más de 13 semanas aplica 3,5 % de descuento.
  * - Más de 26 semanas aplica 10 % de descuento.
  * - El descuento solo se aplica a la parte fuera de diciembre.
@@ -21,7 +20,7 @@ const addWeeks = (date, w) => addDays(date, 7 * w);
 const isDecember = (date) => toDate(date).getMonth() === 11;
 
 // Cuenta semanas de diciembre recorriendo semana a semana.
-// Criterio vigente: inicio y final de la semana deben caer en diciembre.
+// Criterio vigente: basta con que la semana toque diciembre.
 const countDecemberWeeks = (fechaInicio, duracionSemanas) => {
   if (!fechaInicio || !duracionSemanas) return 0;
   const start = toDate(fechaInicio);
@@ -29,7 +28,7 @@ const countDecemberWeeks = (fechaInicio, duracionSemanas) => {
   for (let k = 0; k < duracionSemanas; k++) {
     const weekStart = addWeeks(start, k);
     const weekEnd = addDays(weekStart, 6);
-    if (isDecember(weekStart) && isDecember(weekEnd)) dec++;
+    if (isDecember(weekStart) || isDecember(weekEnd)) dec++;
   }
   return dec;
 };
