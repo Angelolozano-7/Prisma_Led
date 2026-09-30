@@ -10,7 +10,7 @@ genera UXID y envía el correo de confirmación.
 """
 
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 import pandas as pd
@@ -401,16 +401,36 @@ def crear_prereserva_completa():
 
         except Exception as e:
             traceback.print_exc()
-            # Rollback si algo falla
+
+            # Rollback completo: elimina tanto la cabecera como cualquier
+            # detalle que haya alcanzado a escribirse antes del error.
             try:
                 sheet = connect_sheet()
                 ws_prereservas = sheet.worksheet("prereservas")
+                ws_detalle = sheet.worksheet("detalle_prereserva")
+
                 prereservas = ws_prereservas.get_all_records()
-                fila = next((i for i, r in enumerate(prereservas) if r["id_prereserva"] == id_prereserva), None)
+                fila = next(
+                    (i for i, r in enumerate(prereservas)
+                     if r["id_prereserva"] == id_prereserva),
+                    None
+                )
                 if fila is not None:
                     ws_prereservas.delete_rows(fila + 2)
-            except:
-                pass
+
+                detalles = ws_detalle.get_all_records()
+                filas_detalle = [
+                    i for i, d in enumerate(detalles)
+                    if d["id_prereserva"] == id_prereserva
+                ]
+                for idx in sorted(filas_detalle, reverse=True):
+                    ws_detalle.delete_rows(idx + 2)
+
+            except Exception as rollback_error:
+                current_app.logger.error(
+                    "Error durante rollback de creación de reserva: %s",
+                    rollback_error
+                )
 
             return jsonify({"error": f"Error al crear prereserva completa: {str(e)}"}), 500
 
