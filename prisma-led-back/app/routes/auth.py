@@ -14,7 +14,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.services.sheets_client import (
     connect_sheet,
     get_usuarios,
-    get_clientes
+    get_clientes,
+    add_ciudad
 )
 from datetime import datetime
 from app.services.id_user_generator import generate_unique_user_id
@@ -67,7 +68,8 @@ def register():
     """
     Registro de nuevo usuario y cliente.
 
-    Valida los datos recibidos, verifica duplicados por correo y NIT, y guarda el usuario y cliente en Google Sheets.
+    Valida los datos recibidos, verifica duplicados por correo y NIT, guarda
+    el usuario y cliente en Google Sheets y añade la ciudad al maestro si es nueva.
 
     Request:
         JSON: {
@@ -153,6 +155,17 @@ def register():
 
             ]
             sheet_clientes.append_row(nueva_fila_cliente)
+
+            # Mantiene actualizado el maestro de ciudades sin exigir un JWT
+            # adicional durante el alta. Si el maestro falla, no invalida una
+            # cuenta y cliente que ya fueron creados correctamente.
+            try:
+                add_ciudad(ciudad)
+            except Exception as ciudad_error:
+                current_app.logger.warning(
+                    "No se pudo actualizar el maestro de ciudades durante el registro: %s",
+                    ciudad_error
+                )
 
         return jsonify({"msg": "Registro exitoso"}), 201
 
