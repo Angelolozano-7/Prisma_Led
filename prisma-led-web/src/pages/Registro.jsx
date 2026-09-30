@@ -133,9 +133,8 @@ export default function Registro() {
         }
       }
 
-      // Envía el registro al backend
-      const res = await api.post('/auth/register', payload);
-      localStorage.setItem('token', res.data.access_token);
+      // Envía el registro al backend. El JWT se obtiene después en el login.
+      await api.post('/auth/register', payload);
 
       await Swal.fire({
         title: '¡Registro exitoso!',
