@@ -63,7 +63,14 @@ def construir_pantallas_dict():
     return {p["id_pantalla"]: int(p["cilindro"]) for p in pantallas}
 
 
-def validar_detalle_prereserva(id_prereserva, pantallas_nuevas, categoria, id_cliente):
+def validar_detalle_prereserva(
+    id_prereserva,
+    pantallas_nuevas,
+    categoria,
+    id_cliente,
+    fecha_inicio_nueva=None,
+    fecha_fin_nueva=None
+):
     """
     Valida si una prereserva puede ser realizada según las reglas de ocupación y restricción de categoría.
 
@@ -94,8 +101,8 @@ def validar_detalle_prereserva(id_prereserva, pantallas_nuevas, categoria, id_cl
     if not pr:
         return False, "Pre-reserva no encontrada"
 
-    fecha_inicio = pr["fecha_inicio"]
-    fecha_fin = pr["fecha_fin"]
+    fecha_inicio = fecha_inicio_nueva or pr["fecha_inicio"]
+    fecha_fin = fecha_fin_nueva or pr["fecha_fin"]
 
     # Construir mapas pantalla -> segundos ya ocupados
     ocupacion = {}
