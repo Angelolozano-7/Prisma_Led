@@ -10,7 +10,9 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-const API_URL = 'http://localhost:5000/api'; // Cambia según tu entorno (dev/prod)
+// Usa VITE_API_URL cuando esté definida (producción u otro entorno) y,
+// si no existe, mantiene localhost como valor por defecto para desarrollo local.
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
