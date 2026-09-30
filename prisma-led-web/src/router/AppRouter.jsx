@@ -40,13 +40,10 @@ import { AppDataProvider } from '../contexts/AppDataContext';
 // Ruta protegida
 import PrivateRoute from '../components/PrivateRoute';
 import { PrereservaProvider } from '../contexts/PrereservaContext';
-
-import { useSessionTimer } from '../hooks/useSessionTimer';
+ 
 
 
 export default function AppRouter() {
-  useSessionTimer();
-
   return (
     <PrereservaProvider>
       <AppDataProvider>
