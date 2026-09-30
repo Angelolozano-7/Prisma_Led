@@ -29,17 +29,21 @@ def retry_on_rate_limit(max_retries=5, base_delay=1.0):
         @wraps(func)
         def wrapped(*args, **kwargs):
             retries = 0
+            last_error = None
+
             while retries < max_retries:
                 try:
                     return func(*args, **kwargs)
                 except HttpError as e:
                     if e.resp.status in [429, 500, 503]:
+                        last_error = e
                         wait = base_delay * (2 ** retries) + random.uniform(0, 0.5)
                         print(f"[RETRY {retries+1}] Esperando {wait:.2f}s por error {e.resp.status}")
                         time.sleep(wait)
                         retries += 1
                     else:
                         raise
-            raise Exception(f"Reintentos agotados por error {e.resp.status}")
+
+            raise last_error
         return wrapped
     return decorator
