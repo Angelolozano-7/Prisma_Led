@@ -40,11 +40,13 @@ export function useSessionTimer() {
         localStorage.setItem('token', token);
         startTimer(); // Reinicia el temporizador
       } catch (err) {
-        Swal.fire('Error', 'No se pudo extender la sesión. Por favor, inicia sesión nuevamente.', 'error');
-        window.location.href = '/login';
+        localStorage.removeItem('token');
+        await Swal.fire('Error', 'No se pudo extender la sesión. Por favor, inicia sesión nuevamente.', 'error');
+        window.location.href = '/auth/login';
       }
     } else {
-      window.location.href = '/login';
+      localStorage.removeItem('token');
+      window.location.href = '/auth/login';
     }
   };
 
