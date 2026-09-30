@@ -163,8 +163,9 @@ def recovery():
     """
     Recuperación de contraseña.
 
-    Genera una contraseña temporal y la envía al correo del usuario registrado.
-    Actualiza la contraseña en la base de datos y protege el endpoint con un lock y rate limit.
+    Genera una contraseña temporal, la guarda y la envía al correo del usuario.
+    Si el envío falla, restaura el hash de contraseña anterior para evitar
+    dejar al usuario sin acceso. El endpoint está protegido con lock y rate limit.
 
     Request:
         JSON: { "correo": str }
@@ -189,6 +190,7 @@ def recovery():
 
         temporal_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
         hashed_password = generate_password_hash(temporal_password)
+        password_hash_anterior = users[index]["password"]
 
         row_to_update = index + 2
         sheet = connect_sheet().worksheet("usuarios")
@@ -218,6 +220,14 @@ def recovery():
                 "correo_visible": correo[:4] + "***"
             }), 200
         except Exception as e:
+            try:
+                sheet.update_cell(row_to_update, 6, password_hash_anterior)
+            except Exception as rollback_error:
+                current_app.logger.error(
+                    "No se pudo restaurar la contraseña anterior tras fallar el correo: %s",
+                    rollback_error
+                )
+
             return jsonify({"msg": "Error al enviar el correo", "error": str(e)}), 500
 
 
