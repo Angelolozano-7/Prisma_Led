@@ -285,8 +285,8 @@ const countDecemberWeeks = (fechaInicio, duracionSemanas) => {
   for (let k = 0; k < duracionSemanas; k++) {
     const weekStart = addWeeks(start, k);
     const weekEnd = addDays(weekStart, 6);
-    // Criterio vigente: tanto el inicio como el final deben caer en diciembre.
-    if (isDecember(weekEnd) && isDecember(weekStart)) dec++;
+    // Criterio vigente: una semana cuenta como diciembre si toca diciembre en cualquier parte.
+    if (isDecember(weekStart) || isDecember(weekEnd)) dec++;
   }
   return dec;
 };
