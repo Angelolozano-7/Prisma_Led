@@ -2,9 +2,9 @@
  * Registro de clientes.
  *
  * Valida datos comerciales y de acceso, consulta el maestro de ciudades y
- * crea la cuenta mediante /auth/register. El usuario inicia sesión después
- * desde el login. La creación de ciudades durante registro se revisará por
- * separado en la fase técnica.
+ * crea la cuenta mediante /auth/register. El backend incorpora al maestro
+ * cualquier ciudad nueva enviada durante el registro. El usuario inicia sesión
+ * después desde el login.
  */
 
 import { useState, useEffect } from 'react';
@@ -13,8 +13,6 @@ import api from '../services/api';
 import logo from '../assets/logo_prisma.png';
 import VideoLoader from '../components/VideoLoader';
 import Swal from 'sweetalert2';
-import { useAppData } from '../hooks/useAppData';
-import { postCiudad } from '../services/ciudadService';
 import Select from 'react-select';
 
 export default function Registro() {
@@ -22,7 +20,6 @@ export default function Registro() {
   const [mensaje, setMensaje] = useState('');
   const [cargando, setCargando] = useState(false);
   const [otraCiudad, setOtraCiudad] = useState(false);
-  const { ciudades, setDatos } = useAppData();
   const [ciudadesLocal, setCiudadesLocal] = useState([]);
   const opcionesCiudades = [
     ...ciudadesLocal.map(c => ({ label: c, value: c })),
@@ -120,20 +117,9 @@ export default function Registro() {
     const payload = { ...form };
 
     try {
-      // Si el usuario seleccionó "Otra ciudad", registra la nueva ciudad en el backend
-      if (otraCiudad && form.ciudad.trim()) {
-        try {
-          await postCiudad(form.ciudad.trim());
-          setDatos(prev => ({
-            ...prev,
-            ciudades: [...prev.ciudades, form.ciudad.trim()]
-          }));
-        } catch (err) {
-          console.error("Error registrando ciudad nueva:", err);
-        }
-      }
-
-      // Envía el registro al backend. El JWT se obtiene después en el login.
+      // Envía el registro al backend. Si la ciudad es nueva, el backend la
+      // incorpora al maestro de ciudades dentro del mismo flujo de registro.
+      // El JWT se obtiene después en el login.
       await api.post('/auth/register', payload);
 
       await Swal.fire({
