@@ -57,8 +57,7 @@ api.interceptors.response.use(
     }
 
     // --- 2. Error 429: Too Many Requests con backoff exponencial y alerta
-    if (error.response?.status === 429 && !originalRequest._retry429) {
-      originalRequest._retry429 = true;
+    if (error.response?.status === 429) {
       originalRequest._retries = originalRequest._retries || 0;
 
       if (originalRequest._retries < MAX_RETRIES) {
@@ -69,14 +68,14 @@ api.interceptors.response.use(
         await new Promise(res => setTimeout(res, delay));
 
         return api(originalRequest);
-      } else {
-        await Swal.fire({
-          title: 'Límite alcanzado',
-          text: 'Has realizado demasiadas solicitudes. Intenta nuevamente en unos segundos.',
-          icon: 'warning',
-          confirmButtonText: 'Cerrar'
-        });
       }
+
+      await Swal.fire({
+        title: 'Límite alcanzado',
+        text: 'Has realizado demasiadas solicitudes. Intenta nuevamente en unos segundos.',
+        icon: 'warning',
+        confirmButtonText: 'Cerrar'
+      });
     }
 
     // Otros errores se rechazan y pueden ser manejados por el componente llamador
