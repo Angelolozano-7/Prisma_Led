@@ -94,7 +94,7 @@ export default function Disponibilidad() {
           fecha_inicio: fechaInicio,
           duracion_semanas: duracion,
           categoria,
-          excluir_prereserva_id: isEditando ? prereserva?.edicion?.id_prereserva : undefined
+          excluir_prereserva_id: isEditando ? prereserva?.edicion?.id_reserva : undefined
         });
         setData(res.data);
         
@@ -414,7 +414,7 @@ const buildPrecioLabel = (id) => {
               fecha_inicio: fecha,
               duracion_semanas: semanas,
               categoria: cat,
-              excluir_prereserva_id: isEditando ? prereserva?.edicion?.id_prereserva : undefined
+              excluir_prereserva_id: isEditando ? prereserva?.edicion?.id_reserva : undefined
             });
             setSeleccionadas([]);
             setDuraciones({});
