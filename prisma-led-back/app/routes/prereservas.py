@@ -34,12 +34,6 @@ from app.services.sheets_client import (
 
 prereservas_bp = Blueprint('prereservas_bp', __name__)
 
-def generar_id_appsheet():
-    """
-    Genera un identificador único de 8 caracteres hexadecimales para AppSheet.
-    """
-    return uuid.uuid4().hex[:8]
-
 def obtener_tarifa(segundos, tarifas):
     return tarifas.get(segundos, 0)
 
