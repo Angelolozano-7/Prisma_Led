@@ -580,7 +580,14 @@ def actualizar_prereserva_completa(id_prereserva):
 
             # Validar las pantallas con el validador si es necesario
             from app.services.validadores import validar_detalle_prereserva
-            es_valido, error_msg = validar_detalle_prereserva(id_prereserva, pantallas, categoria, identidad)
+            es_valido, error_msg = validar_detalle_prereserva(
+                id_prereserva,
+                pantallas,
+                categoria,
+                identidad,
+                fecha_inicio_nueva=fecha_inicio,
+                fecha_fin_nueva=fecha_fin
+            )
             if not es_valido:
                 return jsonify({"error": error_msg}), 409
 
