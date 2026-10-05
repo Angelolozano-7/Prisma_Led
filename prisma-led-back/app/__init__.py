@@ -44,6 +44,16 @@ def create_app():
     app.register_blueprint(pantallas_bp, url_prefix="/api/pantallas")
     app.register_blueprint(ciudad_bp,  url_prefix="/api/ciudades")
     limiter.init_app(app)
+
+    @app.route("/healthz", methods=["GET"])
+    def healthz():
+        """
+        Health check ligero para verificar que el servicio Flask está activo.
+
+        No consulta Google Sheets ni servicios externos; únicamente confirma
+        que la aplicación puede responder correctamente.
+        """
+        return jsonify({"status": "ok"}), 200
     
     @app.errorhandler(429)
     def ratelimit_handler(e):
