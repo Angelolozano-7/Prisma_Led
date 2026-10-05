@@ -203,7 +203,7 @@ def recovery():
 
         temporal_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
         hashed_password = generate_password_hash(temporal_password)
-        password_hash_anterior = users[index]["password"]
+        password_hash_anterior = users[index]["password_hash"]
 
         row_to_update = index + 2
         sheet = connect_sheet().worksheet("usuarios")
