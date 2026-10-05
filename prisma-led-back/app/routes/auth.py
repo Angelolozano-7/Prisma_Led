@@ -30,7 +30,7 @@ from app.extensions import limiter
 auth_bp = Blueprint('auth_bp', __name__)
 
 @auth_bp.route("/login", methods=["POST"])
-@limiter.limit("50 per minute")
+@limiter.limit("10 per minute")
 def login():
     """
     Autenticación de usuario.
@@ -63,7 +63,7 @@ def login():
 
 
 @auth_bp.route("/register", methods=["POST"])
-@limiter.limit("50 per minute")
+@limiter.limit("5 per minute")
 def register():
     """
     Registro de nuevo usuario y cliente.
