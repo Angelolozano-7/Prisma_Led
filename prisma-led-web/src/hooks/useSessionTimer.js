@@ -1,7 +1,7 @@
 /**
  * Control de inactividad de la sesión.
  *
- * Reinicia un temporizador con la actividad del usuario. Tras 5 minutos de
+ * Reinicia un temporizador con la actividad del usuario. Tras 60 minutos de
  * inactividad solicita confirmación y, si el usuario continúa, llama a
  * /auth/refresh-token para reemplazar el JWT de localStorage.
  *
@@ -18,7 +18,7 @@ export function useSessionTimer() {
 
   const startTimer = () => {
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(showSessionWarning, 5 * 60 * 1000); // 5 minutos
+    timerRef.current = setTimeout(showSessionWarning, 60 * 60 * 1000); // 60 minutos
   };
 
   const showSessionWarning = async () => {
