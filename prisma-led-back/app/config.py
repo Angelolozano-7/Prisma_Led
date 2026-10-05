@@ -2,7 +2,7 @@
 Configuración central del backend de PrismaLED.
 
 Carga variables de entorno para seguridad, Google Sheets, JWT y correo.
-JWT_ACCESS_TOKEN_EXPIRES establece actualmente una vigencia de 15 minutos.
+JWT_ACCESS_TOKEN_EXPIRES establece actualmente una vigencia de 60 minutos.
 """
 
 
@@ -26,7 +26,7 @@ class Config:
     SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
     GOOGLE_CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=60)
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = int(os.getenv("MAIL_PORT"))
     MAIL_USE_TLS = os.getenv("MAIL_USE_TLS") == 'True'
