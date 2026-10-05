@@ -2,17 +2,19 @@
  * Cliente HTTP centralizado de PrismaLED Web.
  *
  * Configura Axios, adjunta el JWT almacenado en localStorage y concentra el
- * manejo de respuestas 401 y 429. La URL base actual apunta a localhost para
- * desarrollo; la URL pública se definirá en la fase de despliegue.
+ * manejo de respuestas 401 y 429. En desarrollo usa localhost y, para builds
+ * de producción, utiliza temporalmente la API pública desplegada en Render.
  */
 
 
 import axios from 'axios';
 import Swal from 'sweetalert2';
 
-// Usa VITE_API_URL cuando esté definida (producción u otro entorno) y,
-// si no existe, mantiene localhost como valor por defecto para desarrollo local.
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// VITE_API_URL permite sobrescribir la URL en cualquier entorno.
+const API_URL = import.meta.env.VITE_API_URL
+  || (import.meta.env.PROD
+    ? 'https://prismaled-api.onrender.com/api' // Temporal: cambiar a https://api.prismawall.com.co/api cuando el DNS esté disponible.
+    : 'http://localhost:5000/api');
 
 const api = axios.create({
   baseURL: API_URL,
