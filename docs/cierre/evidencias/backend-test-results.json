@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Health local sin Sheets",
+    "status": "PASS",
+    "kind": "verification",
+    "detail": ""
+  },
+  {
+    "name": "Pantallas exige JWT",
+    "status": "PASS",
+    "kind": "verification",
+    "detail": ""
+  },
+  {
+    "name": "CORS origen configurado",
+    "status": "PASS",
+    "kind": "verification",
+    "detail": ""
+  },
+  {
+    "name": "Crear admite dos detalles 60s misma pantalla",
+    "status": "REPRODUCIDO",
+    "kind": "finding",
+    "detail": "Solo mocks; no revalida capacidad, duplicados ni existencia"
+  },
+  {
+    "name": "Correo admite reserva de otro cliente",
+    "status": "REPRODUCIDO",
+    "kind": "finding",
+    "detail": "SMTP simulado; acepta destinatario y precios del payload y modifica correo_enviado"
+  },
+  {
+    "name": "Detalle propio devuelve categoria primera fila global",
+    "status": "REPRODUCIDO",
+    "kind": "finding",
+    "detail": "La categoria viene de detalles[0] sin filtrar"
+  },
+  {
+    "name": "Categoria escribe dos columnas frente a encabezado unico",
+    "status": "REPRODUCIDO",
+    "kind": "finding",
+    "detail": "Incompatibilidad con Sheet categorias: nombre"
+  },
+  {
+    "name": "Sintaxis de todos los modulos Python",
+    "status": "PASS",
+    "kind": "verification",
+    "detail": ""
+  },
+  {
+    "name": "Limites en memoria y locks intra proceso",
+    "status": "CONFIRMADO",
+    "kind": "static",
+    "detail": ""
+  }
+]

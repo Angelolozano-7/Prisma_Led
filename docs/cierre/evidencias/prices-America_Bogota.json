@@ -1,0 +1,26 @@
+{
+  "results": [
+    {
+      "name": "20 40 60 segundos diciembre",
+      "status": "PASS",
+      "timezone": "America/Bogota"
+    },
+    {
+      "name": "Umbrales 13 14 26 27 semanas",
+      "status": "PASS",
+      "timezone": "America/Bogota"
+    },
+    {
+      "name": "Semana toca diciembre noviembre 30",
+      "status": "PASS",
+      "timezone": "America/Bogota"
+    },
+    {
+      "name": "Descuento solo fuera diciembre",
+      "status": "PASS",
+      "timezone": "America/Bogota"
+    }
+  ],
+  "dateEdge": 1,
+  "endEdge": 1
+}
