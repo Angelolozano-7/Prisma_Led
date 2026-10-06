@@ -25,7 +25,7 @@ YA VALIDADO indica una comprobación actual satisfactoria o una validación repo
 | Confirmación habitual | YA VALIDADO | Flujo reportado; validación de propietario falló en mocks, ver DT01. |
 | Eliminación habitual | YA VALIDADO | Flujo reportado; no se repitió sobre producción. |
 | Persistencia Sheets | YA VALIDADO | Encabezados y tarifas actuales consultados; guardado funcional reportado. |
-| CORS de producción | PENDIENTE | CORS local válido; requiere preflight de producción con origen exacto y origen no permitido. |
+| CORS de producción | YA VALIDADO | OPTIONS /api/pantallas 200: permite el origen exacto de reservas y no devuelve Allow-Origin para un origen ajeno; sin escritura ni datos privados. |
 | Rutas React | YA VALIDADO | /auth/login directo 200; otras rutas y navegación privada pendientes de revisión visual. |
 | Responsive | PENDIENTE | Clases adaptativas revisadas; capturas fiables no obtenidas en esta sesión. |
 | Correo habitual | YA VALIDADO | Propietario declara flujo completo; entrega real no reejecutada. |
@@ -45,7 +45,7 @@ YA VALIDADO indica una comprobación actual satisfactoria o una validación repo
 
 El frontend completó transformación de 1808 módulos con Vite 4.5.14; dist incluyó .htaccess y el dominio API definitivo. npm run build estándar falló por EPERM realpath de este entorno Windows. La comprobación alternativa usó preserveSymlinks en una configuración temporal, desde la carpeta frontend; el repositorio no fue modificado para sortear el entorno. No se certifica una compilación estándar en la máquina del mantenedor.
 
-Se instalaron las dependencias backend en una carpeta aislada y se analizó sintaxis de todos los módulos Python. Flask test_client verificó /healthz local, 401 de ruta protegida sin token y CORS local. Sheets y SMTP fueron reemplazados por mocks para las cuatro reproducciones de DT01, DT03, DT04 y DT05. Cero altas, mensajes y cambios de producción durante estas pruebas.
+Se instalaron las dependencias backend en una carpeta aislada y se analizó sintaxis de todos los módulos Python. Flask test_client verificó /healthz local, 401 de ruta protegida sin token y CORS local. Dos preflight OPTIONS sobre /api/pantallas de producción comprobaron el origen autorizado y uno ajeno, sin consultar registros privados. Evidencia: production-cors.json. Sheets y SMTP fueron reemplazados por mocks para las cuatro reproducciones de DT01, DT03, DT04 y DT05. Cero altas, mensajes y escrituras de producción durante estas pruebas.
 
 Precios: 20/40/60 segundos de diciembre, umbrales 13/14/26/27 semanas, una semana que empieza el 30 de noviembre y descuento solo fuera de diciembre. Se ejecutaron en UTC y America/Bogota usando la función real useResumenReserva. Los resultados se conservan en evidencias resumidas del paquete. No equivalen a revisar toda combinación de fecha, duración o redondeo ni todas las fórmulas administrativas.
 

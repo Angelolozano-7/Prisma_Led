@@ -1,0 +1,20 @@
+[
+  {
+    "origin": "https://reservas.prismawall.com.co",
+    "method": "OPTIONS",
+    "http_status": 200,
+    "allow_origin": "https://reservas.prismawall.com.co",
+    "allow_credentials": "true",
+    "allow_headers": "Authorization",
+    "allow_methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT"
+  },
+  {
+    "origin": "https://origen-no-autorizado.example",
+    "method": "OPTIONS",
+    "http_status": 200,
+    "allow_origin": null,
+    "allow_credentials": null,
+    "allow_headers": null,
+    "allow_methods": null
+  }
+]
