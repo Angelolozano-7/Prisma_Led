@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<rect width="1600" height="1050" fill="white"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#566275"/></marker></defs>
+<text x="65" y="61" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#6B358F">PRISMALED  /  CIERRE DOCUMENTAL</text>
+<text x="65" y="125" font-family="Arial,sans-serif" font-size="39" font-weight="bold" fill="#222C3C">Flujo funcional de reserva</text>
+<polyline points="365,270.0 560,270.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="1000,270.0 1180,270.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="1355.0,325 1355.0,480" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="1180,535.0 1000,535.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="560,535.0 365,535.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="780.0,590 780.0,725" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="785.0" y="632.5" width="149.0" height="28" fill="white"/>
+<text x="790.0" y="652.5" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">OC y estado ok</text>
+<rect x="65" y="215" width="300" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="84" y="257" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Iniciar sesión</text>
+<text x="84" y="285" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">JWT válido</text>
+<rect x="560" y="215" width="440" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="579" y="257" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Elegir campaña</text>
+<text x="579" y="285" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Fechas · categoría · cupos</text>
+<rect x="1180" y="215" width="350" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1199" y="257" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Disponibilidad</text>
+<text x="1199" y="285" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Pantallas compatibles</text>
+<rect x="1180" y="480" width="350" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1199" y="522" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Resumen</text>
+<text x="1199" y="550" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Precios y descuentos</text>
+<rect x="560" y="480" width="440" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="579" y="522" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Guardar reserva web</text>
+<text x="579" y="550" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">prereservas + detalles</text>
+<rect x="65" y="480" width="300" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="84" y="522" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Confirmación</text>
+<text x="84" y="550" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Correo posterior</text>
+<rect x="560" y="725" width="440" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="579" y="767" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Formalizar en AppSheet</text>
+<text x="579" y="795" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Reserva → pauta</text>
+<text x="65" y="967" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">Pauta administrativa → reservas y detalle_reserva. Se conserva la nomenclatura legacy.</text>
+<text x="65" y="997" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">Creación sin revalidar capacidad y correo sin comprobar propietario: hallazgos abiertos.</text>
+</svg>

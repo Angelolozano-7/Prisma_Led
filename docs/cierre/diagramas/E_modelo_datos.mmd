@@ -1,0 +1,15 @@
+erDiagram
+ usuarios ||--o| clientes : identidad_web
+ clientes ||--o{ prereservas : solicita
+ clientes ||--o{ reservas : contrata
+ prereservas ||--o{ detalle_prereserva : incluye
+ reservas ||--o{ detalle_reserva : incluye
+ pantallas ||--o{ detalle_prereserva : selecciona
+ pantallas ||--o{ detalle_reserva : transmite
+ tarifas ||--o{ detalle_prereserva : codigo
+ tarifas ||--o{ detalle_reserva : codigo
+ categorias ||--o{ detalle_prereserva : nombre
+ categorias ||--o{ detalle_reserva : nombre
+ reservas ||--o{ facturacion : factura
+ videos ||--o{ video_detalle_reserva : vincula
+ detalle_reserva ||--o{ video_detalle_reserva : vincula

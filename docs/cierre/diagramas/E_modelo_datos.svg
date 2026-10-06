@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<rect width="1600" height="1050" fill="white"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#566275"/></marker></defs>
+<text x="65" y="61" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#6B358F">PRISMALED  /  CIERRE DOCUMENTAL</text>
+<text x="65" y="125" font-family="Arial,sans-serif" font-size="39" font-weight="bold" fill="#222C3C">Modelo de datos simplificado</text>
+<polyline points="335,262.5 410,262.5" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="700,262.5 825,262.5" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="733.5" y="175" width="58.0" height="28" fill="white"/>
+<text x="738.5" y="195" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">1 a N</text>
+<polyline points="555.0,315 980.0,450" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="772.5" y="357.5" width="58.0" height="28" fill="white"/>
+<text x="777.5" y="377.5" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">1 a N</text>
+<polyline points="1135,262.5 1210,262.5" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1143.5" y="175" width="58.0" height="28" fill="white"/>
+<text x="1148.5" y="195" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">1 a N</text>
+<polyline points="1135,502.5 1210,502.5" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1143.5" y="415" width="58.0" height="28" fill="white"/>
+<text x="1148.5" y="435" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">1 a N</text>
+<polyline points="825,502.5 700,502.5" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="733.5" y="415" width="58.0" height="28" fill="white"/>
+<text x="738.5" y="435" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">1 a N</text>
+<polyline points="1540,262.5 1560,262.5 1560,777.5 1540,777.5" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1545.0" y="495.0" width="10" height="28" fill="white"/>
+<text x="1550.0" y="515.0" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275"></text>
+<polyline points="1375.0,555 1375.0,710" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1380.0" y="607.5" width="116.0" height="28" fill="white"/>
+<text x="1385.0" y="627.5" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">Referencias</text>
+<polyline points="980.0,710 1375.0,555" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1182.5" y="607.5" width="143.0" height="28" fill="white"/>
+<text x="1187.5" y="627.5" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">Relación N a N</text>
+<rect x="65" y="210" width="270" height="105" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="84" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">usuarios</text>
+<text x="84" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">id_usuario</text>
+<rect x="410" y="210" width="290" height="105" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="429" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">clientes</text>
+<text x="429" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">id_cliente</text>
+<rect x="825" y="210" width="310" height="105" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="844" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">prereservas</text>
+<text x="844" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Reserva funcional</text>
+<rect x="825" y="450" width="310" height="105" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="844" y="492" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">reservas</text>
+<text x="844" y="520" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Pauta funcional</text>
+<rect x="1210" y="210" width="330" height="105" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1229" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">detalle_prereserva</text>
+<text x="1229" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Cabecera y pantalla</text>
+<rect x="1210" y="450" width="330" height="105" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1229" y="492" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">detalle_reserva</text>
+<text x="1229" y="520" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Cabecera y pantalla</text>
+<rect x="1210" y="710" width="330" height="135" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1229" y="752" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Maestros compartidos</text>
+<text x="1229" y="780" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">pantallas · tarifas</text>
+<text x="1229" y="811" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">categorias por nombre</text>
+<rect x="410" y="450" width="290" height="105" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="429" y="492" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">facturacion</text>
+<text x="429" y="520" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">id_reserva</text>
+<rect x="825" y="710" width="310" height="135" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="844" y="752" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">videos</text>
+<text x="844" y="780" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">video_detalle_reserva</text>
+<text x="844" y="811" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Detalle de pauta</text>
+<text x="65" y="967" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">IDs son referencias lógicas sobre Sheets: no hay constraints SQL ni transacciones entre hojas.</text>
+<text x="65" y="997" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">También existen ciudades, costos_operativos, reportes y _prereservas_cache; ver diccionario completo.</text>
+</svg>

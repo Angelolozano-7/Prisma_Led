@@ -1,0 +1,7 @@
+flowchart LR
+ U[Usuario] --> W[WordPress]
+ W -->|CTA pendiente| F[React Vite]
+ F -->|HTTPS JWT| A[Flask Gunicorn]
+ A -->|Service Account| S[Google Sheets]
+ A --> M[SMTP]
+ P[AppSheet] <--> S

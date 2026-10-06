@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<rect width="1600" height="1050" fill="white"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#566275"/></marker></defs>
+<text x="65" y="61" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#6B358F">PRISMALED  /  CIERRE DOCUMENTAL</text>
+<text x="65" y="125" font-family="Arial,sans-serif" font-size="39" font-weight="bold" fill="#222C3C">Arquitectura general</text>
+<polyline points="315,260.0 425,260.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="715,260.0 875,260.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="724.015625" y="175" width="141.96875" height="28" fill="white"/>
+<text x="729.015625" y="195" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">CTA pendiente</text>
+<polyline points="1020.0,310 1020.0,420" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1025.0" y="340.0" width="133.0" height="28" fill="white"/>
+<text x="1030.0" y="360.0" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">HTTPS / JWT</text>
+<polyline points="1020.0,530 1020.0,685" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1025.0" y="582.5" width="153.984375" height="28" fill="white"/>
+<text x="1030.0" y="602.5" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">Service Account</text>
+<polyline points="715,740.0 875,740.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="707.0" y="650" width="176.0" height="28" fill="white"/>
+<text x="712.0" y="670" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">Lectura y escritura</text>
+<polyline points="1165,475.0 1260,475.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1177.0" y="385" width="71.0" height="28" fill="white"/>
+<text x="1182.0" y="405" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">Envíos</text>
+<rect x="65" y="210" width="250" height="100" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="84" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Usuario</text>
+<text x="84" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Cliente web</text>
+<rect x="425" y="210" width="290" height="100" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="444" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">WordPress</text>
+<text x="444" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Página comercial</text>
+<rect x="875" y="210" width="290" height="100" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="894" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">React y Vite</text>
+<text x="894" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Portal de reservas</text>
+<rect x="875" y="420" width="290" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="894" y="462" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Flask y Gunicorn</text>
+<text x="894" y="490" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">API autenticada</text>
+<rect x="875" y="685" width="290" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="894" y="727" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Google Sheets</text>
+<text x="894" y="755" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">BD_PrismaLed</text>
+<rect x="425" y="685" width="290" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="444" y="727" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">AppSheet</text>
+<text x="444" y="755" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Administración</text>
+<rect x="1260" y="420" width="265" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1279" y="462" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">SMTP</text>
+<text x="1279" y="490" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Correo electrónico</text>
+<text x="65" y="967" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">WordPress comercial: PENDIENTE DE VALIDACIÓN DEL CLIENTE. El portal admite acceso directo.</text>
+<text x="65" y="997" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">AppSheet comparte Sheets; sus escrituras no pasan por la API Flask.</text>
+</svg>

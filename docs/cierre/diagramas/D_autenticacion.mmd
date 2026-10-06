@@ -1,0 +1,9 @@
+flowchart LR
+ L[Login correo contraseña] --> H[Comprobar hash]
+ H --> T[Access JWT 60 min]
+ T --> P[Rutas con Bearer]
+ I[Inactividad 60 min] --> W[Aviso continuar]
+ W --> R[Refresh exige JWT válido]
+ R --> T
+ E[JWT caducado] --> L
+ O[Salir] --> B[Eliminar token local]

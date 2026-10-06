@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<rect width="1600" height="1050" fill="white"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#566275"/></marker></defs>
+<text x="65" y="61" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#6B358F">PRISMALED  /  CIERRE DOCUMENTAL</text>
+<text x="65" y="125" font-family="Arial,sans-serif" font-size="39" font-weight="bold" fill="#222C3C">Arquitectura de producción</text>
+<polyline points="355,355.0 565,270.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="465.0" y="287.5" width="105.984375" height="28" fill="white"/>
+<text x="470.0" y="307.5" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">A reservas</text>
+<polyline points="210.0,410 800.0,570" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="510.0" y="465.0" width="113.0" height="28" fill="white"/>
+<text x="515.0" y="485.0" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">CNAME api</text>
+<polyline points="1035,270.0 1180,270.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="1035,630.0 1180,630.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="65" y="300" width="290" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="84" y="342" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Cloudflare</text>
+<text x="84" y="370" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">DNS de los dominios</text>
+<rect x="565" y="210" width="470" height="120" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="584" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Latinoamérica Hosting H3</text>
+<text x="584" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">cPanel · frontend estático</text>
+<text x="584" y="311" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">reservas.prismawall.com.co</text>
+<rect x="565" y="570" width="470" height="120" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="584" y="612" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Render · prismaled-api</text>
+<text x="584" y="640" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Flask / Gunicorn · 1 worker</text>
+<text x="584" y="671" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">api.prismawall.com.co</text>
+<rect x="1180" y="210" width="340" height="120" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1199" y="252" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">React y Vite</text>
+<text x="1199" y="280" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Contenido de dist</text>
+<text x="1199" y="311" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">.htaccess</text>
+<rect x="1180" y="570" width="340" height="120" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1199" y="612" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Sheets y SMTP</text>
+<text x="1199" y="640" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Secret File privado</text>
+<text x="1199" y="671" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Persistencia y correo</text>
+<text x="65" y="967" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">GitHub → Render (backend). Build local → ZIP dist → cPanel (frontend).</text>
+<text x="65" y="997" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">HTTPS accesible. Rama, IP, destino DNS y configuración de paneles pendientes de comprobar.</text>
+</svg>

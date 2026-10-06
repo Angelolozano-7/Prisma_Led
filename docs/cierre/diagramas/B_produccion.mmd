@@ -1,0 +1,8 @@
+flowchart LR
+ C[Cloudflare DNS] -->|A reservas| H[Latinoamérica Hosting H3 cPanel]
+ H --> F[React Vite dist y htaccess]
+ C -->|CNAME api| R[Render prismaled-api]
+ G[GitHub rama por confirmar] --> R
+ R --> A[Flask Gunicorn 1 worker declarado]
+ A --> S[Google Sheets]
+ A --> M[SMTP]

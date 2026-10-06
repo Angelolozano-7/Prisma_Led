@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<rect width="1600" height="1050" fill="white"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#566275"/></marker></defs>
+<text x="65" y="61" font-family="Arial,sans-serif" font-size="21" font-weight="bold" fill="#6B358F">PRISMALED  /  CIERRE DOCUMENTAL</text>
+<text x="65" y="125" font-family="Arial,sans-serif" font-size="39" font-weight="bold" fill="#222C3C">Autenticación y sesión</text>
+<polyline points="395,270.0 630,270.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="477.5" y="180" width="70.0" height="28" fill="white"/>
+<text x="482.5" y="200" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">10/min</text>
+<polyline points="985,270.0 1170,270.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="1345.0,325 1345.0,525" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<polyline points="395,580.0 630,580.0" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="477.5" y="490" width="70.0" height="28" fill="white"/>
+<text x="482.5" y="510" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">20/min</text>
+<polyline points="807.5,525 1345.0,325" fill="none" stroke="#566275" stroke-width="3" marker-end="url(#arrow)"/>
+<rect x="1081.25" y="400.0" width="190.0" height="28" fill="white"/>
+<text x="1086.25" y="420.0" font-family="Arial,sans-serif" font-size="20" font-weight="normal" fill="#566275">Nuevo access token</text>
+<rect x="65" y="215" width="330" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="84" y="257" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Formulario login</text>
+<text x="84" y="285" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Correo y contraseña</text>
+<rect x="630" y="215" width="355" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="649" y="257" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Flask JWT Extended</text>
+<text x="649" y="285" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Verificar hash de usuario</text>
+<rect x="1170" y="215" width="350" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1189" y="257" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Access token JWT</text>
+<text x="1189" y="285" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Caduca en 60 minutos</text>
+<rect x="1170" y="525" width="350" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="1189" y="567" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Rutas protegidas</text>
+<text x="1189" y="595" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Authorization Bearer</text>
+<rect x="630" y="525" width="355" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="649" y="567" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Renovar sesión</text>
+<text x="649" y="595" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">JWT aún válido</text>
+<rect x="65" y="525" width="330" height="110" rx="12" fill="#F5F2F8" stroke="#6B358F" stroke-width="2"/>
+<text x="84" y="567" font-family="Arial,sans-serif" font-size="25" font-weight="bold" fill="#222C3C">Inactividad 60 minutos</text>
+<text x="84" y="595" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#222C3C">Aviso y opción de seguir</text>
+<text x="65" y="967" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">El contador de inactividad y la caducidad del JWT son relojes distintos.</text>
+<text x="65" y="997" font-family="Arial,sans-serif" font-size="22" font-weight="normal" fill="#566275">Cerrar sesión elimina el token local. No existe refresh token independiente ni revocación central.</text>
+</svg>
