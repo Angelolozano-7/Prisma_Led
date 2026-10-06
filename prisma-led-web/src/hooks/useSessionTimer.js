@@ -5,8 +5,8 @@
  * inactividad solicita confirmación y, si el usuario continúa, llama a
  * /auth/refresh-token para reemplazar el JWT de localStorage.
  *
- * Su integración con rutas públicas y las redirecciones se revisará en la
- * fase técnica de cierre.
+ * La renovación requiere un JWT aún válido. El contador de inactividad no
+ * extiende por sí solo la caducidad del token.
  */
 
 import { useEffect, useRef } from 'react';

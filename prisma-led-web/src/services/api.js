@@ -3,7 +3,7 @@
  *
  * Configura Axios, adjunta el JWT almacenado en localStorage y concentra el
  * manejo de respuestas 401 y 429. En desarrollo usa localhost y, para builds
- * de producción, utiliza temporalmente la API pública desplegada en Render.
+ * de producción, utiliza https://api.prismawall.com.co/api por defecto.
  */
 
 
