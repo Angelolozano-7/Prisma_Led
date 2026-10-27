@@ -9,7 +9,6 @@ categorias de Google Sheets. Ambos endpoints requieren JWT.
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from app.services.sheets_client import connect_sheet, get_categorias
-import uuid
 
 categorias_bp = Blueprint('categorias_bp', __name__)
 
@@ -36,18 +35,26 @@ def agregar_categoria():
     Registra una nueva categoría en Google Sheets a partir del campo nombre.
     """
     try:
-        data = request.get_json()
-        nombre = data.get("nombre", "").strip()
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict) or not isinstance(data.get("nombre"), str):
+            return jsonify({"error": "El campo 'nombre' debe ser un texto"}), 400
+        nombre = data["nombre"].strip()
 
         if not nombre:
             return jsonify({"error": "El campo 'nombre' es obligatorio"}), 400
 
-        nuevo_id = uuid.uuid4().hex[:8]
-
         sheet = connect_sheet()
         cat_ws = sheet.worksheet("categorias")
-        cat_ws.append_row([nuevo_id, nombre])
+        # Sheets y AppSheet usan nombre como única columna física y clave.
+        categorias = cat_ws.get_all_records()
+        if any(
+            str(c.get("nombre", "")).strip().casefold() == nombre.casefold()
+            for c in categorias
+        ):
+            return jsonify({"error": "La categoría ya existe"}), 409
 
-        return jsonify({"id_categoria": nuevo_id, "nombre": nombre}), 201
+        cat_ws.append_row([nombre])
+
+        return jsonify({"nombre": nombre}), 201
     except Exception as e:
         return jsonify({'error': f'Error al agregar categoría: {str(e)}'}), 500
