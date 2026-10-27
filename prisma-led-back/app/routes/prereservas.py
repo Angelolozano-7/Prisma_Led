@@ -89,24 +89,25 @@ def obtener_detalle_reserva(id_reserva):
     if not reserva:
         return jsonify({"error": "Pre-reserva no encontrada o no autorizada"}), 404
 
+    detalles_reserva = [
+        d for d in detalles if d["id_prereserva"] == id_reserva
+    ]
     pantallas_resultado = []
-    for d in detalles:
-        if d["id_prereserva"] == id_reserva:
-            id_pantalla = d["id_pantalla"]
-            pantalla = pantallas_dict.get(id_pantalla, {})
-            tarifa = tarifas_dict.get(d["codigo_tarifa"], {})
+    for d in detalles_reserva:
+        id_pantalla = d["id_pantalla"]
+        pantalla = pantallas_dict.get(id_pantalla, {})
+        tarifa = tarifas_dict.get(d["codigo_tarifa"], {})
 
-            segundos = int(tarifa.get("duracion_seg", 0))
-            precio = int(tarifa.get("precio_semana", 0)) * 1
-            
-            pantallas_resultado.append({
-                "id": id_pantalla,
-                "cilindro": pantalla.get("cilindro"),
-                "identificador": pantalla.get("identificador"),
-                "segundos": segundos,
-                "precio": precio
-            })
-
+        segundos = int(tarifa.get("duracion_seg", 0))
+        precio = int(tarifa.get("precio_semana", 0)) * 1
+        
+        pantallas_resultado.append({
+            "id": id_pantalla,
+            "cilindro": pantalla.get("cilindro"),
+            "identificador": pantalla.get("identificador"),
+            "segundos": segundos,
+            "precio": precio
+        })
     return jsonify({
         "id_reserva": reserva["id_prereserva"],
         "fecha_creacion": reserva["fecha_creacion"],
@@ -114,7 +115,7 @@ def obtener_detalle_reserva(id_reserva):
         "duracion": (
             (pd.to_datetime(reserva["fecha_fin"]) - pd.to_datetime(reserva["fecha_inicio"])).days // 7
         ),
-        "categoria": detalles[0]["categoria"] if detalles else "",
+        "categoria": detalles_reserva[0]["categoria"] if detalles_reserva else "",
         "pantallas": pantallas_resultado,
         "uxid": reserva.get("uxid", None)
     }), 200
@@ -529,3 +530,4 @@ def actualizar_prereserva_completa(id_prereserva):
         except Exception as e:
             traceback.print_exc()
             return jsonify({"error": f"Error al actualizar prereserva completa: {str(e)}"}), 500
+
